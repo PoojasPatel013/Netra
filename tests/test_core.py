@@ -22,14 +22,19 @@ async def test_http_scanner_success():
     scanner = HTTPScanner()
     
     # Mock aiohttp.ClientSession
-    with patch("aiohttp.ClientSession.get") as mock_get:
+    with patch("aiohttp.ClientSession") as mock_session_cls:
+        mock_session = AsyncMock()
+        mock_session_cls.return_value.__aenter__.return_value = mock_session
+        
         mock_resp = AsyncMock()
         mock_resp.status = 200
         mock_resp.headers = {"Server": "TestServer", "X-Powered-By": "Python"}
         mock_resp.__aenter__.return_value = mock_resp
-        mock_get.return_value = mock_resp
+        
+        mock_session.get.return_value = mock_resp
         
         results = await scanner.scan("http://example.com")
         assert results["status_code"] == 200
         assert results["server"] == "TestServer"
         assert "Python" in results["tech_stack"]
+

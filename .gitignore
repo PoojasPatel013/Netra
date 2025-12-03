@@ -43,6 +43,11 @@ yarn-error.log*
 *.db
 *.sqlite3
 
+# Scan results
+scan_results.json
+
+.pytest_cache/
+
 # OS
 .DS_Store
 Thumbs.db
