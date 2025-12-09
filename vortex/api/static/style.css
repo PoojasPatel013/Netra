@@ -351,5 +351,106 @@ input[type="text"]:focus {
     font-size: 0.9rem;
     white-space: pre-wrap;
     color: #a5ecbc;
-    overflow-x: auto;
+    max-height: 60vh;
+    overflow-y: auto;
+}
+
+/* Vuln Cards */
+.vuln-grid {
+    display: grid;
+    gap: 1rem;
+}
+
+.vuln-card {
+    background: rgba(255, 255, 255, 0.05);
+    border-left: 4px solid #888;
+    padding: 1rem;
+    border-radius: 4px;
+}
+
+.vuln-card.high,
+.vuln-card.critical {
+    border-left-color: #ff4444;
+    background: rgba(255, 68, 68, 0.1);
+}
+
+.vuln-card.medium {
+    border-left-color: #ffbb33;
+}
+
+.vuln-card.low {
+    border-left-color: #00C851;
+}
+
+.vuln-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.vuln-type {
+    font-weight: bold;
+    font-size: 1.1rem;
+}
+
+.vuln-sev {
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    font-weight: bold;
+}
+
+.vuln-sev.high,
+.vuln-sev.critical {
+    color: #ff4444;
+    border: 1px solid #ff4444;
+}
+
+.vuln-sev.medium {
+    color: #ffbb33;
+    border: 1px solid #ffbb33;
+}
+
+.vuln-sev.low {
+    color: #00C851;
+    border: 1px solid #00C851;
+}
+
+.source-tag {
+    background: var(--accent-primary);
+    color: white;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    margin-left: 10px;
+}
+
+.vuln-desc {
+    color: #ccc;
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+}
+
+.vuln-evidence {
+    background: rgba(0, 0, 0, 0.3);
+    padding: 0.5rem;
+    border-radius: 4px;
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    color: #aaa;
+}
+
+.btn-sm {
+    padding: 0.4rem 0.8rem;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--border-color);
+    color: white;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.btn-sm:hover {
+    background: rgba(255, 255, 255, 0.2);
 }

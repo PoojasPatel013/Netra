@@ -19,6 +19,7 @@ class ScanCreate(SQLModel):
 class ScanRead(SQLModel):
     id: int
     target: str
+    scan_type: str
     status: str
     created_at: datetime
     results: Dict[str, Any]

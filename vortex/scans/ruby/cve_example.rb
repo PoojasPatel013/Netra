@@ -3,9 +3,9 @@ require 'json'
 require 'net/http'
 require 'uri'
 
-# Example Ruby Exploit Script for Vortex Polyglot Engine
-# Simulates checking for a CVE (e.g., CVE-2023-XXXX) by making a request
-# and returning a structured JSON result.
+# Real Robots.txt Analyzer for Vortex
+# Fetches robots.txt and identifies sensitive 'Disallow' entries.
+# This provides REAL dynamic feedback based on the target.
 
 target = ARGV[0]
 if target.nil?
@@ -13,47 +13,67 @@ if target.nil?
   exit 1
 end
 
-# Make sure target has protocol
-unless target.start_with?("http")
-  target = "http://" + target
-end
+# Ensure protocol
+target = "http://" + target unless target.start_with?("http")
 
 begin
   uri = URI.parse(target)
-  response = Net::HTTP.get_response(uri)
+  robots_uri = URI.join(uri, "/robots.txt")
   
-  # Simulated Check Logic
-  is_vulnerable = false
-  details = "Target responded with #{response.code}"
+  response = Net::HTTP.get_response(robots_uri)
   
-  if response['server']&.downcase&.include?('outdated-server')
-    is_vulnerable = true
-    details = "Detected outdated server header"
-  end
-
   result = {
-    script: "cve_2023_example.rb",
+    script: "robots_analyzer.rb",
     target: target,
     vulnerabilities: []
   }
 
-  if is_vulnerable
-    result[:vulnerabilities] << {
-      type: "CVE-2023-EXAMPLE",
-      severity: "High",
-      details: details
-    }
-  end
+  if response.code == '200'
+    sensitive_paths = ['/admin', '/private', '/config', '/api', '/dashboard', '/db', '/backup']
+    disallowed_entries = []
+    
+    response.body.each_line do |line|
+      if line.match?(/^Disallow:/i)
+        path = line.split(':')[1].strip
+        disallowed_entries << path
+        
+        # Check if path is sensitive
+        if sensitive_paths.any? { |s| path.downcase.include?(s) }
+          result[:vulnerabilities] << {
+            type: "Sensitive Robots.txt Entry",
+            severity: "Medium",
+            details: "Found sensitive path disallowed in robots.txt: #{path}",
+            evidence: line.strip,
+            source: "RubyEngine"
+          }
+        end
+      end
+    end
+    
+    # If no sensitive paths, still report we found robots.txt
+    if result[:vulnerabilities].empty? && disallowed_entries.any?
+        result[:vulnerabilities] << {
+            type: "Robots.txt Found",
+            severity: "Info",
+            details: "Found robots.txt with #{disallowed_entries.count} disallow entries.",
+            evidence: "First 3: #{disallowed_entries.take(3).join(', ')}",
+            source: "RubyEngine"
+        }
+    end
 
-  # For demonstration, we'll always return a "Low" info finding
-  result[:vulnerabilities] << {
-    type: "Ruby Engine Check",
-    severity: "Info",
-    details: "Ruby script executed successfully against #{target}"
-  }
+  else
+    # Only report if missing if we really want to be verbose, but let's keep it clean.
+    # We don't report anything if robots.txt is missing to avoid noise.
+  end
 
   puts JSON.generate(result)
 
 rescue StandardError => e
-  puts JSON.generate({ error: e.message })
+  # Return empty vulns on error to not break pipeline
+  puts JSON.generate({ 
+    script: "robots_analyzer.rb",
+    target: target,
+    vulnerabilities: [],
+    error: e.message 
+  })
 end

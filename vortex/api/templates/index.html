@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,8 +8,11 @@
     <link rel="stylesheet" href="/static/style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Space+Mono:wght@400;700&display=swap"
+        rel="stylesheet">
 </head>
+
 <body>
     <div class="app-container">
         <!-- Sidebar -->
@@ -17,7 +21,7 @@
                 <div class="logo-icon">V</div>
                 <h1>VORTEX</h1>
             </div>
-            
+
             <nav class="nav-menu">
                 <a href="#" class="nav-item active" onclick="switchView('dashboard')">
                     <span class="icon">⚡</span> Dashboard
@@ -96,7 +100,7 @@
                                     <span class="card-desc">Introspection Checks</span>
                                 </div>
                             </label>
-                            
+
                             <label class="toggle-card">
                                 <input type="checkbox" name="auto_exploit">
                                 <div class="card-content">
@@ -120,7 +124,10 @@
 
             <!-- History View -->
             <div id="view-history" class="content-view" style="display: none;">
-                <h2>Scan History</h2>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+                    <h2>Scan History</h2>
+                    <button onclick="refreshHistory()" class="btn-sm">🔄 Refresh</button>
+                </div>
                 <div class="table-container">
                     <table class="data-table">
                         <thead>
@@ -153,4 +160,5 @@
 
     <script src="/static/app.js"></script>
 </body>
+
 </html>

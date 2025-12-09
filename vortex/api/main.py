@@ -82,11 +82,12 @@ async def run_scan_task(scan_id: int):
             # Configure Scanners (Based on Options)
             opts = scan.options or {}
             
+            # Default Scanners
             v_engine.register_scanner(HTTPScanner())
             
             port_list = None
             if opts.get("ports"):
-                # Handle comma separated string or list
+                 # Handle comma separated string or list
                 p_arg = opts.get("ports")
                 if isinstance(p_arg, str):
                     port_list = [int(p) for p in p_arg.split(",")]
@@ -103,18 +104,27 @@ async def run_scan_task(scan_id: int):
                 
             if opts.get("graphql", False):
                 v_engine.register_scanner(GraphQLScanner())
+            
+            # Auto Exploit (Polyglot)
+            if opts.get("auto_exploit", False):
+                 v_engine.register_scanner(PentestEngine())
 
-            results = await v_engine.scan_target(scan.target)
+            # Run with timeout to prevent zombies
+            results = await asyncio.wait_for(v_engine.scan_target(scan.target), timeout=300)
             
             scan.results = results
             scan.status = "completed"
             
+        except asyncio.TimeoutError:
+             scan.status = "failed"
+             scan.results = {"error": "Scan timed out (300s limit)"}
         except Exception as e:
+            print(f"Scan Task Error: {e}")
             scan.status = "failed"
             scan.results = {"error": str(e)}
-            
-        session.add(scan)
-        await session.commit()
+        finally:
+            session.add(scan)
+            await session.commit()
 
 @app.post("/scans", response_model=ScanRead)
 async def create_scan(scan_in: ScanCreate, background_tasks: BackgroundTasks, session: AsyncSession = Depends(get_session)):
