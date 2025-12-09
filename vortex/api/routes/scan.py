@@ -28,34 +28,33 @@ async def run_scan_background(scan_id: int, target: str):
     results = await engine.scan_target(target)
     
     # Update DB
-    with Session(engine.engine) as session: # Re-import engine from database.py if needed, but we can use the one from get_session logic or just import it
-        from vortex.core.database import engine as db_engine
-        with Session(db_engine) as db_session:
-            scan = db_session.get(Scan, scan_id)
-            if scan:
-                scan.status = "completed"
-                db_session.add(scan)
-                
-                # Save Vulnerabilities
-                # Flatten results from different modules
-                for module, data in results.items():
-                    if module == "PortScanner":
-                        for port in data.get("open_ports", []):
-                            db_session.add(Vulnerability(scan_id=scan_id, type="Open Port", severity="Info", description=f"Port {port} is open"))
-                    elif module == "HTTPScanner":
-                        if "server" in data:
-                             db_session.add(Vulnerability(scan_id=scan_id, type="Tech Stack", severity="Info", description=f"Server: {data['server']}"))
-                    elif module == "PentestEngine":
-                        for vuln in data.get("vulnerabilities", []):
-                            db_session.add(Vulnerability(
-                                scan_id=scan_id, 
-                                type=vuln["type"], 
-                                severity=vuln["severity"], 
-                                description=vuln["description"],
-                                evidence=vuln.get("evidence")
-                            ))
-                
-                db_session.commit()
+    from vortex.core.database import engine as db_engine
+    with Session(db_engine) as session:
+        scan = session.get(Scan, scan_id)
+        if scan:
+            scan.status = "completed"
+            session.add(scan)
+            
+            # Save Vulnerabilities
+            # Flatten results from different modules
+            for module, data in results.items():
+                if module == "PortScanner":
+                    for port in data.get("open_ports", []):
+                        session.add(Vulnerability(scan_id=scan_id, type="Open Port", severity="Info", description=f"Port {port} is open"))
+                elif module == "HTTPScanner":
+                    if "server" in data:
+                         session.add(Vulnerability(scan_id=scan_id, type="Tech Stack", severity="Info", description=f"Server: {data['server']}"))
+                elif module == "PentestEngine":
+                    for vuln in data.get("vulnerabilities", []):
+                        session.add(Vulnerability(
+                            scan_id=scan_id, 
+                            type=vuln["type"], 
+                            severity=vuln["severity"], 
+                            description=vuln["description"],
+                            evidence=vuln.get("evidence")
+                        ))
+            
+            session.commit()
 
 @router.post("/start")
 async def start_scan(request: ScanRequest, background_tasks: BackgroundTasks, session: Session = Depends(get_session)):

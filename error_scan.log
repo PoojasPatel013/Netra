@@ -1,0 +1,30 @@
+Traceback (most recent call last):
+
+  File "/home/fierypooja/Vortex/.venv/lib/python3.10/site-packages/typer/core.py", line 225, in _main
+    rv = self.invoke(ctx)
+
+  File "/home/fierypooja/Vortex/.venv/lib/python3.10/site-packages/click/core.py", line 1871, in invoke
+    sub_ctx = cmd.make_context(cmd_name, args, parent=ctx)
+
+  File "/home/fierypooja/Vortex/.venv/lib/python3.10/site-packages/click/core.py", line 1216, in make_context
+    self.parse_args(ctx, args)
+
+  File "/home/fierypooja/Vortex/.venv/lib/python3.10/site-packages/click/core.py", line 1243, in parse_args
+    ctx.fail(
+
+  File "/home/fierypooja/Vortex/.venv/lib/python3.10/site-packages/click/core.py", line 724, in fail
+    raise UsageError(message, self)
+
+click.exceptions.UsageError: Got unexpected extra argument (80)
+
+
+During handling of the above exception, another exception occurred:
+
+
+Traceback (most recent call last):
+
+  File "/home/fierypooja/Vortex/run.py", line 10, in <module>
+    app()
+
+TypeError: TyperArgument.make_metavar() takes 1 positional argument but 2 were given
+

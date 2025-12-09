@@ -7,7 +7,7 @@ readme = "README.md"
 packages = [{include = "vortex"}]
 
 [tool.poetry.dependencies]
-python = "^3.11"
+python = "^3.10"
 aiohttp = "^3.9.0"
 fastapi = "^0.109.0"
 uvicorn = "^0.27.0"

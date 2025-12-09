@@ -1,6 +1,7 @@
 import asyncio
 import typer
 import json
+from typing import Optional
 from vortex.core.engine import VortexEngine
 from vortex.core.modules.network import PortScanner
 from vortex.core.modules.http import HTTPScanner
@@ -16,7 +17,7 @@ def version():
     print("Vortex v0.1.0")
 
 @app.command()
-def scan(target: str, auto_exploit: bool = False, ports: str = None):
+def scan(target: str = typer.Argument(..., help="Target URL"), auto_exploit: bool = typer.Option(False, "--auto-exploit", help="Enable auto exploitation"), ports: str = typer.Option(None, "--ports", "-p", help="Comma separated list of ports")):
     """
     Run a scan against a target.
     """
