@@ -14,10 +14,10 @@ class DefectDojoClient:
             "Content-Type": "application/json"
         }
 
-    async def import_scan(self, scan_results: dict, engagement_id: int, scan_type: str = "Vortex Scan"):
+    async def import_scan(self, scan_results: dict, engagement_id: int, scan_type: str = "Netra Scan"):
         """
         Imports scan results into DefectDojo.
-        Note: This requires transforming Vortex results into a format DefectDojo accepts (e.g., Generic Findings Import)
+        Note: This requires transforming Netra results into a format DefectDojo accepts (e.g., Generic Findings Import)
         """
         endpoint = f"{self.url}/api/v2/import-scan/"
         
@@ -66,7 +66,7 @@ class DefectDojoClient:
         data.add_field("close_old_findings", "false")
         
         # Add the file
-        data.add_field("file", file_content, filename="vortex_results.json", content_type="application/json")
+        data.add_field("file", file_content, filename="netra_results.json", content_type="application/json")
         
         try:
             async with aiohttp.ClientSession(headers={"Authorization": f"Token {self.api_key}"}) as session:

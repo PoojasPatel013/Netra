@@ -10,24 +10,24 @@ from sqlmodel import SQLModel, select
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 
-from vortex.api.models import Scan, ScanCreate, ScanRead
-from vortex.core.engine import VortexEngine
-from vortex.core.modules.network import PortScanner
-from vortex.core.modules.http import HTTPScanner
-from vortex.core.modules.cloud import CloudScanner
-from vortex.core.modules.iot import IoTScanner
-from vortex.core.modules.graphql import GraphQLScanner
-from vortex.core.modules.pentest import PentestEngine
-from vortex.integrations.defectdojo import DefectDojoClient
-from vortex.core.reporter import SARIFReporter
-from vortex.core.modules.recon import CTScanner
-from vortex.core.modules.secrets import SecretScanner
-from vortex.core.modules.api_fuzzer import APIScanner
+from netra.api.models import Scan, ScanCreate, ScanRead
+from netra.core.engine import NetraEngine
+from netra.core.modules.network import PortScanner
+from netra.core.modules.http import HTTPScanner
+from netra.core.modules.cloud import CloudScanner
+from netra.core.modules.iot import IoTScanner
+from netra.core.modules.graphql import GraphQLScanner
+from netra.core.modules.pentest import PentestEngine
+from netra.integrations.defectdojo import DefectDojoClient
+from netra.core.reporter import SARIFReporter
+from netra.core.modules.recon import CTScanner
+from netra.core.modules.secrets import SecretScanner
+from netra.core.modules.api_fuzzer import APIScanner
 from redis import asyncio as aioredis
 
 # Database Setup
 # Use SQLite for local development default, Postgres for Docker
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite+aiosqlite:///vortex.db")
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite+aiosqlite:///netra.db")
 REDIS_URL = os.getenv("REDIS_URL")
 
 engine = create_async_engine(DATABASE_URL, echo=True, future=True)
@@ -43,7 +43,7 @@ async def get_session():
     async with async_session() as session:
         yield session
 
-app = FastAPI(title="Vortex API", version="0.1.0")
+app = FastAPI(title="Netra API", version="0.1.0")
 
 # Setup Static & Templates
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -84,8 +84,8 @@ async def run_scan_task(scan_id: int):
         await session.commit()
         
         try:
-            # Run Vortex Engine
-            v_engine = VortexEngine()
+            # Run Netra Engine
+            v_engine = NetraEngine()
             
             # Configure Scanners (Based on Options)
             opts = scan.options or {}
@@ -171,7 +171,7 @@ async def create_scan(scan_in: ScanCreate, background_tasks: BackgroundTasks, se
     if REDIS_URL:
         try:
             redis = aioredis.from_url(REDIS_URL, encoding="utf-8", decode_responses=True)
-            await redis.rpush("vortex_tasks", str(scan.id))
+            await redis.rpush("netra_tasks", str(scan.id))
             print(f"Dispatched Scan {scan.id} to Drone Grid")
             await redis.close()
         except Exception as e:

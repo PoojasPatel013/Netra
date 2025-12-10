@@ -3,14 +3,14 @@ import typer
 import json
 import uvicorn
 from typing import Optional
-from vortex.core.engine import VortexEngine
-from vortex.core.modules.network import PortScanner
-from vortex.core.modules.http import HTTPScanner
-from vortex.core.modules.pentest import PentestEngine
-from vortex.core.modules.cloud import CloudScanner
-from vortex.core.modules.iot import IoTScanner
-from vortex.core.modules.graphql import GraphQLScanner
-from vortex.core.reporter import SARIFReporter
+from netra.core.engine import NetraEngine
+from netra.core.modules.network import PortScanner
+from netra.core.modules.http import HTTPScanner
+from netra.core.modules.pentest import PentestEngine
+from netra.core.modules.cloud import CloudScanner
+from netra.core.modules.iot import IoTScanner
+from netra.core.modules.graphql import GraphQLScanner
+from netra.core.reporter import SARIFReporter
 
 app = typer.Typer()
 
@@ -19,7 +19,7 @@ def version():
     """
     Show version.
     """
-    print("Vortex v0.1.0")
+    print("Netra v0.1.0")
 
 @app.command()
 def serve(
@@ -29,8 +29,8 @@ def serve(
     """
     Start the API server.
     """
-    print(f"Starting Vortex API on {host}:{port}")
-    uvicorn.run("vortex.api.main:app", host=host, port=port, reload=True)
+    print(f"Starting Netra API on {host}:{port}")
+    uvicorn.run("netra.api.main:app", host=host, port=port, reload=True)
 
 @app.command()
 def scan(
@@ -46,7 +46,7 @@ def scan(
     Run a scan against a target.
     """
     async def run():
-        engine = VortexEngine()
+        engine = NetraEngine()
         
         # Configure Port Scanner
         port_list = None

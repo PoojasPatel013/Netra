@@ -6,21 +6,21 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - DATABASE_URL=postgresql+asyncpg://vortex:vortexpassword@db:5432/vortex_db
+      - DATABASE_URL=postgresql+asyncpg://netra:netrapassword@db:5432/netra_db
       - REDIS_URL=redis://redis:6379/0
     depends_on:
       - db
       - redis
     volumes:
       - .:/app # Hot reload for development
-    command: uvicorn vortex.api.main:app --host 0.0.0.0 --port 8000 --reload
+    command: uvicorn netra.api.main:app --host 0.0.0.0 --port 8000 --reload
 
   db:
     image: postgres:15-alpine
     environment:
-      - POSTGRES_USER=vortex
-      - POSTGRES_PASSWORD=vortexpassword
-      - POSTGRES_DB=vortex_db
+      - POSTGRES_USER=netra
+      - POSTGRES_PASSWORD=netrapassword
+      - POSTGRES_DB=netra_db
     ports:
       - "5432:5432"
     volumes:
@@ -34,14 +34,14 @@ services:
   worker:
     build: .
     environment:
-      - DATABASE_URL=postgresql+asyncpg://vortex:vortexpassword@db:5432/vortex_db
+      - DATABASE_URL=postgresql+asyncpg://netra:netrapassword@db:5432/netra_db
       - REDIS_URL=redis://redis:6379/0
     depends_on:
       - db
       - redis
     volumes:
       - .:/app
-    command: python -m vortex.core.worker
+    command: python -m netra.core.worker
 
 volumes:
   postgres_data:

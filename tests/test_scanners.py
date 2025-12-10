@@ -1,9 +1,9 @@
 import pytest
 import re
 from aioresponses import aioresponses
-from vortex.core.modules.cloud import CloudScanner
-from vortex.core.modules.graphql import GraphQLScanner
-from vortex.core.http import SafeHTTPClient
+from netra.core.modules.cloud import CloudScanner
+from netra.core.modules.graphql import GraphQLScanner
+from netra.core.http import SafeHTTPClient
 
 @pytest.mark.asyncio
 async def test_cloud_scanner_found():

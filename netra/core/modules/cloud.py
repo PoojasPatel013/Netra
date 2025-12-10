@@ -1,10 +1,10 @@
 import aiohttp
 import logging
 from typing import Dict, Any
-from vortex.core.scanner import BaseScanner
-from vortex.core.http import SafeHTTPClient
+from netra.core.scanner import BaseScanner
+from netra.core.http import SafeHTTPClient
 
-logger = logging.getLogger("vortex.core.cloud")
+logger = logging.getLogger("netra.core.cloud")
 
 class CloudScanner(BaseScanner):
     async def scan(self, target: str) -> Dict[str, Any]:

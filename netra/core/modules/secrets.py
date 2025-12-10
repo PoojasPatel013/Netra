@@ -2,10 +2,10 @@ import re
 import math
 import logging
 from typing import Dict, Any, List
-from vortex.core.scanner import BaseScanner
-from vortex.core.http import SafeHTTPClient
+from netra.core.scanner import BaseScanner
+from netra.core.http import SafeHTTPClient
 
-logger = logging.getLogger("vortex.core.secrets")
+logger = logging.getLogger("netra.core.secrets")
 
 class SecretScanner(BaseScanner):
     def __init__(self):

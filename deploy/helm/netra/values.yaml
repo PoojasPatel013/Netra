@@ -41,5 +41,5 @@ resources:
     memory: 128Mi
 
 env:
-  DATABASE_URL: "postgresql+asyncpg://user:pass@postgres-service:5432/vortex"
+  DATABASE_URL: "postgresql+asyncpg://netra:netrapassword@postgres-service:5432/netra_db"
   REDIS_URL: "redis://redis-service:6379/0"

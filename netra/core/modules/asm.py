@@ -1,10 +1,10 @@
 import logging
 import asyncio
 from typing import Dict, Any, List
-from vortex.core.scanner import BaseScanner
-from vortex.core.modules.recon import CTScanner
+from netra.core.scanner import BaseScanner
+from netra.core.modules.recon import CTScanner
 
-logger = logging.getLogger("vortex.core.asm")
+logger = logging.getLogger("netra.core.asm")
 
 class ASMScanner(BaseScanner):
     async def scan(self, target: str) -> Dict[str, Any]:

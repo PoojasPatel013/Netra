@@ -1,18 +1,18 @@
 from fastapi import APIRouter, BackgroundTasks, HTTPException, Depends
 from pydantic import BaseModel
 from typing import List, Optional
-from vortex.core.engine import VortexEngine
-from vortex.core.modules.network import PortScanner
-from vortex.core.modules.http import HTTPScanner
-from vortex.core.modules.pentest import PentestEngine
-from vortex.core.database import get_session, Scan, Vulnerability
+from netra.core.engine import NetraEngine
+from netra.core.modules.network import PortScanner
+from netra.core.modules.http import HTTPScanner
+from netra.core.modules.pentest import PentestEngine
+from netra.core.database import get_session, Scan, Vulnerability
 from sqlmodel import Session, select
 import asyncio
 
 router = APIRouter()
 
 # Global engine instance (simple in-memory state for now)
-engine = VortexEngine()
+engine = NetraEngine()
 # Register default scanners
 engine.register_scanner(PortScanner())
 engine.register_scanner(HTTPScanner())
@@ -28,7 +28,7 @@ async def run_scan_background(scan_id: int, target: str):
     results = await engine.scan_target(target)
     
     # Update DB
-    from vortex.core.database import engine as db_engine
+    from netra.core.database import engine as db_engine
     with Session(db_engine) as session:
         scan = session.get(Scan, scan_id)
         if scan:

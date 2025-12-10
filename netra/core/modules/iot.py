@@ -2,9 +2,9 @@ import asyncio
 import logging
 from typing import Dict, Any
 from gmqtt import Client as MQTTClient
-from vortex.core.scanner import BaseScanner
+from netra.core.scanner import BaseScanner
 
-logger = logging.getLogger("vortex.core.iot")
+logger = logging.getLogger("netra.core.iot")
 
 class IoTScanner(BaseScanner):
     async def scan(self, target: str) -> Dict[str, Any]:
@@ -16,7 +16,7 @@ class IoTScanner(BaseScanner):
             "details": "Port 1883 closed or filtered"
         }
         
-        client = MQTTClient("vortex-scanner")
+        client = MQTTClient("netra-scanner")
         
         connected = False
         

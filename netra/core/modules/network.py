@@ -1,7 +1,7 @@
 import asyncio
 import socket
 from typing import Dict, Any, List
-from vortex.core.scanner import BaseScanner
+from netra.core.scanner import BaseScanner
 
 class PortScanner(BaseScanner):
     def __init__(self, ports: List[int] = None, concurrency: int = 100):

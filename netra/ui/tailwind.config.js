@@ -7,7 +7,7 @@ export default {
     theme: {
         extend: {
             colors: {
-                vortex: {
+                netra: {
                     dark: "#0f172a",
                     primary: "#3b82f6",
                     accent: "#8b5cf6",

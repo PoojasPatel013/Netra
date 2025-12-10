@@ -4,7 +4,7 @@ from datetime import datetime
 import os
 
 # Database Setup
-sqlite_file_name = "vortex.db"
+sqlite_file_name = "netra.db"
 sqlite_url = f"sqlite:///{sqlite_file_name}"
 
 engine = create_engine(sqlite_url)

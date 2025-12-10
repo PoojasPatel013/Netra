@@ -1,8 +1,8 @@
 import pytest
 import asyncio
 from unittest.mock import AsyncMock, patch
-from vortex.core.modules.network import PortScanner
-from vortex.core.modules.http import HTTPScanner
+from netra.core.modules.network import PortScanner
+from netra.core.modules.http import HTTPScanner
 
 @pytest.mark.asyncio
 async def test_port_scanner_open():

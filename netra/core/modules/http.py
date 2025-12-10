@@ -1,8 +1,8 @@
 import aiohttp
 import ssl
 from typing import Dict, Any
-from vortex.core.scanner import BaseScanner
-from vortex.core.http import SafeHTTPClient
+from netra.core.scanner import BaseScanner
+from netra.core.http import SafeHTTPClient
 
 class HTTPScanner(BaseScanner):
     async def scan(self, target: str) -> Dict[str, Any]:

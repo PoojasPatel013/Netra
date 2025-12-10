@@ -2,7 +2,7 @@ import json
 from typing import Dict, Any, List
 
 class SARIFReporter:
-    def __init__(self, tool_name: str = "Vortex", tool_version: str = "0.1.0"):
+    def __init__(self, tool_name: str = "Netra", tool_version: str = "0.1.0"):
         self.tool_name = tool_name
         self.tool_version = tool_version
         self.rules = []
@@ -21,7 +21,7 @@ class SARIFReporter:
                     "text": description
                 },
                 "properties": {
-                    "tags": ["security", "vortex"]
+                    "tags": ["security", "netra"]
                 }
             })
             self.rule_ids.add(rule_id)
@@ -56,7 +56,7 @@ class SARIFReporter:
 
     def convert_scan_results(self, scan_results: Dict[str, Any], target: str) -> Dict[str, Any]:
         """
-        Parses Vortex internal JSON results and populates SARIF results.
+        Parses Netra internal JSON results and populates SARIF results.
         """
         # Module A: HTTP
         if "HTTPScanner" in scan_results:

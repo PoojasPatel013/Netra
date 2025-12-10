@@ -7,26 +7,29 @@ from sqlmodel import select
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 
-from vortex.api.models import Scan
-from vortex.core.engine import VortexEngine
+from netra.api.models import Scan
+from netra.core.engine import NetraEngine
 # Import Scanners
-from vortex.core.modules.network import PortScanner
-from vortex.core.modules.http import HTTPScanner
-from vortex.core.modules.cloud import CloudScanner
-from vortex.core.modules.iot import IoTScanner
-from vortex.core.modules.graphql import GraphQLScanner
-from vortex.core.modules.pentest import PentestEngine
-from vortex.core.modules.recon import CTScanner
-from vortex.core.modules.secrets import SecretScanner
-from vortex.core.modules.api_fuzzer import APIScanner
-from vortex.integrations.defectdojo import DefectDojoClient
+from netra.core.modules.network import PortScanner
+from netra.core.modules.http import HTTPScanner
+from netra.core.modules.cloud import CloudScanner
+from netra.core.modules.iot import IoTScanner
+from netra.core.modules.graphql import GraphQLScanner
+from netra.core.modules.pentest import PentestEngine
+from netra.core.modules.recon import CTScanner
+from netra.core.modules.secrets import SecretScanner
+from netra.core.modules.api_fuzzer import APIScanner
+from netra.core.modules.iam import IAMScanner
+from netra.core.modules.resilience import ResilienceScanner
+from netra.core.modules.threat import ThreatScanner
+from netra.integrations.defectdojo import DefectDojoClient
 
 # Config
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite+aiosqlite:///vortex.db")
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite+aiosqlite:///netra.db")
 REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
 
 logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger("vortex.worker")
+logger = logging.getLogger("netra.worker")
 
 engine = create_async_engine(DATABASE_URL, echo=False, future=True)
 
@@ -46,7 +49,7 @@ async def process_scan(scan_id: int):
         
         try:
             # Init Engine
-            v_engine = VortexEngine()
+            v_engine = NetraEngine()
             opts = scan.options or {}
             
             # 1. Always Run Recon (Passive)
@@ -83,6 +86,17 @@ async def process_scan(scan_id: int):
             if opts.get("auto_exploit", False):
                 v_engine.register_scanner(PentestEngine())
 
+            # Enterprise Modules (Always on for specific tiers, optional here for UI control)
+            # For this MVP, we enable them if not specifically disabled, or add new options
+            if opts.get("iam_audit", True):
+                v_engine.register_scanner(IAMScanner())
+            
+            if opts.get("resilience_check", False): # Default off to avoid stress
+                v_engine.register_scanner(ResilienceScanner())
+                
+            if opts.get("threat_intel", True):
+                v_engine.register_scanner(ThreatScanner())
+
             # Execution
             logger.info("Executing scan logic...")
             results = await v_engine.scan_target(scan.target)
@@ -108,13 +122,13 @@ async def process_scan(scan_id: int):
             await session.commit()
 
 async def worker():
-    logger.info("Vortex Drone Online. Waiting for tasks...")
+    logger.info("Netra Drone Online. Waiting for tasks...")
     redis = aioredis.from_url(REDIS_URL, encoding="utf-8", decode_responses=True)
     
     while True:
         try:
             # Blocking pop
-            task = await redis.blpop("vortex_tasks", timeout=5)
+            task = await redis.blpop("netra_tasks", timeout=5)
             if task:
                 _, scan_id = task
                 await process_scan(int(scan_id))

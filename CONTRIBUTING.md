@@ -1,4 +1,4 @@
-# Contributing to Vortex
+# Contributing to Netra
 
 First off, thanks for taking the time to contribute! ❤️
 
@@ -18,13 +18,13 @@ All types of contributions are encouraged and valued. See the [Table of Contents
 
 > If you want to ask a question, we assume that you have read the available [Documentation](README.md).
 
-Before you ask a question, it is best to search for existing [Issues](https://github.com/PoojasPatel013/vortex/issues) that might help you. In case you've found a suitable issue and still need clarification, you can write your question in this issue. It is also advisable to search the internet for answers first.
+Before you ask a question, it is best to search for existing [Issues](https://github.com/PoojasPatel013/netra/issues) that might help you. In case you've found a suitable issue and still need clarification, you can write your question in this issue. It is also advisable to search the internet for answers first.
 
 ## I Want To Contribute
 
 ### Reporting Bugs
 
-This section guides you through submitting a bug report for Vortex. Following these guidelines helps maintainers and the community understand your report, reproduce the behavior, and find related reports.
+This section guides you through submitting a bug report for Netra. Following these guidelines helps maintainers and the community understand your report, reproduce the behavior, and find related reports.
 
 **Before Submitting a Bug Report**
 
@@ -33,21 +33,23 @@ This section guides you through submitting a bug report for Vortex. Following th
 
 **How do I submit a (good) bug report?**
 
-Bugs are tracked as [GitHub issues](https://github.com/PoojasPatel013/vortex/issues). Create an issue on that repository and provide the following information by filling in [the template](.github/ISSUE_TEMPLATE/bug_report.md).
+Bugs are tracked as [GitHub issues](https://github.com/PoojasPatel013/netra/issues). Create an issue on that repository and provide the following information by filling in [the template](.github/ISSUE_TEMPLATE/bug_report.md).
 
 ### Suggesting Enhancements
 
-This section guides you through submitting an enhancement suggestion for Vortex, including completely new features and minor improvements to existing functionality. Following these guidelines helps maintainers and the community understand your suggestion and find related suggestions.
+This section guides you through submitting an enhancement suggestion for Netra, including completely new features and minor improvements to existing functionality. Following these guidelines helps maintainers and the community understand your suggestion and find related suggestions.
 
 **How do I submit a (good) enhancement suggestion?**
 
-Enhancement suggestions are tracked as [GitHub issues](https://github.com/PoojasPatel013/vortex/issues). Create an issue on that repository and provide the following information:
+Enhancement suggestions are tracked as [GitHub issues](https://github.com/PoojasPatel013/netra/issues). Create an issue on that repository and provide the following information:
 
 * **Use a clear and descriptive title** for the issue to identify the suggestion.
 * **Provide a step-by-step description of the suggested enhancement** in as much detail as possible.
 * **Describe the current behavior** and **explain which behavior you expected to see instead** and why.
 
 ## Styleguides
+
+
 
 ### Commit Messages
 

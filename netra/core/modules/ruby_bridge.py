@@ -8,7 +8,7 @@ class RubyBridge:
         if scripts_dir:
             self.scripts_dir = scripts_dir
         else:
-            # Default to vortex/scans/ruby
+            # Default to netra/scans/ruby
             base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
             self.scripts_dir = os.path.join(base_dir, "scans", "ruby")
 

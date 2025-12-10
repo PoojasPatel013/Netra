@@ -1,8 +1,8 @@
 import pytest
 import aiohttp
 from aioresponses import aioresponses
-from vortex.core.http import SafeHTTPClient
-from vortex.core.reporter import SARIFReporter
+from netra.core.http import SafeHTTPClient
+from netra.core.reporter import SARIFReporter
 
 # 1. Unit Test for Reporter (SARIF Standardization)
 def test_sarif_reporter_structure():
@@ -19,7 +19,7 @@ def test_sarif_reporter_structure():
     
     # Check SARIF Compliance
     assert report["version"] == "2.1.0"
-    assert report["runs"][0]["tool"]["driver"]["name"] == "Vortex"
+    assert report["runs"][0]["tool"]["driver"]["name"] == "Netra"
     assert len(report["runs"][0]["results"]) == 1
     assert report["runs"][0]["results"][0]["level"] == "error" # High = error
 

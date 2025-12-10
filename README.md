@@ -27,6 +27,27 @@ While traditional scanners wait for you to define a target, NETRA continuously m
 **The Problem**: Undocumented APIs are the easiest way to breach a company.
 **The Solution**: NETRA parses client-side JavaScript bundles to extract API routes that are not in the official documentation (Shadow APIs) and tests them for **Broken Object Level Authorization (BOLA)**.
 
+### 🔐 Feature D: Identity & Access Auditor (IAM Security)
+**The Problem**: Weak sessions allow account takeovers (hijacking).
+**The Solution**: A dedicated module that audits authentication flows without exploiting them:
+*   **OAuth/SAML Validator**: Checks for misconfigured redirect URIs and weak token signatures.
+*   **Session Strength Analysis**: Verifies entropy of session cookies and presence of `Secure`/`HttpOnly` flags.
+*   **MFA Gap Analysis**: Identifies administrative portals that lack Multi-Factor Authentication.
+
+### 📉 Feature E: Resilience & Stress Testing
+**The Problem**: Denial of Service (DoS) attacks cause downtime and revenue loss.
+**The Solution**: Controlled availability testing to ensure systems don't crash.
+*   **Rate Limit Verification**: Safely tests if API endpoints correctly block traffic after a threshold (e.g., 100 req/min).
+*   **Load Simulation**: Simulates user traffic spikes to validate auto-scaling rules in Kubernetes.
+*   **Slowloris Defense Check**: Verifies web server timeouts are configured to prevent connection exhaustion.
+
+### 🕵️ Feature F: Dark Web Threat Intelligence
+**The Problem**: Attackers often buy access using stolen credentials before launching an attack.
+**The Solution**: NETRA actively monitors external leak sources for corporate data.
+*   **Breach Radar**: Integrates with "HaveIBeenPwned" and private leak databases to alert instantly if corporate emails appear in a data dump.
+*   **Paste Site Monitor**: Scrapes sites like Pastebin and GitHub Gists for accidental leaks of API keys or internal config files.
+*   **Executive Protection**: specialized monitoring for C-suite personal emails to prevent spear-phishing campaigns.
+
 ---
 
 ## 3. Enterprise Architecture
@@ -42,17 +63,6 @@ NETRA is designed to handle massive scale using a distributed microservices arch
 ```bash
 helm repo add netra https://charts.netra-security.io
 helm install netra-platform netra/enterprise --set replicas=50
-```
-
-### Local Development (Docker Compose)
-For testing and development, you can spin up the distributed cluster locally:
-```bash
-# Clone repository
-git clone https://github.com/PoojasPatel013/Netra.git
-cd Vortex
-
-# Start Commander, Database, Redis, and Worker Drone
-docker-compose up --build
 ```
 
 ---

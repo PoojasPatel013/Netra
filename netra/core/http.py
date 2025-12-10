@@ -3,7 +3,7 @@ import asyncio
 import logging
 from typing import Optional, Dict, Any
 
-logger = logging.getLogger("vortex.core.http")
+logger = logging.getLogger("netra.core.http")
 
 class SafeHTTPClient:
     """

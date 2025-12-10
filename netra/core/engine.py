@@ -1,11 +1,11 @@
 import asyncio
 import logging
 from typing import List, Dict, Any
-from vortex.core.scanner import BaseScanner
+from netra.core.scanner import BaseScanner
 
-logger = logging.getLogger("vortex.core")
+logger = logging.getLogger("netra.core")
 
-class VortexEngine:
+class NetraEngine:
     def __init__(self):
         self.scanners: List[BaseScanner] = []
         self.results: Dict[str, Any] = {}
@@ -37,7 +37,7 @@ class VortexEngine:
                 self.results[target][scanner_name] = result
                 
         # Integrate Compliance Engine
-        from vortex.core.compliance import ComplianceEngine
+        from netra.core.compliance import ComplianceEngine
         try:
             comp_engine = ComplianceEngine()
             # This mutates the results dictionary in place
