@@ -79,6 +79,9 @@ async function submitScan(event) {
         iot: formData.get('iot') === 'on',
         graphql: formData.get('graphql') === 'on',
         auto_exploit: formData.get('auto_exploit') === 'on',
+        recon: formData.get('recon') === 'on',
+        secrets: formData.get('secrets') === 'on',
+        api_fuzz: formData.get('api_fuzz') === 'on',
         // Integrations
         defect_dojo_url: formData.get('defect_dojo_url'),
         defect_dojo_key: formData.get('defect_dojo_key'),

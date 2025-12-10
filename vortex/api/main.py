@@ -20,10 +20,15 @@ from vortex.core.modules.graphql import GraphQLScanner
 from vortex.core.modules.pentest import PentestEngine
 from vortex.integrations.defectdojo import DefectDojoClient
 from vortex.core.reporter import SARIFReporter
+from vortex.core.modules.recon import CTScanner
+from vortex.core.modules.secrets import SecretScanner
+from vortex.core.modules.api_fuzzer import APIScanner
+from redis import asyncio as aioredis
 
 # Database Setup
 # Use SQLite for local development default, Postgres for Docker
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite+aiosqlite:///vortex.db")
+REDIS_URL = os.getenv("REDIS_URL")
 
 engine = create_async_engine(DATABASE_URL, echo=True, future=True)
 
@@ -85,8 +90,19 @@ async def run_scan_task(scan_id: int):
             # Configure Scanners (Based on Options)
             opts = scan.options or {}
             
+            # 1. CT Recon (Always good to have if enabled, or default)
+            # Check if toggled or just run it
+            if opts.get("recon", True): # Default to true
+                 v_engine.register_scanner(CTScanner())
+            
             # Default Scanners
             v_engine.register_scanner(HTTPScanner())
+            
+            if opts.get("secrets", False):
+                v_engine.register_scanner(SecretScanner())
+                
+            if opts.get("api_fuzz", False):
+                v_engine.register_scanner(APIScanner())
             
             port_list = None
             if opts.get("ports"):
@@ -113,7 +129,7 @@ async def run_scan_task(scan_id: int):
                  v_engine.register_scanner(PentestEngine())
 
             # Run with timeout to prevent zombies
-            results = await asyncio.wait_for(v_engine.scan_target(scan.target), timeout=300)
+            results = await asyncio.wait_for(v_engine.scan_target(scan.target), timeout=600)
             
             scan.results = results
             scan.status = "completed"
@@ -151,7 +167,19 @@ async def create_scan(scan_in: ScanCreate, background_tasks: BackgroundTasks, se
     await session.commit()
     await session.refresh(scan)
     
-    background_tasks.add_task(run_scan_task, scan.id)
+    # Distributed (Drone) Mode vs Local
+    if REDIS_URL:
+        try:
+            redis = aioredis.from_url(REDIS_URL, encoding="utf-8", decode_responses=True)
+            await redis.rpush("vortex_tasks", str(scan.id))
+            print(f"Dispatched Scan {scan.id} to Drone Grid")
+            await redis.close()
+        except Exception as e:
+            print(f"Redis dispatch failed: {e}. Falling back to local.")
+            background_tasks.add_task(run_scan_task, scan.id)
+    else:
+        background_tasks.add_task(run_scan_task, scan.id)
+        
     return scan
 
 @app.get("/scans", response_model=List[ScanRead])
