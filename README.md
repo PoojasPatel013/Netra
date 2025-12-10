@@ -1,8 +1,8 @@
-# Project Title: Vortex - Next-Generation Async Vulnerability Engine
+# Project Title: Netra - Next-Generation Async Vulnerability Engine
 
 ## 1. Executive Summary
 
-**Vortex** is a high-performance, modular vulnerability scanner built to address the limitations of legacy threaded scanners. Unlike traditional tools that rely on blocking I/O and heavy multiprocessing, Vortex utilizes a pure **AsyncIO event loop** architecture, allowing it to handle thousands of concurrent network connections with minimal resource overhead.
+**Netra** is a high-performance, modular vulnerability scanner built to address the limitations of legacy threaded scanners. Unlike traditional tools that rely on blocking I/O and heavy multiprocessing, Vortex utilizes a pure **AsyncIO event loop** architecture, allowing it to handle thousands of concurrent network connections with minimal resource overhead.
 
 Vortex is not just a command-line tool; it is a full-scope security platform featuring a modern **React-based dashboard**, **Cloud-Native scanning capabilities**, and seamless **CI/CD integration**. It bridges the gap between offensive red-teaming tools and defensive blue-team monitoring dashboards.
 
@@ -11,7 +11,7 @@ Vortex is not just a command-line tool; it is a full-scope security platform fea
 ### Installation
 ```bash
 # Clone repository
-git clone https://github.com/PoojasPatel013/Vortex.git
+git clone https://github.com/PoojasPatel013/Netra.git
 cd Vortex
 
 # Create virtual environment (Recommended)
@@ -75,13 +75,13 @@ The architecture is divided into three distinct layers: The Engine (Core), The I
 
 ## 3. Key Features & Modules
 
-Vortex extends the capabilities of traditional scanners by incorporating modern infrastructure targets.
+Netra extends the capabilities of traditional scanners by incorporating modern infrastructure targets.
 
 ### 🌐 Module A: Async Network & Web Scanner
 
   * **Port Scanning:** Non-blocking TCP connect scanner.
   * **HTTP Analysis:** Async header analysis and basic tech stack fingerprinting.
-  * **Architecture:** Utilizes `asyncio.gather` for high-concurrency execution, allowing thousands of checks to be performed in parallel without blocking.
+  * **Architecture:** Utilises `asyncio.gather` for high-concurrency execution, allowing thousands of checks to be performed in parallel without blocking.
 
 ### ☁️ Module B: Standalone Cloud Infrastructure Scanner
 
@@ -91,15 +91,15 @@ Vortex extends the capabilities of traditional scanners by incorporating modern 
 
 ### 📡 Module C: Standalone IoT Protocol Scanner
 
-  * **MQTT Support:** specialized checks for the MQTT protocol (Port 1883).
+  * **MQTT Support:** specialised checks for the MQTT protocol (Port 1883).
   * **Anonymous Access:** Detects brokers that allow connections without authentication.
   * **Lightweight:** Uses `gmqtt` for efficient, non-blocking protocol interaction.
 
 -----
 
-## 4. The "Vortex UI" Dashboard
+## 4. The "Vajra UI" Dashboard
 
-A standalone web interface designed for Blue Teams and Management to visualize security posture.
+A standalone web interface designed for Blue Teams and Management to visualise security posture.
 
   * **Live Attack Surface Map:** A force-directed graph (D3.js) showing the relationship between domains, subdomains, and open ports.
   * **Real-Time Progress:** WebSocket connection streams scan logs directly to the browser console window.
@@ -135,3 +135,4 @@ To prove the "Shift Left" capability, Vortex includes a native CI/CD wrapper.
 
   * **AI False Positive Reduction:** Implementation of an OpenAI API post-processor to analyze raw HTTP responses and assign a "Confidence Score" to vulnerabilities.
   * **Distributed Scanning:** Using Redis Pub/Sub to coordinate multiple Vortex nodes scanning different IP ranges simultaneously.
+
