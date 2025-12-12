@@ -46,7 +46,33 @@ While traditional scanners wait for you to define a target, NETRA continuously m
 **The Solution**: NETRA actively monitors external leak sources for corporate data.
 *   **Breach Radar**: Integrates with "HaveIBeenPwned" and private leak databases to alert instantly if corporate emails appear in a data dump.
 *   **Paste Site Monitor**: Scrapes sites like Pastebin and GitHub Gists for accidental leaks of API keys or internal config files.
-*   **Executive Protection**: specialized monitoring for C-suite personal emails to prevent spear-phishing campaigns.
+    *   **Executive Protection**: specialized monitoring for C-suite personal emails to prevent spear-phishing campaigns.
+
+### ⚔️ Feature G: Active Verification Engine (Safe Exploitation)
+**The Problem**: Scanners alert on "potential" bugs. Engineers ignore them as false positives.
+**The Solution**: NETRA performs **Safe Active Exploitation** to prove the bug exists without taking down the server.
+*   **Safe RCE Check**: Instead of `rm -rf /`, it executes `echo $((55+55))` and checks if the response contains `110`. Proof of execution, zero damage.
+*   **SQL Injection (Time-Based)**: Injects `WAITFOR DELAY '0:0:5'` and measures the response time deviation. If the server sleeps, the bug is real.
+*   **LFI Probe**: Attempts to read benign files like `/etc/hostname` (never `/etc/shadow`) to confirm traversal vulnerabilities.
+*   **Auto-Exploit Module**: Automatically chains findings (e.g., finding an exposed `.env` file -> extracting DB creds -> connecting to DB -> proving access).
+
+### 🕸️ Feature H: Deception & Honeytraps
+**The Problem**: "Sniffing" attacks (like Ettercap) are illegal in most enterprise contexts.
+**The Solution**: NETRA sets "Ghost Routes" (fake admin portals, `/admin-backup`) that sit neutrally.
+*   **Passive Fingerprinting**: If an attacker probes these honeypots, NETRA silently logs their IP, User-Agent, and JA3 fingerprint.
+*   **Neutral Defense**: It doesn't hack back; it simply sits and waits for the attacker to make a mistake.
+
+### 🛡️ Feature I: Client-Side Integrity Guard (Malware Detector)
+**The Problem**: Server-side scanners miss attacks happening in the customer's browser (e.g., Magecart credit card skimming).
+**The Solution**: NETRA scans the site's live JavaScript assets.
+*   **Cryptominer Detection**: Identifies JS patterns used for illicit mining.
+*   **Magecart Hunter**: Detects changes in payment form scripts that send data to unauthorized domains.
+
+### 🧬 Feature J: Supply Chain "DNA" Sequencing
+**The Problem**: Third-party libraries (like Polyfill.io) can be hijacked, turning trusted assets into malware vectors.
+**The Solution**: NETRA verifies the "DNA" of every loaded library.
+*   **Hash Verification**: Checks if `jquery.js` loading on your site matches the official vendor hash.
+*   **Drift Detection**: Alerts immediately if a known library's code changes unexpectedly (e.g., a "supply chain" update injects a backdoor).
 
 ---
 

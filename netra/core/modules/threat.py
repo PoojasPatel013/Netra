@@ -1,7 +1,7 @@
-import logging
 import asyncio
 import aiohttp
 import re
+import ipaddress
 from typing import Dict, Any, List
 from netra.core.scanner import BaseScanner
 from netra.core.http import SafeHTTPClient
