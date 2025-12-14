@@ -42,8 +42,8 @@ const Header = ({ darkMode, setDarkMode }) => {
                 {/* User Profile */}
                 <div className="flex items-center gap-3 pl-4 border-l border-cyber-border">
                     <div className="text-right hidden md:block">
-                        <p className="text-sm font-medium text-white">Admin Unit</p>
-                        <p className="text-xs text-radium-500 font-mono">Lvl 9 Access</p>
+                        <p className="text-sm font-medium text-white">Netra v2.0</p>
+                        <p className="text-xs text-radium-500 font-mono">AI-ASM Platform</p>
                     </div>
                     <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-radium-500 to-blue-600 p-[1px]">
                         <div className="w-full h-full rounded-full bg-cyber-black flex items-center justify-center">

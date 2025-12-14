@@ -1,9 +1,10 @@
 import React from 'react';
-import { LayoutDashboard, Shield, AlertTriangle, Settings, Activity, Database } from 'lucide-react';
+import { LayoutDashboard, Shield, AlertTriangle, Settings, Activity, Database, Share2 } from 'lucide-react';
 
 const Sidebar = ({ activeTab, setActiveTab }) => {
     const menuItems = [
         { id: 'dashboard', icon: LayoutDashboard, label: 'Mission Control' },
+        { id: 'graph', icon: Share2, label: 'Knowledge Graph' },
         { id: 'scans', icon: Activity, label: 'Active Scans' },
         { id: 'threats', icon: AlertTriangle, label: 'Threat Intel' },
         { id: 'assets', icon: Database, label: 'Asset Inventory' },
@@ -33,8 +34,8 @@ const Sidebar = ({ activeTab, setActiveTab }) => {
                             key={item.id}
                             onClick={() => setActiveTab(item.id)}
                             className={`w-full flex items-center px-4 py-3 rounded-lg transition-all duration-300 group relative overflow-hidden ${isActive
-                                    ? 'bg-radium-500/10 text-radium-400 border border-radium-500/50 shadow-neon'
-                                    : 'text-slate-400 hover:bg-cyber-dark hover:text-white hover:border hover:border-radium-500/30'
+                                ? 'bg-radium-500/10 text-radium-400 border border-radium-500/50 shadow-neon'
+                                : 'text-slate-400 hover:bg-cyber-dark hover:text-white hover:border hover:border-radium-500/30'
                                 }`}
                         >
                             {/* Active Indicator Line */}
