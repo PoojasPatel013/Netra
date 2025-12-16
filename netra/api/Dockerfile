@@ -5,7 +5,7 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y gcc g++ curl && rm -rf /var/lib/apt/lists/*
 COPY pyproject.toml .
 RUN pip install poetry && poetry config virtualenvs.create false
-RUN poetry install --only main
+RUN poetry install --only main --no-root
 
 COPY netra ./netra
 
