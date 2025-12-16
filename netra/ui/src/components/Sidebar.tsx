@@ -1,7 +1,12 @@
 import React from 'react';
 import { LayoutDashboard, Shield, AlertTriangle, Settings, Activity, Database, Share2 } from 'lucide-react';
 
-const Sidebar = ({ activeTab, setActiveTab }) => {
+interface SidebarProps {
+    activeTab: string;
+    setActiveTab: (tab: string) => void;
+}
+
+const Sidebar = ({ activeTab, setActiveTab }: SidebarProps) => {
     const menuItems = [
         { id: 'dashboard', icon: LayoutDashboard, label: 'Mission Control' },
         { id: 'graph', icon: Share2, label: 'Knowledge Graph' },

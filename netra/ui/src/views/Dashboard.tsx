@@ -6,7 +6,7 @@ import ActivityFeed from '../components/ActivityFeed';
 interface StatCardProps {
     title: string;
     value: string | number;
-    icon: any;
+    icon: React.ElementType;
     color: string;
     trend: string;
     delay: number;
@@ -36,10 +36,10 @@ const StatCard = ({ title, value, icon: Icon, color, trend, delay }: StatCardPro
 const Dashboard = () => {
     const [target, setTarget] = useState('');
     const [scanning, setScanning] = useState(false);
-    const [logs, setLogs] = useState([]);
-    const [results, setResults] = useState(null);
+    const [logs, setLogs] = useState<string[]>([]);
+    const [results, setResults] = useState<any>(null);
 
-    const addLog = (msg) => setLogs(prev => [`[${new Date().toLocaleTimeString()}] ${msg}`, ...prev]);
+    const addLog = (msg: string) => setLogs(prev => [`[${new Date().toLocaleTimeString()}] ${msg}`, ...prev]);
 
     const startScan = async () => {
         if (!target) return;
@@ -66,7 +66,7 @@ const Dashboard = () => {
                 addLog('Scan Dispatched Successfully.');
             }, 1000);
 
-        } catch (e) {
+        } catch (e: any) {
             addLog(`CRITICAL FAILURE: ${e.message}`);
             setScanning(false);
         }
@@ -198,7 +198,7 @@ const Dashboard = () => {
                                             Field scanners have identified {results.PortScanner?.open_ports?.length || 0} open entry points on the target system.
                                         </p>
                                         <div className="flex flex-wrap gap-2 mt-2">
-                                            {results.PortScanner?.open_ports?.map(p => (
+                                            {results.PortScanner?.open_ports?.map((p: number) => (
                                                 <span key={p} className="bg-slate-100 dark:bg-gray-800 border border-slate-300 dark:border-gray-600 px-2 py-1 font-mono text-xs font-bold">
                                                     :{p}
                                                 </span>
@@ -211,7 +211,7 @@ const Dashboard = () => {
                                         <h3 className="font-sans font-bold text-lg uppercase border-b-2 border-red-600 text-red-600 mb-2 pb-1">Critical Vulnerabilities</h3>
                                         {results.ThreatScanner?.vulnerabilities?.length > 0 ? (
                                             <ul className="list-disc pl-4 space-y-2 font-serif text-sm text-slate-700 dark:text-slate-300">
-                                                {results.ThreatScanner.vulnerabilities.map((v, i) => (
+                                                {results.ThreatScanner.vulnerabilities.map((v: any, i: number) => (
                                                     <li key={i}>
                                                         <strong>{v.type}</strong>: {v.details}
                                                     </li>
