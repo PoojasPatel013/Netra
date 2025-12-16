@@ -1,32 +1,36 @@
 ---
-name: Bug report
-about: Create a report to help us improve
-title: ''
+name: 🐞 Bug report
+about: Report a bug or unexpected behavior in NETRA
+title: "[BUG] "
 labels: bug
-assignees: ''
+assignees: ""
+---
+
+## 🐛 Describe the bug
+A clear and concise description of the issue.
 
 ---
 
-**Describe the bug**
-A clear and concise description of what the bug is.
-
-**To Reproduce**
+## Steps to Reproduce
 Steps to reproduce the behavior:
-1. Go to '...'
-2. Click on '...'
-3. Scroll down to '...'
+1. Start NETRA with `docker compose up`
+2. Trigger a scan for `example.com`
+3. Observe the error in `<component>`
 4. See error
 
-**Expected behavior**
-A clear and concise description of what you expected to happen.
+---
 
-**Screenshots**
-If applicable, add screenshots to help explain your problem.
+## Expected behavior
+What did you expect to happen?
 
-**Desktop (please complete the following information):**
- - OS: [e.g. iOS]
- - Browser [e.g. chrome, safari]
- - Version [e.g. 22]
+---
 
-**Additional context**
-Add any other context about the problem here.
+## Screenshots / Logs
+If applicable, add:
+- Screenshots
+- Error messages
+- Stack traces
+- Relevant logs from workers or API
+
+```text
+Paste logs here

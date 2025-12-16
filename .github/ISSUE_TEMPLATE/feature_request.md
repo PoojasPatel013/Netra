@@ -1,20 +1,46 @@
 ---
 name: Feature request
-about: Suggest an idea for this project
-title: ''
+about: Propose a new idea, improvement, or enhancement for NETRA
+title: "[FEATURE] "
 labels: enhancement
-assignees: ''
+assignees: ""
+---
+
+## Problem statement
+What problem does this feature solve?
+Why is it important for NETRA users?
 
 ---
 
-**Is your feature request related to a problem? Please describe.**
-A clear and concise description of what the problem is. Ex. I'm always frustrated when [...]
+## Proposed solution
+Describe the solution you'd like to see.
+Be as clear as possible.
 
-**Describe the solution you'd like**
-A clear and concise description of what you want to happen.
+---
 
-**Describe alternatives you've considered**
-A clear and concise description of any alternative solutions or features you've considered.
+## Alternatives considered
+Have you considered other approaches or workarounds?
 
-**Additional context**
-Add any other context or screenshots about the feature request here.
+---
+
+## Affected area
+Which part of NETRA would this impact?
+
+- [ ] Asset discovery
+- [ ] Knowledge graph (Neo4j)
+- [ ] ML / analysis
+- [ ] UI / visualization
+- [ ] API
+- [ ] Deployment / DevEx
+
+---
+
+## Additional context
+Mockups, diagrams, examples, or references.
+
+---
+
+### Checklist
+- [ ] This is not a duplicate feature request
+- [ ] This aligns with NETRA’s scope
+- [ ] I’m open to discussion or feedback
