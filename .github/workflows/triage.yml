@@ -45,6 +45,7 @@ jobs:
             }
 
       - name: Auto-Reply to User and Request Review
+        if: github.event.issue.author_association == 'NONE'
         uses: actions-cool/issues-helper@v3
         with:
           actions: 'create-comment'

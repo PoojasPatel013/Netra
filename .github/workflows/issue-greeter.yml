@@ -10,6 +10,7 @@ permissions:
 jobs:
   welcome:
     runs-on: ubuntu-latest
+    if: github.event.issue.author_association == 'NONE'
     steps:
       - name: Add welcome comment
         uses: peter-evans/create-or-update-comment@v4
