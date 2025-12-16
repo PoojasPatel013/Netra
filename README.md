@@ -7,10 +7,9 @@ NETRA is an **Applied ML Systems** research platform designed to demonstrate adv
 
 ---
 
-## 🚀 What's New in v2.1?
-*   **📰 Newspaper UI**: A fully redesigned "Netra Times" dashboard featuring a centered masthead, columnar layout, and 3D page-flip animations.
-*   **🤖 Smart PR Bot**: Automated GitHub workflow that assigns labels (`area/ui`, `size/l`) and welcomes new contributors.
-*   **🔄 Distributed Architecture**: Fully event-driven pipeline using Redis Streams to decouple Ingestion (I/O) from Analysis (CPU).
+## What's New in v2.1?
+*   **Newspaper UI**: A fully redesigned "Netra Times" dashboard featuring a centered masthead, columnar layout, and 3D page-flip animations.
+*   **Distributed Architecture**: Fully event-driven pipeline using Redis Streams to decouple Ingestion (I/O) from Analysis (CPU).
 
 ---
 
@@ -103,14 +102,6 @@ You should see nodes for the Domain and its resolved IPs.
 
 ---
 
-## 🤖 Smart Automation
-The repository includes a **Smart PR Bot** (`.github/workflows/pr-bot.yml`) that:
--   **Auto-Labels**: Tags PRs based on file paths (`area/ui`, `area/core`).
--   **Sizes**: Tags PRs by size (`size/s`, `size/xl`).
--   **Greets**: Welcomes first-time contributors automatically.
-
----
-
 ## Directory Structure
 ```
 Vortex/
@@ -141,8 +132,8 @@ We want to build a robust security platform, and we welcome your input!
 **Netra is Open Source!**
 
 We follow an **Open Core** model:
-*   **Netra Core (v1)**: Apache 2.0 License. Free for everyone forever.
-*   **Netra Boundaries**: Proprietary modules (Advanced ML, SSO, Reporting) will be closed-source extensions, familiarise with the architecture to better understand.
+*   **Netra Core (This Repo)**: Apache 2.0 License. Free for everyone forever.
+*   **Netra Boundaries**: Proprietary modules (Advanced ML, SSO, Reporting) will be closed-source extensions.
 
 We actively encourage contributions to the Core engine!
 1.  **Bug Reports**: Found a vulnerability in the scanner? Fix it!
@@ -160,4 +151,3 @@ The Core Engine is free to use and modify under the Apache 2.0 License. See [LIC
 *Proprietary Boundaries will be licensed separately.*
 
 Copyright © 2025 Netra.
-
