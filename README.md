@@ -1,13 +1,20 @@
-# NETRA v2 - AI-Native Attack Surface Management (ASM) Platform
+# NETRA v2 - AI-Native Asset Discovery Engine
 
-> **Status**: v2.0 (Migration to Distributed ML Architecture)
-> **Stack**: Python 3.10, React + Vite, Neo4j, Redis Streams, MinIO, Docker Compose
+> **Status**: v2.1 (Newspaper Edition 📰)
+> **Stack**: Python 3.10, React + Vite (Newspaper UI), Neo4j, Redis Streams, MinIO, Docker Compose
 
 NETRA is an **Applied ML Systems** research platform designed to demonstrate advanced concepts in distributed cybersecurity. It continuously discovers assets, maps them in a Knowledge Graph, and uses machine learning to predict risks.
 
 ---
 
-##  v2 Architecture: "The ML Systems Approach"
+## 🚀 What's New in v2.1?
+*   **📰 Newspaper UI**: A fully redesigned "Netra Times" dashboard featuring a centered masthead, columnar layout, and 3D page-flip animations.
+*   **🤖 Smart PR Bot**: Automated GitHub workflow that assigns labels (`area/ui`, `size/l`) and welcomes new contributors.
+*   **🔄 Distributed Architecture**: Fully event-driven pipeline using Redis Streams to decouple Ingestion (I/O) from Analysis (CPU).
+
+---
+
+## Architecture: "The ML Systems Approach"
 
 Netra v2 departs from the monolithic scanner model to a distributed, event-driven architecture optimized for High-Throughput I/O and CPU-bound Inference.
 
@@ -34,7 +41,7 @@ graph TD
 ```
 
 ### Key Components
-1.  **Frontend**: React + Vite + TailwindCSS (Served via Nginx).
+1.  **Frontend**: React + Vite (Newspaper Theme). Served via Nginx with API Proxy.
 2.  **Backend API**: FastAPI (AsyncIO).
 3.  **The "Bus"**: Redis Streams for strictly ordered event processing.
 4.  **Ingestion Worker**: Lightweight, I/O-bound process for DNS resolution and Port Scanning. Includes a **Ruby Bridge** to execute legacy scripts.
@@ -55,6 +62,7 @@ Netra v2 is designed to run locally with a single command.
     ```bash
     git clone https://github.com/PoojasPatel013/Netra.git
     cd Netra
+    # IMPORTANT: Use --build to ensure all UI changes are baked in
     docker compose up --build -d
     ```
 
@@ -72,11 +80,11 @@ Netra v2 is designed to run locally with a single command.
 ## Development Workflow
 
 ### 1. Trigger a Scan
-Use the API (or UI) to push a target into the Ingestion Stream.
+Use the UI "Newspaper" Dashboard or API to push a target.
 ```bash
 curl -X POST http://localhost:8000/api/scan \
   -H "Content-Type: application/json" \
-  -d '{"target": "example.com"}'
+  -d '{"target": "example.com", "options": {"Cloud": true}}'
 ```
 
 ### 2. Watch it Flow
@@ -95,9 +103,18 @@ You should see nodes for the Domain and its resolved IPs.
 
 ---
 
+## 🤖 Smart Automation
+The repository includes a **Smart PR Bot** (`.github/workflows/pr-bot.yml`) that:
+-   **Auto-Labels**: Tags PRs based on file paths (`area/ui`, `area/core`).
+-   **Sizes**: Tags PRs by size (`size/s`, `size/xl`).
+-   **Greets**: Welcomes first-time contributors automatically.
+
+---
+
 ## Directory Structure
 ```
 Vortex/
+├── .github/            # Workflows & Labeler Config
 ├── deploy/             # Infrastructure scripts
 ├── netra/
 │   ├── api/            # FastAPI Application
@@ -105,11 +122,12 @@ Vortex/
 │   │   ├── discovery/  # DNS, Port Scanners
 │   │   ├── analysis/   # Ruby Bridge, ML Models
 │   │   └── orchestration/ # Redis Messaging
-│   ├── ui/             # React Frontend
-│   └── workers/        # Worker Entrypoints (ingest.py, ml_analysis.py)
+│   ├── ui/             # React Frontend (Newspaper Theme)
+│   └── workers/        # Worker Entrypoints
 ├── docker-compose.yml  # Main Orchestration File
 └── README.md
 ```
+
 ## 🤝 Community & Support
 
 We want to build a robust security platform, and we welcome your input!
