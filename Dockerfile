@@ -7,6 +7,7 @@ RUN apt-get update && apt-get install -y \
     g++ \
     build-essential \
     curl \
+    ruby-full \
     && rm -rf /var/lib/apt/lists/*
 
 
