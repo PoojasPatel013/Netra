@@ -1,109 +1,102 @@
-from typing import List, Dict, Any
+from typing import Dict, Any, List
 
 class ComplianceEngine:
-    """
-    Maps technical findings to Business Risk/Compliance Frameworks.
-    Supported: PCI-DSS, ISO 27001, GDPR, HIPAA, NIST CSF.
-    """
-    
-    COMPLIANCE_MAP = {
-        "Open Port": {
-            "PCI-DSS": ["Req 1.3: Prohibit direct public access"],
-            "ISO 27001": ["A.13.1.1: Network Controls"],
-            "NIST CSF": ["PR.AC-5: Network Integrity"]
-        },
-        "Missing Security Header": {
-            "PCI-DSS": ["Req 6.5.10: Broken Access Control"],
-            "OWASP": ["A05:2021-Security Misconfiguration"],
-            "GDPR": ["Art 32: Security of Processing"]
-        },
-        "Public S3 Bucket": {
-            "HIPAA": ["§164.312(a)(1): Access Control"],
-            "GDPR": ["Art 32: Data Leakage Protection"],
-            "PCI-DSS": ["Req 3.4: Protect Stored Data"]
-        },
-        "Weak SSL/TLS": {
-            "PCI-DSS": ["Req 4.1: Strong Cryptography"],
-            "NIST CSF": ["PR.DS-2: Data-in-Transit Protection"]
-        },
-        "Default Credentials": {
-            "PCI-DSS": ["Req 2.1: Changing Default Defaults"],
-            "ISO 27001": ["A.9.4.3: Password Management"]
-        },
-        "SQL Injection": {
-            "PCI-DSS": ["Req 6.5.1: Injection Flaws"],
-            "OWASP": ["A03:2021-Injection"]
-        },
-        "Cross-Site Scripting (XSS)": {
-            "PCI-DSS": ["Req 6.5.7: XSS"],
-            "OWASP": ["A03:2021-Injection"]
-        },
-         "Shadow API": {
-            "ISO 27001": ["A.12.6.1: Tech Vuln Mgmt"],
-            "OWASP API": ["API9:2019 Improper Assets Management"]
+    def __init__(self):
+        self.standards = {
+            "PCI-DSS": {
+                "name": "PCI-DSS v4.0",
+                "violations": []
+            },
+            "HIPAA": {
+                "name": "HIPAA Security Rule",
+                "violations": []
+            },
+            "GDPR": {
+                "name": "GDPR (EU) 2016/679",
+                "violations": []
+            },
+            "NIST": {
+                "name": "NIST SP 800-53",
+                "violations": []
+            }
         }
-    }
 
-    def map_finding(self, finding_type: str, severity: str) -> Dict[str, List[str]]:
+    def enrich_report(self, results: Dict[str, Any]):
         """
-        Enrich a finding with compliance tags.
+        Analyzes the scan results and appends a 'compliance' section.
         """
-        # normalize
-        key = "Generic"
-        finding_lower = finding_type.lower()
+        self._analyze_ports(results)
+        self._analyze_cloud(results)
+        self._analyze_web_vulns(results)
+        self._analyze_ruby_findings(results)
         
-        # Heuristic Matching
-        if "port" in finding_lower:
-            key = "Open Port"
-        elif "header" in finding_lower:
-            key = "Missing Security Header"
-        elif "bucket" in finding_lower or "s3" in finding_lower:
-            key = "Public S3 Bucket"
-        elif "ssl" in finding_lower or "tls" in finding_lower:
-            key = "Weak SSL/TLS"
-        elif "sql" in finding_lower:
-            key = "SQL Injection"
-        elif "xss" in finding_lower:
-            key = "Cross-Site Scripting (XSS)"
-        elif "api" in finding_lower:
-            key = "Shadow API"
-            
-        return self.COMPLIANCE_MAP.get(key, {})
-
-    def enrich_report(self, results: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Traverses scan results and injects a 'compliance' field into each finding.
-        """
-        total_violations = {"PCI-DSS": 0, "GDPR": 0, "ISO 27001": 0}
+        # Summarize
+        summary = {}
+        for key, std in self.standards.items():
+            if std["violations"]:
+                summary[key] = std
         
-        # Helper to process a list of findings
-        def process_list(finding_list):
-            for finding in finding_list:
-                ftype = finding.get("type") or finding.get("name") or "Unknown"
-                sev = finding.get("severity", "Info")
-                
-                compliance = self.map_finding(ftype, sev)
-                if compliance:
-                    finding["compliance"] = compliance
-                    # Count stats
-                    for framework in compliance:
-                        if framework in total_violations:
-                            total_violations[framework] += 1
-                            
-        # 1. Process standard Vulnerabilities list
-        if "vulnerabilities" in results:
-             process_list(results["vulnerabilities"])
-             
-        # 2. Process Module Specifics
-        # Cloud
-        if "CloudScanner" in results:
-             # Adapt CloudScanner format to generic if needed, 
-             # usually it returns a dict, let's assume we map its internal list
-             if "s3_buckets" in results["CloudScanner"]:
-                  # These aren't standard findings dicts usually, so we might need manual handling
-                  # For MVP, let's skip deep structure mod unless standardized
-                  pass
-
-        # Add Summary
-        results["compliance_summary"] = total_violations
+        results["compliance"] = summary
         return results
+
+    def _add_violation(self, standard: str, section: str, description: str, severity: str = "High"):
+        self.standards[standard]["violations"].append({
+            "section": section,
+            "description": description,
+            "severity": severity
+        })
+
+    def _analyze_ports(self, results: Dict[str, Any]):
+        # Analyze PortScanner or RubyScanner_banner_grabber
+        ports = []
+        if "PortScanner" in results and "open_ports" in results["PortScanner"]:
+             ports = results["PortScanner"]["open_ports"]
+        elif "RubyScanner_banner_grabber" in results: # Ruby Bridge Fallback
+             ports = results["RubyScanner_banner_grabber"].get("open_ports", [])
+             
+        # Telnet (23) -> PCI + NIST
+        if 23 in ports:
+            self._add_violation("PCI-DSS", "2.2.3", "Insecure service (Telnet) enabled.", "High")
+            self._add_violation("NIST", "CM-7", "Least Functionality - Insecure Service", "Medium")
+
+        # FTP (21) -> PCI
+        if 21 in ports:
+            self._add_violation("PCI-DSS", "2.2.2", "Insecure service (FTP) enabled. Use SFTP.", "Medium")
+
+    def _analyze_cloud(self, results: Dict[str, Any]):
+        # CloudScanner findings
+        if "CloudScanner" not in results:
+            return
+            
+        buckets = results["CloudScanner"].get("buckets", [])
+        if buckets:
+            self._add_violation("HIPAA", "164.312(a)(1)", "Access Control: Public Cloud Storage detected containing potential PHI.", "Critical")
+            self._add_violation("GDPR", "Art 32", "Inadequate encryption/protection of personal data storage.", "High")
+            self._add_violation("NIST", "AC-3", "Access Enforcement - Public Storage", "High")
+
+    def _analyze_web_vulns(self, results: Dict[str, Any]):
+        # Check ThreatScanner (Ruby) or others
+        vulns = []
+        if "ThreatScanner" in results:
+            vulns.extend(results["ThreatScanner"].get("vulnerabilities", []))
+            
+        for v in vulns:
+            v_type = v.get("type", "").lower()
+            
+            if "spf" in v_type or "dmarc" in v_type:
+                 self._add_violation("NIST", "SI-8", "Spam Protection - Email Authentication Missing", "Low")
+                 
+            if "robots.txt" in v_type and "sensitive" in v_type:
+                 self._add_violation("NIST", "RA-5", "Vulnerability Monitoring - Information Disclosure", "Low")
+
+    def _analyze_ruby_findings(self, results: Dict[str, Any]):
+        # IAM / Cookies
+        if "IAMScanner" in results:
+            vulns = results["IAMScanner"].get("vulnerabilities", [])
+            for v in vulns:
+                detail = v.get("details", "").lower()
+                if "secure flag" in detail:
+                     self._add_violation("PCI-DSS", "8.2.1", "Transmission of authentication credentials over insecure channel.", "High")
+                if "httponly" in detail:
+                     self._add_violation("OWASP-Top10", "A05:2021", "Security Misconfiguration - Missing HttpOnly", "Medium")
+

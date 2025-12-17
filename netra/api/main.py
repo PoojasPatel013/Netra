@@ -14,10 +14,9 @@ from netra.api.models import Scan, ScanCreate, ScanRead
 from netra.core.engine import NetraEngine
 from netra.core.modules.cloud import CloudScanner
 from netra.core.modules.acquisition import AcquisitionScanner
-from netra.core.modules.network import PortScanner
-from netra.core.modules.http import HTTPScanner
 from netra.core.modules.iot import IoTScanner
 from netra.core.modules.graphql import GraphQLScanner
+from netra.core.modules.ruby_bridge import RubyScanner
 from netra.core.modules.pentest import PentestEngine
 from netra.integrations.defectdojo import DefectDojoClient
 from netra.core.reporter import SARIFReporter
@@ -164,7 +163,19 @@ async def sync_graph_results(scan_results: dict, target: str):
                 MERGE (v:Vulnerability {name: $name, severity: $severity})
                 MERGE (d)-[:HAS_VULNERABILITY]->(v)
                 """
-                db.cypher_query(query_vuln, {"domain": target, "name": v.get("type", "Unknown"), "severity": "High"})
+                db.cypher_query(query_vuln, {"domain": target, "name": v.get("type", "Unknown"), "severity": v.get("severity", "Medium")})
+        
+        # Merge other vulnerabilities (IAMScanner, RubyScanner generic)
+        for scanner_key in scan_results:
+            if scanner_key in ["IAMScanner", "ResilienceScanner", "RubyScanner_banner_grabber"]:
+                s_vulns = scan_results[scanner_key].get("vulnerabilities", [])
+                for v in s_vulns:
+                    query_v = """
+                    MATCH (d:Domain {name: $domain})
+                    MERGE (v:Vulnerability {name: $name, severity: $severity})
+                    MERGE (d)-[:HAS_VULNERABILITY]->(v)
+                    """
+                    db.cypher_query(query_v, {"domain": target, "name": v.get("type", "Unknown"), "severity": v.get("severity", "Info")})
         
         # 4. Process Acquisitions
         if "AcquisitionScanner" in scan_results:
@@ -204,25 +215,24 @@ async def run_scan_task(scan_id: int):
             if opts.get("recon", True): # Default to true
                  v_engine.register_scanner(CTScanner())
             
-            # Default Scanners
-            v_engine.register_scanner(HTTPScanner())
+            # Default Scanners (Ruby Bridge)
+            # Port Scanning + Banner Grabbing
+            v_engine.register_scanner(RubyScanner("banner_grabber.rb", name="PortScanner"))
+            
+            # Threat Intel (SPF/DMARC/Robots)
+            v_engine.register_scanner(RubyScanner("threat_scan.rb", name="ThreatScanner"))
+
+            # IAM & Session Analysis
+            v_engine.register_scanner(RubyScanner("iam_scan.rb", name="IAMScanner"))
+
+            # Resilience / Rate Limit
+            v_engine.register_scanner(RubyScanner("resilience_scan.rb", name="ResilienceScanner"))
             
             if opts.get("secrets", False):
                 v_engine.register_scanner(SecretScanner())
                 
             if opts.get("api_fuzz", False):
                 v_engine.register_scanner(APIScanner())
-            
-            port_list = None
-            if opts.get("ports"):
-                 # Handle comma separated string or list
-                p_arg = opts.get("ports")
-                if isinstance(p_arg, str):
-                    port_list = [int(p) for p in p_arg.split(",")]
-                elif isinstance(p_arg, list):
-                    port_list = p_arg
-            
-            v_engine.register_scanner(PortScanner(ports=port_list))
             
             if opts.get("cloud", False):
                 v_engine.register_scanner(CloudScanner())
@@ -427,7 +437,18 @@ async def get_assets_inventory():
         return assets
     except Exception as e:
         print(f"Asset Query Error: {e}")
-        return []
+@app.delete("/api/assets/{asset_id}")
+async def delete_asset(asset_id: int):
+    """
+    Deletes an asset (Domain or IP) by its Neo4j ID.
+    """
+    try:
+        query = "MATCH (n) WHERE id(n) = $id DETACH DELETE n"
+        db.cypher_query(query, {"id": asset_id})
+        return {"ok": True, "deleted_id": asset_id}
+    except Exception as e:
+        print(f"Asset Delete Error: {e}")
+        raise HTTPException(status_code=500, detail="Failed to delete asset")
 
 @app.get("/api/stats")
 async def get_stats(session: AsyncSession = Depends(get_session)):

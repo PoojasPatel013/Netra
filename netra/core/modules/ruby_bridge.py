@@ -2,6 +2,7 @@ import subprocess
 import json
 import os
 from typing import Dict, Any, List
+from netra.core.scanner import BaseScanner
 
 class RubyBridge:
     def __init__(self, scripts_dir: str = None):
@@ -51,3 +52,22 @@ class RubyBridge:
         if not os.path.exists(self.scripts_dir):
             return []
         return [f for f in os.listdir(self.scripts_dir) if f.endswith('.rb')]
+
+class RubyScanner(BaseScanner):
+    def __init__(self, script_name: str, name: str = None):
+        self.script_name = script_name
+        self.bridge = RubyBridge()
+        self.name = name or f"RubyScanner_{script_name.replace('.rb', '')}"
+
+    async def scan(self, target: str) -> Dict[str, Any]:
+        """
+        Executes the Ruby script asynchronously via thread pool.
+        """
+        try:
+            # Run blocking subprocess in a thread to keep asyncio loop happy
+            import asyncio
+            loop = asyncio.get_running_loop()
+            result = await loop.run_in_executor(None, self.bridge.execute_script, self.script_name, target)
+            return result
+        except Exception as e:
+            return {"error": str(e), "script": self.script_name}

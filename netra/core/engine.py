@@ -29,7 +29,7 @@ class NetraEngine:
         scan_results = await asyncio.gather(*tasks, return_exceptions=True)
         
         for scanner, result in zip(self.scanners, scan_results):
-            scanner_name = scanner.__class__.__name__
+            scanner_name = getattr(scanner, "name", scanner.__class__.__name__)
             if isinstance(result, Exception):
                 logger.error(f"Scanner {scanner_name} failed: {result}")
                 self.results[target][scanner_name] = {"error": str(result)}

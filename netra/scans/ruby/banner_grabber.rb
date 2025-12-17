@@ -34,11 +34,13 @@ PORTS = {
 }
 
 vulnerabilities = []
+open_ports = []
 
 PORTS.each do |port, service|
   begin
     Timeout.timeout(2) do
       s = TCPSocket.new(target_host, port)
+      open_ports << port # Detected open port
       
       # For some protocols, we might need to send data to get a banner
       if [80, 443, 8080].include?(port)
@@ -82,6 +84,7 @@ end
 result = {
   script: "banner_grabber.rb",
   target: target_host,
+  open_ports: open_ports,
   vulnerabilities: vulnerabilities
 }
 

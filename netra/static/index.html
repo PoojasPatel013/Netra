@@ -257,23 +257,11 @@
                 </div>
             </div>
 
-            <!-- Charts Section (New) -->
-            <div class="lg:col-span-12 grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
-                <div class="bg-white dark:bg-cyber-dark p-6 border border-slate-200 dark:border-slate-800 shadow-xl">
-                    <h3
-                        class="font-display font-bold text-slate-900 dark:text-white mb-4 border-b border-slate-300 pb-2">
-                        Threat Distribution</h3>
-                    <div class="h-64">
-                        <canvas id="vulnChart"></canvas>
-                    </div>
-                </div>
-                <div class="bg-white dark:bg-cyber-dark p-6 border border-slate-200 dark:border-slate-800 shadow-xl">
-                    <h3
-                        class="font-display font-bold text-slate-900 dark:text-white mb-4 border-b border-slate-300 pb-2">
-                        Attack Surface (Ports)</h3>
-                    <div class="h-64">
-                        <canvas id="portChart"></canvas>
-                    </div>
+            <!-- Charts Moved to Investigations Tab -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+                <div
+                    class="p-4 bg-slate-100 dark:bg-gray-900 border border-slate-300 dark:border-gray-700 text-center italic text-slate-500">
+                    Visuals moved to 'Investigations'
                 </div>
             </div>
 
@@ -387,6 +375,35 @@
             </div>
         </div>
 
+        <!-- View Asset Modal -->
+        <div x-show="viewAssetMode"
+            class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm" x-cloak>
+            <div @click.outside="viewAssetMode = false"
+                class="bg-white dark:bg-cyber-dark w-full max-w-2xl max-h-[80vh] overflow-y-auto p-6 rounded shadow-2xl border border-slate-700">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-bold font-display text-white">Asset Dossier</h2>
+                    <button @click="viewAssetMode = false"><i data-lucide="x" class="w-6 h-6 text-white"></i></button>
+                </div>
+                <div class="space-y-4">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="p-2 border border-slate-700">
+                            <label class="block text-xs uppercase text-slate-500">Name</label>
+                            <span class="font-mono text-white" x-text="selectedAsset?.name"></span>
+                        </div>
+                        <div class="p-2 border border-slate-700">
+                            <label class="block text-xs uppercase text-slate-500">Type</label>
+                            <span class="font-mono text-white" x-text="selectedAsset?.type"></span>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs uppercase text-slate-500 mb-1">Raw Data</label>
+                        <pre class="font-mono text-xs p-3 bg-black text-green-400 rounded overflow-auto h-48"
+                            x-text="JSON.stringify(selectedAsset, null, 2)"></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- ASSETS VIEW -->
         <div x-show="activeTab === 'assets'" x-transition.opacity.duration.500ms>
             <div class="space-y-6">
@@ -441,9 +458,13 @@
                                               }" class="px-2 py-1 rounded text-xs font-mono border"></span>
                                     </td>
                                     <td class="p-4 text-right">
-                                        <button
-                                            class="text-slate-400 hover:text-black dark:hover:text-white transition-colors">
-                                            <i data-lucide="more-vertical" class="w-4 h-4"></i>
+                                        <button @click="viewAsset(asset)" title="View Report"
+                                            class="text-slate-400 hover:text-blue-500 transition-colors mr-2">
+                                            <i data-lucide="file-text" class="w-4 h-4"></i>
+                                        </button>
+                                        <button @click="deleteAsset(asset.id)" title="Delete Asset"
+                                            class="text-slate-400 hover:text-red-500 transition-colors">
+                                            <i data-lucide="trash-2" class="w-4 h-4"></i>
                                         </button>
                                     </td>
                                 </tr>
@@ -459,8 +480,8 @@
         </div>
 
         <!-- GRAPH VIEW -->
-        <div x-show="activeTab === 'graph'" x-transition.opacity.duration.500ms class="h-[700px]">
-            <div class="relative h-full w-full bg-cyber-black overflow-hidden rounded-xl border border-cyber-border">
+        <div x-show="activeTab === 'graph'" x-transition.opacity.duration.500ms class="flex flex-col gap-4">
+            <div class="h-[600px] w-full bg-cyber-black overflow-hidden rounded-xl border border-cyber-border relative">
                 <div class="absolute top-4 left-4 z-10 pointer-events-none">
                     <h2 class="text-2xl font-display font-bold text-white">Asset Graph <span
                             class="text-radium-500 text-sm">v2.0 Beta</span></h2>
@@ -468,6 +489,25 @@
                         resources.</p>
                 </div>
                 <canvas id="graphCanvas" class="w-full h-full opacity-60"></canvas>
+            </div>
+
+            <!-- Moved Charts -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="h-64 bg-slate-100 dark:bg-black p-4 border border-slate-300 dark:border-gray-700 relative">
+                    <h3 class="absolute top-2 left-2 text-xs font-bold uppercase text-slate-500">Threat Distribution
+                    </h3>
+                    <div class="h-full w-full flex items-center justify-center">
+                        <div class="w-48 h-48">
+                            <canvas id="vulnChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="h-64 bg-slate-100 dark:bg-black p-4 border border-slate-300 dark:border-gray-700 relative">
+                    <h3 class="absolute top-2 left-2 text-xs font-bold uppercase text-slate-500">Attack Surface</h3>
+                    <div class="h-full w-full flex items-center justify-center">
+                        <canvas id="portChart"></canvas>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -568,6 +608,8 @@
                 scanning: false,
                 scanStatus: 'IDLE',
                 viewReportMode: false,
+                viewAssetMode: false,
+                selectedAsset: null,
                 results: null,
                 logs: [],
                 stats: { scans: 0, vulns: 0, assets: 0 },
@@ -617,8 +659,9 @@
 
                     this.$watch('activeTab', (val) => {
                         this.$nextTick(() => lucide.createIcons());
-                        if (val === 'graph' && !this.graphInitialized) {
-                            setTimeout(() => this.initGraph(), 100);
+                        if (val === 'graph') {
+                            if (!this.graphInitialized) setTimeout(() => this.initGraph(), 100);
+                            if (!this.chartsInitialized) setTimeout(() => this.initCharts(), 100);
                         }
                         if (val === 'dashboard' && !this.chartsInitialized) {
                             setTimeout(() => this.initCharts(), 100);
@@ -813,7 +856,26 @@
                             }));
                             this.$nextTick(() => lucide.createIcons());
                         })
-                        .catch(err => console.error(err));
+                        .catch(err => alert("Scan failed to start: " + err));
+                },
+
+                viewAsset(asset) {
+                    this.selectedAsset = asset;
+                    this.viewAssetMode = true;
+                },
+
+                deleteAsset(id) {
+                    if (!confirm("Are you sure you want to permanently delete this asset?")) return;
+                    fetch('/api/assets/' + id, { method: 'DELETE' })
+                        .then(res => {
+                            if (res.ok) {
+                                this.assets = this.assets.filter(a => a.id !== id);
+                                this.fetchStats(); // Update stats
+                            } else {
+                                alert("Failed to delete asset");
+                            }
+                        })
+                        .catch(e => console.error(e));
                 },
 
                 async startScan() {
