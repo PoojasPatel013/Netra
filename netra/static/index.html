@@ -385,6 +385,31 @@
                             </div>
                         </div>
 
+                        <!-- IAM & Auth Report (Feature D) -->
+                        <div class="break-inside-avoid mb-8" x-show="results?.IAMScanner?.vulnerabilities?.length > 0">
+                            <h3
+                                class="font-sans font-bold text-lg uppercase border-b-2 border-indigo-500 text-indigo-500 mb-2 pb-1">
+                                Identity & Access (IAM)</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <template x-for="v in results.IAMScanner.vulnerabilities">
+                                    <div
+                                        class="p-3 bg-indigo-50 dark:bg-slate-900 border border-indigo-200 dark:border-indigo-900 rounded">
+                                        <div class="flex justify-between items-start mb-2">
+                                            <span
+                                                class="px-2 py-0.5 text-[10px] font-bold uppercase rounded bg-indigo-200 text-indigo-800"
+                                                x-text="v.type"></span>
+                                            <span class="text-xs font-bold"
+                                                :class="v.severity === 'High' ? 'text-red-500' : 'text-blue-500'"
+                                                x-text="v.severity"></span>
+                                        </div>
+                                        <p class="text-xs text-slate-500 dark:text-slate-400 leading-tight mb-2"
+                                            x-text="v.details"></p>
+                                        <div class="text-[10px] font-mono text-slate-400" x-text="v.evidence"></div>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+
                         <!-- Zombie API Report -->
                         <div class="break-inside-avoid mb-8"
                             x-show="results?.ZombieScanner?.vulnerabilities?.length > 0">

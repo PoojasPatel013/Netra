@@ -25,12 +25,25 @@ vulnerabilities = []
 
 begin
   # Timeout check: If we can hold a socket for 5 seconds, it might be vulnerable.
-  Timeout.timeout(7) do
-    s = TCPSocket.new(target_host, 80)
+  Timeout.timeout(10) do
+    # Determine port and scheme
+    uri = URI.parse(target_raw.include?("://") ? target_raw : "http://#{target_raw}")
+    port = uri.port || (uri.scheme == "https" ? 443 : 80)
+    host = uri.host
+
+    s = TCPSocket.new(host, port)
+    
+    if uri.scheme == "https"
+        ssl_context = OpenSSL::SSL::SSLContext.new
+        ssl_context.verify_mode = OpenSSL::SSL::VERIFY_NONE
+        s = OpenSSL::SSL::SSLSocket.new(s, ssl_context)
+        s.sync_close = true
+        s.connect
+    end
     
     # Send partial header
     s.write("GET / HTTP/1.0\r\n")
-    s.write("Host: #{target_host}\r\n")
+    s.write("Host: #{host}\r\n")
     s.write("User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64)\r\n")
     s.write("Content-Length: 42\r\n")
     # We DO NOT send the final \r\n\r\n
@@ -45,7 +58,7 @@ begin
        vulnerabilities << {
           type: "DoS Susceptibility (Slowloris)",
           severity: "High",
-          details: "Server accepted incomplete HTTP headers for > 5 seconds. Vulnerable to Slowloris DoS attacks that can crash the website.",
+          details: "Server accepted incomplete HTTP headers for > 5 seconds. Vulnerable to Slowloris DoS attacks.",
           evidence: "Socket held open for 5s with partial request.",
           source: "RubyEngine"
         }

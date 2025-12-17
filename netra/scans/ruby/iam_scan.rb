@@ -79,6 +79,54 @@ begin
      }
   end
 
+  # 3. OAuth & SAML Detection (Feature D)
+  # Check for common OAuth endpoints
+  oauth_paths = ["/oauth/authorize", "/login/oauth/authorize", "/auth/realms"]
+  oauth_paths.each do |path|
+      req = Net::HTTP::Get.new(path)
+      res = http.request(req)
+      if res.code == "200" || res.code == "302"
+          vulnerabilities << {
+            type: "OAuth Endpoint Discovered",
+            severity: "Info",
+            details: "Found OAuth authorization endpoint at #{path}. Check for Open Redirects.",
+            evidence: "Status: #{res.code}",
+            source: "RubyEngine"
+          }
+          
+          # Check for Open Redirect (Simple Probe)
+          # We try to redirect to example.com
+          probe = "#{path}?redirect_uri=http://example.com&response_type=code&client_id=test"
+          probe_req = Net::HTTP::Get.new(probe)
+          probe_res = http.request(probe_req)
+          if probe_res['location'] && probe_res['location'].include?("example.com")
+             vulnerabilities << {
+                type: "OAuth Open Redirect",
+                severity: "High",
+                details: "The OAuth endpoint allows arbitrary redirects via 'redirect_uri'.",
+                evidence: "Redirected to: #{probe_res['location']}",
+                source: "RubyEngine"
+             }
+          end
+      end
+  end
+
+  # Check for SAML
+  saml_paths = ["/saml/sso", "/SamlService", "/sso/saml"]
+  saml_paths.each do |path|
+      req = Net::HTTP::Get.new(path)
+      res = http.request(req)
+      if res.code == "200" || res.body.include?("SAMLRequest")
+          vulnerabilities << {
+             type: "SAML Endpoint Found",
+             severity: "Info",
+             details: "SAML SSO endpoint detected at #{path}. Verify XML Signature validation.",
+             evidence: path,
+             source: "RubyEngine"
+          }
+      end
+  end
+
 rescue => e
   # Return empty if connection fails
 end
