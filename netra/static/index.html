@@ -158,168 +158,211 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            <!-- Left Column: Controls (Lead Story) - Made Bigger -->
+            <div class="lg:col-span-5 space-y-8">
+                <div
+                    class="bg-white dark:bg-cyber-dark p-6 shadow-xl border border-slate-200 dark:border-slate-800 relative">
+                    <!-- Header -->
+                    <div class="border-b-4 border-double border-slate-800 dark:border-slate-600 mb-4 pb-2">
+                        <h2 class="font-serif font-black text-3xl text-slate-900 dark:text-slate-100 leading-none">
+                            TARGET ACQUISITION
+                        </h2>
+                    </div>
+                    <p class="font-serif text-slate-600 dark:text-slate-400 mb-4">
+                        Initiate a new reconnaissance mission by specifying the target coordinates below. Ensure all
+                        protocols are followed.
+                    </p>
 
-                <!-- Left Column: Controls (Lead Story) -->
-                <div class="lg:col-span-4 space-y-8">
-                    <div
-                        class="bg-white dark:bg-cyber-dark p-6 shadow-xl border border-slate-200 dark:border-slate-800 relative">
-                        <!-- Header -->
-                        <div class="border-b-4 border-double border-slate-800 dark:border-slate-600 mb-4 pb-2">
-                            <h2 class="font-serif font-black text-3xl text-slate-900 dark:text-slate-100 leading-none">
-                                TARGET ACQUISITION
-                            </h2>
-                        </div>
-                        <p class="font-serif text-slate-600 dark:text-slate-400 mb-4">
-                            Initiate a new reconnaissance mission by specifying the target coordinates below. Ensure all
-                            protocols are followed.
-                        </p>
+                    <!-- Input -->
+                    <div class="mb-6 mt-6">
+                        <label
+                            class="block font-sans text-xs font-bold uppercase tracking-widest mb-1 text-slate-500">Target
+                            Domain</label>
+                        <input type="text" x-model="target" placeholder="example.com"
+                            class="w-full bg-slate-100 dark:bg-black border-b-2 border-slate-800 dark:border-slate-200 px-4 py-3 text-2xl font-serif text-slate-900 dark:text-white focus:outline-none focus:bg-yellow-50 dark:focus:bg-gray-900 transition-colors">
+                    </div>
 
-                        <!-- Input -->
-                        <div class="mb-6 mt-6">
-                            <label
-                                class="block font-sans text-xs font-bold uppercase tracking-widest mb-1 text-slate-500">Target
-                                Domain</label>
-                            <input type="text" x-model="target" placeholder="example.com"
-                                class="w-full bg-slate-100 dark:bg-black border-b-2 border-slate-800 dark:border-slate-200 px-4 py-3 text-xl font-serif text-slate-900 dark:text-white focus:outline-none focus:bg-yellow-50 dark:focus:bg-gray-900 transition-colors">
-                        </div>
-
-                        <!-- Options -->
-                        <div class="bg-slate-100 dark:bg-black p-4 border border-slate-300 dark:border-slate-700 mb-6">
-                            <h3
-                                class="font-sans font-bold text-xs uppercase text-slate-500 mb-2 border-b border-slate-300 pb-1">
-                                Mission Parameters</h3>
-                            <div class="grid grid-cols-2 gap-y-2">
-                                <template x-for="(val, key) in options" :key="key">
-                                    <label
-                                        class="flex items-center space-x-2 cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-800 p-1 rounded">
-                                        <input type="checkbox" x-model="options[key]"
-                                            class="text-slate-900 rounded-none w-4 h-4">
-                                        <span x-text="key"
-                                            class="font-serif text-sm text-slate-700 dark:text-slate-300 italic"></span>
-                                    </label>
-                                </template>
-                            </div>
-                        </div>
-
-                        <!-- Log Area -->
-                        <div x-show="logs.length > 0"
-                            class="mb-4 p-2 bg-black text-green-400 font-mono text-xs h-32 overflow-y-auto border border-slate-700">
-                            <template x-for="log in logs">
-                                <div x-text="log"></div>
+                    <!-- Options -->
+                    <div class="bg-slate-100 dark:bg-black p-4 border border-slate-300 dark:border-slate-700 mb-6">
+                        <h3
+                            class="font-sans font-bold text-xs uppercase text-slate-500 mb-2 border-b border-slate-300 pb-1">
+                            Mission Parameters</h3>
+                        <div class="grid grid-cols-2 gap-y-2">
+                            <template x-for="(val, key) in options" :key="key">
+                                <label
+                                    class="flex items-center space-x-2 cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-800 p-1 rounded">
+                                    <input type="checkbox" x-model="options[key]"
+                                        class="text-slate-900 rounded-none w-4 h-4">
+                                    <span x-text="key"
+                                        class="font-serif text-sm text-slate-700 dark:text-slate-300 italic"></span>
+                                </label>
                             </template>
                         </div>
+                    </div>
 
-                        <!-- Button -->
+                    <!-- Action Buttons -->
+                    <div class="flex gap-2 flex-col md:flex-row">
                         <button @click="startScan()" :disabled="scanning"
-                            class="w-full py-4 border-2 border-slate-900 dark:border-white font-bold font-sans tracking-widest uppercase transition-all hover:bg-slate-900 hover:text-white dark:hover:bg-white dark:hover:text-black disabled:opacity-50 disabled:cursor-not-allowed">
+                            class="flex-1 py-4 border-2 border-slate-900 dark:border-white font-bold font-sans tracking-widest uppercase transition-all hover:bg-slate-900 hover:text-white dark:hover:bg-white dark:hover:text-black disabled:opacity-50 disabled:cursor-not-allowed">
                             <span x-text="scanning ? 'TRANSMITTING...' : 'LAUNCH OPERATION'"></span>
+                        </button>
+                        <button x-show="scanning" @click="pollStatus()"
+                            class="px-4 border-2 border-slate-900 dark:border-white hover:bg-slate-200 dark:hover:bg-slate-800"
+                            title="Refresh Status">
+                            <i data-lucide="refresh-cw" class="w-5 h-5"></i>
                         </button>
                     </div>
 
-                    <!-- Activity Feed -->
-                    <div class="border-t-2 border-slate-900 pt-4">
+                    <!-- Status Indicator -->
+                    <div x-show="scanning"
+                        class="mt-4 text-center font-mono text-sm text-radium-600 dark:text-radium-400 animate-pulse">
+                        STATUS: <span x-text="scanStatus">INITIALIZING</span>
+                    </div>
+
+                    <!-- Log Area (Collapsed by Default or simplified) -->
+                    <div x-show="logs.length > 0"
+                        class="mt-4 p-2 bg-black text-green-400 font-mono text-xs h-32 overflow-y-auto border border-slate-700">
+                        <template x-for="log in logs">
+                            <div x-text="log"></div>
+                        </template>
+                    </div>
+                </div>
+
+                <!-- Activity Feed -->
+                <div class="border-t-2 border-slate-900 pt-4">
+                    <div
+                        class="bg-slate-50 dark:bg-cyber-dark border border-slate-200 dark:border-slate-800 rounded-xl p-6 relative">
+                        <h3
+                            class="text-lg font-display font-bold text-slate-900 dark:text-white mb-4 border-b border-slate-300 dark:border-slate-700 pb-2">
+                            Recent Activity</h3>
+                        <ul class="space-y-4 max-h-60 overflow-y-auto">
+                            <template x-for="item in activities" :key="item.id">
+                                <li class="flex gap-4 items-start group">
+                                    <div
+                                        class="mt-1 p-2 rounded-lg bg-white dark:bg-black border border-slate-300 dark:border-slate-700">
+                                        <i :data-lucide="item.iconName"
+                                            class="w-4 h-4 text-radium-600 dark:text-radium-400"></i>
+                                    </div>
+                                    <div>
+                                        <p x-text="item.msg" class="text-sm text-slate-700 dark:text-slate-300"></p>
+                                        <span x-text="item.time" class="text-xs text-slate-500 font-mono"></span>
+                                    </div>
+                                </li>
+                            </template>
+                            <li x-show="activities.length === 0" class="text-slate-500 italic text-sm">No recent
+                                activity logs.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Results - Adjusted Width -->
+            <div class="lg:col-span-7">
+                <div
+                    class="bg-white dark:bg-cyber-dark shadow-2xl p-8 min-h-[600px] border border-slate-200 dark:border-slate-800 paper-texture relative">
+                    <!-- Toolbar -->
+                    <div class="absolute top-4 right-4 flex gap-2">
+                        <button x-show="results" @click="downloadResults()"
+                            class="p-2 text-slate-500 hover:text-slate-900 dark:hover:text-white border border-transparent hover:border-slate-300 rounded"
+                            title="Export JSON">
+                            <i data-lucide="download" class="w-5 h-5"></i>
+                        </button>
+                        <button x-show="results" @click="viewReportMode = !viewReportMode"
+                            class="p-2 text-slate-500 hover:text-slate-900 dark:hover:text-white border border-transparent hover:border-slate-300 rounded"
+                            title="Toggle Full Report">
+                            <i data-lucide="file-text" class="w-5 h-5"></i>
+                        </button>
+                    </div>
+
+                    <div class="text-center mb-8">
+                        <h2 class="font-serif font-bold text-4xl mb-2 text-slate-900 dark:text-white">Analysis Report
+                        </h2>
                         <div
-                            class="bg-slate-50 dark:bg-cyber-dark border border-slate-200 dark:border-slate-800 rounded-xl p-6 relative">
+                            class="flex justify-center items-center gap-4 text-xs font-sans font-bold text-slate-400 uppercase tracking-widest">
+                            <span>Intelligence Division</span>
+                            <span>&bull;</span>
+                            <span x-text="new Date().toLocaleDateString()"></span>
+                        </div>
+                    </div>
+
+                    <!-- Empty State -->
+                    <div x-show="!results"
+                        class="flex flex-col items-center justify-center h-64 border-4 border-double border-slate-200 dark:border-slate-700 p-8 text-center text-slate-400 italic font-serif">
+                        <i data-lucide="shield" class="w-16 h-16 mb-4"
+                            :class="scanning ? 'animate-pulse text-slate-800 dark:text-white' : ''"></i>
+                        <span
+                            x-text="scanning ? 'Receiving transmission from field agents...' : 'Awaiting Mission Directives. No intelligence data available.'"></span>
+                    </div>
+
+                    <!-- Results Data -->
+                    <div x-show="results" class="columns-1 md:columns-2 gap-8 text-justify">
+                        <!-- Ports -->
+                        <div class="break-inside-avoid mb-8">
                             <h3
-                                class="text-lg font-display font-bold text-slate-900 dark:text-white mb-4 border-b border-slate-300 dark:border-slate-700 pb-2">
-                                Recent Activity</h3>
-                            <ul class="space-y-4 max-h-60 overflow-y-auto">
-                                <template x-for="item in activities" :key="item.id">
-                                    <li class="flex gap-4 items-start group">
-                                        <div
-                                            class="mt-1 p-2 rounded-lg bg-white dark:bg-black border border-slate-300 dark:border-slate-700">
-                                            <i :data-lucide="item.iconName"
-                                                class="w-4 h-4 text-radium-600 dark:text-radium-400"></i>
-                                        </div>
-                                        <div>
-                                            <p x-text="item.msg" class="text-sm text-slate-700 dark:text-slate-300"></p>
-                                            <span x-text="item.time" class="text-xs text-slate-500 font-mono"></span>
-                                        </div>
+                                class="font-sans font-bold text-lg uppercase border-b-2 border-black dark:border-white mb-2 pb-1 text-slate-900 dark:text-slate-200">
+                                Network Surface</h3>
+                            <p class="font-serif text-sm mb-2 text-slate-600 dark:text-slate-400">
+                                Field scanners have identified <span
+                                    x-text="results?.PortScanner?.open_ports?.length || 0" class="font-bold"></span>
+                                open entry points.
+                            </p>
+                            <div class="flex flex-wrap gap-2 mt-2">
+                                <template x-for="p in results?.PortScanner?.open_ports || []">
+                                    <span x-text="':' + p"
+                                        class="bg-slate-100 dark:bg-gray-800 border border-slate-300 dark:border-gray-600 px-2 py-1 font-mono text-xs font-bold text-slate-800 dark:text-slate-200"></span>
+                                </template>
+                            </div>
+                        </div>
+
+                        <!-- Vulns -->
+                        <div class="break-inside-avoid mb-8">
+                            <h3
+                                class="font-sans font-bold text-lg uppercase border-b-2 border-red-600 text-red-600 mb-2 pb-1">
+                                Critical Vulnerabilities</h3>
+                            <ul class="list-disc pl-4 space-y-2 font-serif text-sm text-slate-700 dark:text-slate-300">
+                                <template x-for="v in results?.ThreatScanner?.vulnerabilities || []">
+                                    <li>
+                                        <strong x-text="v.type"></strong>: <span x-text="v.details"></span>
                                     </li>
                                 </template>
-                                <li x-show="activities.length === 0" class="text-slate-500 italic text-sm">No recent
-                                    activity logs.</li>
+                                <li x-show="!(results?.ThreatScanner?.vulnerabilities?.length)"
+                                    class="italic text-slate-500">
+                                    No immediate threats detected in this sector.
+                                </li>
                             </ul>
                         </div>
+
+                        <!-- Raw Data -->
+                        <div
+                            class="break-inside-avoid p-4 bg-slate-50 dark:bg-black border border-slate-200 dark:border-slate-800 text-xs">
+                            <h4 class="font-mono font-bold mb-2 text-slate-500">RAW_WIRE_TAP.log</h4>
+                            <pre class="font-mono whitespace-pre-wrap text-slate-600 dark:text-gray-400 overflow-x-auto"
+                                x-text="JSON.stringify(results, null, 2).substring(0, 500) + '...'"></pre>
+                        </div>
                     </div>
+
                 </div>
+            </div>
 
-                <!-- Right Column: Results -->
-                <div class="lg:col-span-8">
-                    <div
-                        class="bg-white dark:bg-cyber-dark shadow-2xl p-8 min-h-[600px] border border-slate-200 dark:border-slate-800 paper-texture">
-                        <div class="text-center mb-8">
-                            <h2 class="font-serif font-bold text-4xl mb-2 text-slate-900 dark:text-white">Analysis
-                                Report</h2>
-                            <div
-                                class="flex justify-center items-center gap-4 text-xs font-sans font-bold text-slate-400 uppercase tracking-widest">
-                                <span>Intelligence Division</span>
-                                <span>&bull;</span>
-                                <span x-text="new Date().toLocaleDateString()"></span>
-                            </div>
-                        </div>
+        </div>
+        </div>
 
-                        <!-- Empty State -->
-                        <div x-show="!results"
-                            class="flex flex-col items-center justify-center h-64 border-4 border-double border-slate-200 dark:border-slate-700 p-8 text-center text-slate-400 italic font-serif">
-                            <i data-lucide="shield" class="w-16 h-16 mb-4"
-                                :class="scanning ? 'animate-pulse text-slate-800 dark:text-white' : ''"></i>
-                            <span
-                                x-text="scanning ? 'Receiving transmission from field agents...' : 'Awaiting Mission Directives. No intelligence data available.'"></span>
-                        </div>
-
-                        <!-- Results Data -->
-                        <div x-show="results" class="columns-1 md:columns-2 gap-8 text-justify">
-                            <!-- Ports -->
-                            <div class="break-inside-avoid mb-8">
-                                <h3
-                                    class="font-sans font-bold text-lg uppercase border-b-2 border-black dark:border-white mb-2 pb-1 text-slate-900 dark:text-slate-200">
-                                    Network Surface</h3>
-                                <p class="font-serif text-sm mb-2 text-slate-600 dark:text-slate-400">
-                                    Field scanners have identified <span
-                                        x-text="results?.PortScanner?.open_ports?.length || 0" class="font-bold"></span>
-                                    open entry points.
-                                </p>
-                                <div class="flex flex-wrap gap-2 mt-2">
-                                    <template x-for="p in results?.PortScanner?.open_ports || []">
-                                        <span x-text="':' + p"
-                                            class="bg-slate-100 dark:bg-gray-800 border border-slate-300 dark:border-gray-600 px-2 py-1 font-mono text-xs font-bold text-slate-800 dark:text-slate-200"></span>
-                                    </template>
-                                </div>
-                            </div>
-
-                            <!-- Vulns -->
-                            <div class="break-inside-avoid mb-8">
-                                <h3
-                                    class="font-sans font-bold text-lg uppercase border-b-2 border-red-600 text-red-600 mb-2 pb-1">
-                                    Critical Vulnerabilities</h3>
-                                <ul
-                                    class="list-disc pl-4 space-y-2 font-serif text-sm text-slate-700 dark:text-slate-300">
-                                    <template x-for="v in results?.ThreatScanner?.vulnerabilities || []">
-                                        <li>
-                                            <strong x-text="v.type"></strong>: <span x-text="v.details"></span>
-                                        </li>
-                                    </template>
-                                    <li x-show="!(results?.ThreatScanner?.vulnerabilities?.length)"
-                                        class="italic text-slate-500">
-                                        No immediate threats detected in this sector.
-                                    </li>
-                                </ul>
-                            </div>
-
-                            <!-- Raw Data -->
-                            <div
-                                class="break-inside-avoid p-4 bg-slate-50 dark:bg-black border border-slate-200 dark:border-slate-800 text-xs">
-                                <h4 class="font-mono font-bold mb-2 text-slate-500">RAW_WIRE_TAP.log</h4>
-                                <pre class="font-mono whitespace-pre-wrap text-slate-600 dark:text-gray-400 overflow-x-auto"
-                                    x-text="JSON.stringify(results, null, 2).substring(0, 500) + '...'"></pre>
-                            </div>
-                        </div>
-
-                    </div>
+        <!-- View Report Modal (Optional expansion) -->
+        <div x-show="viewReportMode"
+            class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm" x-cloak>
+            <div @click.outside="viewReportMode = false"
+                class="bg-white dark:bg-cyber-dark w-full max-w-4xl max-h-[90vh] overflow-y-auto p-8 rounded shadow-2xl border border-slate-700">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold font-display text-white">Full Intelligence Report</h2>
+                    <button @click="viewReportMode = false"><i data-lucide="x" class="w-6 h-6 text-white"></i></button>
                 </div>
-
+                <pre class="font-mono text-xs p-4 bg-black text-green-400 rounded overflow-auto max-h-[60vh]"
+                    x-text="JSON.stringify(results, null, 2)"></pre>
+                <div class="mt-4 flex justify-end">
+                    <button @click="downloadResults()"
+                        class="bg-radium-600 text-black px-4 py-2 font-bold uppercase hover:bg-radium-500">Download
+                        JSON</button>
+                </div>
             </div>
         </div>
 
@@ -437,6 +480,8 @@
                 darkMode: true,
                 target: '',
                 scanning: false,
+                scanStatus: 'IDLE',
+                viewReportMode: false,
                 results: null,
                 logs: [],
                 stats: { scans: 0, vulns: 0, assets: 0 },
@@ -596,6 +641,48 @@
                     this.darkMode = !this.darkMode;
                 },
 
+                downloadResults() {
+                    if (!this.results) return;
+                    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(this.results, null, 2));
+                    const downloadAnchorNode = document.createElement('a');
+                    downloadAnchorNode.setAttribute("href", dataStr);
+                    downloadAnchorNode.setAttribute("download", "netra_intelligence_report.json");
+                    document.body.appendChild(downloadAnchorNode); // required for firefox
+                    downloadAnchorNode.click();
+                    downloadAnchorNode.remove();
+                },
+
+                async pollStatus() {
+                    // Manual refresh placeholder
+                },
+
+                async checkScanStatus(interval, scanId) {
+                    try {
+                        const res = await fetch(`/scans/${scanId}`);
+                        if (!res.ok) return;
+                        const data = await res.json();
+
+                        // Update status indicator
+                        if (data.status) this.scanStatus = data.status.toUpperCase();
+
+                        if (data.status === 'completed') {
+                            if (interval) clearInterval(interval);
+                            this.results = data.results || {};
+                            this.scanning = false;
+                            this.scanStatus = 'COMPLETED';
+                            this.addLog('Scan Completed. Intelligence received.');
+                            this.fetchStats();
+                            this.fetchActivity();
+                            this.$nextTick(() => lucide.createIcons());
+                        } else if (data.status === 'failed') {
+                            if (interval) clearInterval(interval);
+                            this.scanning = false;
+                            this.scanStatus = 'FAILED';
+                            this.addLog('Scan Failed.');
+                        }
+                    } catch (e) { console.error(e); }
+                },
+
                 addLog(msg) {
                     this.logs.unshift(`[${new Date().toLocaleTimeString()}] ${msg}`);
                 },
@@ -626,6 +713,7 @@
                 async startScan() {
                     if (!this.target) return;
                     this.scanning = true;
+                    this.scanStatus = 'DISPATCHING';
                     this.results = null;
                     this.logs = [];
                     this.addLog(`INITIALIZING SCAN: ${this.target}`);
@@ -644,36 +732,17 @@
                         if (!response.ok) throw new Error('Failed to start scan');
                         const scan = await response.json();
                         this.addLog(`Scan ID: ${scan.id} dispatched.`);
+                        this.scanStatus = 'IN PROGRESS';
 
                         // Poll
                         const interval = setInterval(async () => {
-                            try {
-                                const res = await fetch(`/scans/${scan.id}`);
-                                const data = await res.json();
-
-                                if (data.status === 'completed') {
-                                    clearInterval(interval);
-                                    this.results = data.results || {};
-                                    this.scanning = false;
-                                    this.addLog('Scan Completed. Intelligence received.');
-                                    this.fetchStats();
-                                    this.fetchActivity();
-                                    this.$nextTick(() => lucide.createIcons());
-                                } else if (data.status === 'failed') {
-                                    clearInterval(interval);
-                                    this.scanning = false;
-                                    this.addLog('Scan Failed.');
-                                } else {
-                                    this.addLog(`Status: ${data.status}...`);
-                                }
-                            } catch (e) {
-                                console.error(e);
-                            }
+                            await this.checkScanStatus(interval, scan.id);
                         }, 2000);
 
                     } catch (e) {
                         this.addLog(`Error: ${e.message}`);
                         this.scanning = false;
+                        this.scanStatus = 'FAILED';
                     }
                 }
             }
