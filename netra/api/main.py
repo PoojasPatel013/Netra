@@ -12,11 +12,9 @@ from sqlalchemy.orm import sessionmaker
 
 from netra.api.models import Scan, ScanCreate, ScanRead
 from netra.core.engine import NetraEngine
-from netra.core.modules.network import PortScanner
-from netra.core.modules.http import HTTPScanner
 from netra.core.modules.cloud import CloudScanner
-from netra.core.modules.iot import IoTScanner
-from netra.core.modules.graphql import GraphQLScanner
+from netra.core.modules.acquisition import AcquisitionScanner
+from netra.core.modules.discovery import PortScanner, HTTPScanner, IoTScanner, GraphQLScanner
 from netra.core.modules.pentest import PentestEngine
 from netra.integrations.defectdojo import DefectDojoClient
 from netra.core.reporter import SARIFReporter
@@ -164,6 +162,17 @@ async def sync_graph_results(scan_results: dict, target: str):
                 MERGE (d)-[:HAS_VULNERABILITY]->(v)
                 """
                 db.cypher_query(query_vuln, {"domain": target, "name": v.get("type", "Unknown"), "severity": "High"})
+        
+        # 4. Process Acquisitions
+        if "AcquisitionScanner" in scan_results:
+            acqs = scan_results["AcquisitionScanner"].get("acquisitions", [])
+            for acq in acqs:
+                query_acq = """
+                MATCH (d:Domain {name: $domain})
+                MERGE (sub:Domain {name: $sub_name})
+                MERGE (d)-[:ACQUIRED]->(sub)
+                """
+                db.cypher_query(query_acq, {"domain": target, "sub_name": acq["domain"]})
 
     except Exception as e:
         print(f"Graph Sync Error: {e}")
@@ -220,6 +229,10 @@ async def run_scan_task(scan_id: int):
                 
             if opts.get("graphql", False):
                 v_engine.register_scanner(GraphQLScanner())
+                
+                
+            if opts.get("acquisitions", False):
+                v_engine.register_scanner(AcquisitionScanner())
             
             # Auto Exploit (Polyglot)
             if opts.get("auto_exploit", False):
