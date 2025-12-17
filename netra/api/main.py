@@ -14,7 +14,10 @@ from netra.api.models import Scan, ScanCreate, ScanRead
 from netra.core.engine import NetraEngine
 from netra.core.modules.cloud import CloudScanner
 from netra.core.modules.acquisition import AcquisitionScanner
-from netra.core.modules.discovery import PortScanner, HTTPScanner, IoTScanner, GraphQLScanner
+from netra.core.modules.network import PortScanner
+from netra.core.modules.http import HTTPScanner
+from netra.core.modules.iot import IoTScanner
+from netra.core.modules.graphql import GraphQLScanner
 from netra.core.modules.pentest import PentestEngine
 from netra.integrations.defectdojo import DefectDojoClient
 from netra.core.reporter import SARIFReporter
