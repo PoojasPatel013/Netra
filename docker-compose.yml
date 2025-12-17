@@ -1,12 +1,11 @@
 services:
-
   netra:
     build:
       context: .
       dockerfile: Dockerfile
     container_name: netra-backend
-    command: python run.py
+    command: python run.py serve
     ports:
       - "8000:8000"
     volumes:
-      - .:
+      - ./netra:/app/netra
