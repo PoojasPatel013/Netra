@@ -410,6 +410,39 @@
                             </div>
                         </div>
 
+                        <!-- Resilience & DoS Report (Feature E) -->
+                        <div class="break-inside-avoid mb-8"
+                            x-show="results?.ResilienceScanner?.vulnerabilities?.length > 0 || results?.DoSScanner?.vulnerabilities?.length > 0">
+                            <h3
+                                class="font-sans font-bold text-lg uppercase border-b-2 border-yellow-600 text-yellow-600 mb-2 pb-1">
+                                System Resilience & Stability</h3>
+                            <div class="space-y-4">
+                                <!-- Rate Limiting -->
+                                <template x-for="v in results.ResilienceScanner.vulnerabilities">
+                                    <div
+                                        class="p-3 bg-yellow-50 dark:bg-slate-900 border border-yellow-200 dark:border-yellow-900 rounded">
+                                        <div class="flex justify-between items-start mb-1">
+                                            <span class="font-bold text-sm text-yellow-700 dark:text-yellow-400"
+                                                x-text="v.type"></span>
+                                            <span class="text-xs font-bold text-red-500" x-text="v.severity"></span>
+                                        </div>
+                                        <p class="text-xs text-slate-600 dark:text-slate-400" x-text="v.details"></p>
+                                    </div>
+                                </template>
+                                <!-- DoS Checks -->
+                                <template x-for="v in results.DoSScanner.vulnerabilities">
+                                    <div
+                                        class="p-3 bg-red-950/30 border border-red-500 rounded text-red-200 animate-pulse">
+                                        <div class="flex items-center gap-2 mb-1">
+                                            <i data-lucide="zap-off" class="w-4 h-4 text-red-500"></i>
+                                            <span class="font-bold text-sm" x-text="v.type"></span>
+                                        </div>
+                                        <p class="text-xs text-red-300" x-text="v.details"></p>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+
                         <!-- Zombie API Report -->
                         <div class="break-inside-avoid mb-8"
                             x-show="results?.ZombieScanner?.vulnerabilities?.length > 0">

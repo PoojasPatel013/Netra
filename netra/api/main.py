@@ -226,7 +226,29 @@ async def run_scan_task(scan_id: int):
             v_engine.register_scanner(RubyScanner("iam_scan.rb", name="IAMScanner"))
 
             # Resilience / Rate Limit
+            if opts.get("resilience", False): # Only if resilience is toggled (assuming we use this option)
+                v_engine.register_scanner(RubyScanner("resilience_scan.rb", name="ResilienceScanner"))
+                v_engine.register_scanner(RubyBridge(script_name="dos_check.rb", name="DoSScanner"))
+            else:
+                # Default behavior if we want robust base scans? No, keep it opt-in for aggressive checks
+                # Actually, main.py currently registers ResilienceScanner unconditionally in previous code.
+                # Let's clean that logic up.
+                pass
+            
+            # Re-inserting ResilienceScanner logic but conditional or default?
+            # Original code lines 228-229 were unconditional.
+            # I will modify them to be conditional or just add DoS next to it.
+            # Given `dos_check` is aggressive, let's wrap BOTH in a check or just leave ResilienceScanner as is and add DoS.
+            
+            # CURRENT STATE: Line 229: v_engine.register_scanner(RubyScanner("resilience_scan.rb", name="ResilienceScanner"))
+            # I will change it to:
+            
+            # Resilience / Rate Limit (Always on base check)
             v_engine.register_scanner(RubyScanner("resilience_scan.rb", name="ResilienceScanner"))
+             
+            # Aggressive DoS Checks (if requested)
+            if opts.get("resilience", False) or opts.get("dos", False):
+                 v_engine.register_scanner(RubyBridge(script_name="dos_check.rb", name="DoSScanner"))
             
             if opts.get("secrets", False):
                 v_engine.register_scanner(SecretScanner())
