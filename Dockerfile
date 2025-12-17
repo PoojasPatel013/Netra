@@ -2,29 +2,23 @@ FROM python:3.10-slim
 
 WORKDIR /app
 
-# Install system dependencies (needed for compilation of some python packages)
 RUN apt-get update && apt-get install -y \
-  gcc \
-  libpq-dev \
-  ruby-full \
-  build-essential \
-  && rm -rf /var/lib/apt/lists/*
+    gcc \
+    g++ \
+    build-essential \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
 
-# Install python dependencies
-COPY pyproject.toml .
-RUN pip install --no-cache-dir poetry && \
-  poetry config virtualenvs.create false
 
-# We need to install dependencies. 
-# Since we don't have poetry.lock yet, we rely on pyproject.toml
-# But for production build without lock, we might export requirements or just install via pip if we had requirements.txt
-# Here we will try to install the project itself which installs dependencies.
-COPY . .
-RUN pip install .
+COPY pyproject.toml ./
 
-# Install server dependencies explicitly if not in pyproject yet (we will add them)
-RUN pip install "fastapi[all]" uvicorn sqlmodel asyncpg psycopg2-binary
+RUN pip install poetry \
+    && poetry config virtualenvs.create false \
+    && poetry install --only main --no-root
 
-EXPOSE 8000
 
-CMD ["uvicorn", "netra.api.main:app", "--host", "0.0.0.0", "--port", "8000"]
+COPY netra ./netra
+COPY run.py .
+
+CMD ["python", "run.py", "api"]
+

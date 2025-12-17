@@ -74,6 +74,16 @@ Netra v2 is designed to run locally with a single command.
 
 ---
 
+## Platform Screenshots
+
+### Netra UI Dashboard
+![Netra UI Dashboard](assets/NETRA_UI_Dashboard.png)
+
+### Neo4j Knowledge Graph Visualization
+![Neo4j Graph Visualization](assets/Neo4j_Graph_visualisation.png)
+
+---
+
 ## Development Workflow
 
 ### 1. Trigger a Scan
