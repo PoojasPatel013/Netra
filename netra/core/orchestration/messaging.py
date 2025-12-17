@@ -13,12 +13,12 @@ class NetraStream:
         if not self.redis:
             self.redis = redis.from_url(REDIS_URL, decode_responses=True)
 
-    async def publish_target(self, target: str, source: str = "ui"):
+    async def publish_target(self, target: str, source: str = "ui", options: dict = {}):
         """Push a new scan target to the ingestion stream."""
         await self.connect()
         message = {
             "type": "target_added",
-            "payload": json.dumps({"target": target, "source": source})
+            "payload": json.dumps({"target": target, "source": source, "options": options})
         }
         await self.redis.xadd(self.stream_key, message)
 

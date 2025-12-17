@@ -15,7 +15,7 @@ async def process_ingest_event(event_data, stream):
     try:
         payload = json.loads(event_data['payload'])
         target = payload.get('target')
-        print(f"⚡ [Ingest] Fast-Scanning: {target}")
+        print(f" [Ingest] Fast-Scanning: {target}")
 
         # 1. DNS Resolution
         resolver = DNSResolver()
@@ -26,7 +26,7 @@ async def process_ingest_event(event_data, stream):
         bridge = RubyBridge()
         # Example: Run 'dos_check.rb' against the target
         ruby_res = bridge.execute_script("dos_check.rb", target)
-        print(f"💎 [Ingest] Ruby Bridge Result: {ruby_res}")
+        print(f" [Ingest] Ruby Bridge Result: {ruby_res}")
         
         # 3. Push to ML Worker
         raw_result = {
@@ -36,13 +36,13 @@ async def process_ingest_event(event_data, stream):
         }
         
         await stream.publish_raw_data(raw_result)
-        print(f"➡️  [Ingest] Pushed raw data to ML pipeline")
+        print(f" [Ingest] Pushed raw data to ML pipeline")
 
     except Exception as e:
-        print(f"❌ [Ingest] Error: {e}")
+        print(f"[Ingest] Error: {e}")
 
 async def main():
-    print("🚀 Ingestion Worker (I/O Bound) Started...")
+    print("Ingestion Worker (I/O Bound) Started...")
     stream = NetraStream(stream_key="netra:events:ingest")
     
     async for msg_id, data in stream.consume_events(group="ingest_group", consumer="ingest_1"):

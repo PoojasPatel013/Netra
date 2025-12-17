@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Netra Times - Intelligence</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Inter:wght@400;500;600;700&family=Orbitron:wght@400;500;700&family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&display=swap"
+        rel="stylesheet">
+
+    <!-- Libraries -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+    <!-- Tailwind Config -->
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        radium: {
+                            50: '#e0fbff',
+                            100: '#bdf6ff',
+                            200: '#8aefff',
+                            300: '#46e6ff',
+                            400: '#00d5ff',
+                            500: '#00f3ff',
+                            600: '#008ba3',
+                            800: '#005a6b',
+                        },
+                        cyber: {
+                            black: '#050a14',
+                            dark: '#0b1221',
+                            border: '#1e293b',
+                            text: '#e2e8f0',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['Fira Code', 'monospace'],
+                        display: ['Orbitron', 'sans-serif'],
+                        serif: ['"Playfair Display"', 'serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        [x-cloak] {
+            display: none !important;
+        }
+
+        .text-glow {
+            text-shadow: 0 0 10px rgba(0, 243, 255, 0.5);
+        }
+
+        .paper-texture {
+            background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0IiBoZWlnaHQ9IjQiPgo8cmVjdCB3aWR0aD0iNCIgaGVpZ2h0PSI0IiBmaWxsPSIjZmZmIi8+CjxyZWN0IHdpZHRoPSIxIiBoZWlnaHQ9IjEiIGZpbGw9IiNjY2MiLz4KPC9zdmc+');
+            background-blend-mode: multiply;
+        }
+    </style>
+</head>
+
+<body
+    class="bg-gray-50 dark:bg-cyber-black text-slate-900 dark:text-cyber-text transition-colors duration-300 min-h-screen flex flex-col font-sans"
+    x-data="app()" x-init="initApp()">
+
+    <!-- Header / Masthead -->
+    <header
+        class="border-b-4 border-double border-slate-900 dark:border-slate-700 bg-white dark:bg-cyber-black relative z-40">
+        <!-- Top Utility Bar -->
+        <div
+            class="flex items-center justify-between px-4 md:px-8 py-2 border-b border-slate-300 dark:border-slate-800 text-xs font-serif italic text-slate-600 dark:text-slate-400">
+            <div class="flex items-center gap-4">
+                <span
+                    x-text="new Date().toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })"></span>
+                <span class="hidden md:inline">|</span>
+                <span class="hidden md:inline">Vol. 2, No. 42</span>
+                <span class="hidden md:inline">|</span>
+                <span class="hidden md:inline">New Delhi, India</span>
+            </div>
+            <div class="flex items-center gap-4">
+                <button @click="toggleTheme()" class="hover:text-radium-500 transition-colors">
+                    <i data-lucide="sun" x-show="!darkMode" class="w-4 h-4"></i>
+                    <i data-lucide="moon" x-show="darkMode" class="w-4 h-4"></i>
+                </button>
+                <div class="flex items-center gap-2">
+                    <i data-lucide="user" class="w-3 h-3"></i>
+                    <span class="font-bold">ADMINISTRATOR</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Title -->
+        <div class="py-8 text-center relative overflow-hidden group">
+            <h1
+                class="text-5xl md:text-8xl font-serif font-black tracking-tighter text-slate-900 dark:text-slate-100 mb-2 relative z-10 selection:bg-radium-500 selection:text-black">
+                The Netra Times
+            </h1>
+            <div class="h-1 w-32 bg-slate-900 dark:bg-slate-100 mx-auto mb-1"></div>
+            <div class="h-0.5 w-full max-w-2xl bg-slate-900 dark:bg-slate-100 mx-auto"></div>
+            <p class="mt-2 font-display text-sm tracking-[0.3em] text-slate-500 dark:text-radium-500 uppercase">
+                Advanced Security Monitoring & Intelligence
+            </p>
+
+            <!-- BG Decor -->
+            <i data-lucide="shield"
+                class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 text-slate-200/50 dark:text-slate-800/20 -z-0 opacity-20 rotate-12"></i>
+        </div>
+
+        <!-- NavBar -->
+        <nav
+            class="flex justify-center border-t border-b border-slate-300 dark:border-slate-700 py-3 sticky top-0 bg-white/95 dark:bg-cyber-black/95 backdrop-blur z-50">
+            <ul class="flex flex-wrap justify-center gap-4 md:gap-8 px-4">
+                <template x-for="item in menuItems" :key="item.id">
+                    <li>
+                        <button @click="activeTab = item.id"
+                            :class="activeTab === item.id ? 'text-radium-600 dark:text-radium-500 scale-105' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'"
+                            class="relative px-2 py-1 font-serif text-sm md:text-base font-bold tracking-wider transition-all duration-300">
+                            <span x-text="item.label"></span>
+                            <div x-show="activeTab === item.id"
+                                class="absolute -bottom-2 left-0 right-0 h-0.5 bg-radium-600 dark:bg-radium-500"></div>
+                        </button>
+                    </li>
+                </template>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-grow max-w-7xl mx-auto w-full p-4 md:p-8 min-h-[calc(100vh-300px)]">
+
+        <!-- DASHBOARD VIEW -->
+        <div x-show="activeTab === 'dashboard'" x-transition.opacity.duration.500ms>
+
+            <!-- Ticker -->
+            <div class="mb-8 border-b-2 border-slate-900 dark:border-slate-100 pb-4">
+                <div class="flex flex-wrap gap-4 justify-between items-end">
+                    <div>
+                        <span
+                            class="bg-red-600 text-white px-2 py-1 font-bold text-xs uppercase tracking-widest mr-2 animate-pulse">BREAKING</span>
+                        <span class="font-serif italic text-lg text-slate-700 dark:text-slate-300">
+                            Threat Level reaches "MODERATE" as new assets discovered...
+                        </span>
+                    </div>
+                    <div class="font-mono text-xs text-slate-500">
+                        INDEX: SCANS {<span x-text="stats.scans"></span>} | VULNS {<span x-text="stats.vulns"></span>} |
+                        ASSETS {<span x-text="stats.assets"></span>}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Left Column: Controls (Lead Story) - Made Bigger -->
+            <div class="lg:col-span-5 space-y-8">
+                <div
+                    class="bg-white dark:bg-cyber-dark p-6 shadow-xl border border-slate-200 dark:border-slate-800 relative">
+                    <!-- Header -->
+                    <div class="border-b-4 border-double border-slate-800 dark:border-slate-600 mb-4 pb-2">
+                        <h2 class="font-serif font-black text-3xl text-slate-900 dark:text-slate-100 leading-none">
+                            TARGET ACQUISITION
+                        </h2>
+                    </div>
+                    <p class="font-serif text-slate-600 dark:text-slate-400 mb-4">
+                        Initiate a new reconnaissance mission by specifying the target coordinates below. Ensure all
+                        protocols are followed.
+                    </p>
+
+                    <!-- Input -->
+                    <div class="mb-6 mt-6">
+                        <label
+                            class="block font-sans text-xs font-bold uppercase tracking-widest mb-1 text-slate-500">Target
+                            Domain</label>
+                        <input type="text" x-model="target" placeholder="example.com"
+                            class="w-full bg-slate-100 dark:bg-black border-b-2 border-slate-800 dark:border-slate-200 px-4 py-3 text-2xl font-serif text-slate-900 dark:text-white focus:outline-none focus:bg-yellow-50 dark:focus:bg-gray-900 transition-colors">
+                    </div>
+
+                    <!-- Options -->
+                    <div class="bg-slate-100 dark:bg-black p-4 border border-slate-300 dark:border-slate-700 mb-6">
+                        <h3
+                            class="font-sans font-bold text-xs uppercase text-slate-500 mb-2 border-b border-slate-300 pb-1">
+                            Mission Parameters</h3>
+                        <div class="grid grid-cols-2 gap-y-2">
+                            <template x-for="(val, key) in options" :key="key">
+                                <label
+                                    class="flex items-center space-x-2 cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-800 p-1 rounded">
+                                    <input type="checkbox" x-model="options[key]"
+                                        class="text-slate-900 rounded-none w-4 h-4">
+                                    <span x-text="key"
+                                        class="font-serif text-sm text-slate-700 dark:text-slate-300 italic"></span>
+                                </label>
+                            </template>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="flex gap-2 flex-col md:flex-row">
+                        <button @click="startScan()" :disabled="scanning"
+                            class="flex-1 py-4 border-2 border-slate-900 dark:border-white font-bold font-sans tracking-widest uppercase transition-all hover:bg-slate-900 hover:text-white dark:hover:bg-white dark:hover:text-black disabled:opacity-50 disabled:cursor-not-allowed">
+                            <span x-text="scanning ? 'TRANSMITTING...' : 'LAUNCH OPERATION'"></span>
+                        </button>
+                        <button x-show="scanning" @click="pollStatus()"
+                            class="px-4 border-2 border-slate-900 dark:border-white hover:bg-slate-200 dark:hover:bg-slate-800"
+                            title="Refresh Status">
+                            <i data-lucide="refresh-cw" class="w-5 h-5"></i>
+                        </button>
+                    </div>
+
+                    <!-- Status Indicator -->
+                    <div x-show="scanning"
+                        class="mt-4 text-center font-mono text-sm text-radium-600 dark:text-radium-400 animate-pulse">
+                        STATUS: <span x-text="scanStatus">INITIALIZING</span>
+                    </div>
+
+                    <!-- Log Area (Collapsed by Default or simplified) -->
+                    <div x-show="logs.length > 0"
+                        class="mt-4 p-2 bg-black text-green-400 font-mono text-xs h-32 overflow-y-auto border border-slate-700">
+                        <template x-for="log in logs">
+                            <div x-text="log"></div>
+                        </template>
+                    </div>
+                </div>
+
+                <!-- Activity Feed -->
+                <div class="border-t-2 border-slate-900 pt-4">
+                    <div
+                        class="bg-slate-50 dark:bg-cyber-dark border border-slate-200 dark:border-slate-800 rounded-xl p-6 relative">
+                        <h3
+                            class="text-lg font-display font-bold text-slate-900 dark:text-white mb-4 border-b border-slate-300 dark:border-slate-700 pb-2">
+                            Recent Activity</h3>
+                        <ul class="space-y-4 max-h-60 overflow-y-auto">
+                            <template x-for="item in activities" :key="item.id">
+                                <li class="flex gap-4 items-start group">
+                                    <div
+                                        class="mt-1 p-2 rounded-lg bg-white dark:bg-black border border-slate-300 dark:border-slate-700">
+                                        <i :data-lucide="item.iconName"
+                                            class="w-4 h-4 text-radium-600 dark:text-radium-400"></i>
+                                    </div>
+                                    <div>
+                                        <p x-text="item.msg" class="text-sm text-slate-700 dark:text-slate-300"></p>
+                                        <span x-text="item.time" class="text-xs text-slate-500 font-mono"></span>
+                                    </div>
+                                </li>
+                            </template>
+                            <li x-show="activities.length === 0" class="text-slate-500 italic text-sm">No recent
+                                activity logs.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Results - Adjusted Width -->
+            <div class="lg:col-span-7">
+                <div
+                    class="bg-white dark:bg-cyber-dark shadow-2xl p-8 min-h-[600px] border border-slate-200 dark:border-slate-800 paper-texture relative">
+                    <!-- Toolbar -->
+                    <div class="absolute top-4 right-4 flex gap-2">
+                        <button x-show="results" @click="downloadResults()"
+                            class="p-2 text-slate-500 hover:text-slate-900 dark:hover:text-white border border-transparent hover:border-slate-300 rounded"
+                            title="Export JSON">
+                            <i data-lucide="download" class="w-5 h-5"></i>
+                        </button>
+                        <button x-show="results" @click="viewReportMode = !viewReportMode"
+                            class="p-2 text-slate-500 hover:text-slate-900 dark:hover:text-white border border-transparent hover:border-slate-300 rounded"
+                            title="Toggle Full Report">
+                            <i data-lucide="file-text" class="w-5 h-5"></i>
+                        </button>
+                    </div>
+
+                    <div class="text-center mb-8">
+                        <h2 class="font-serif font-bold text-4xl mb-2 text-slate-900 dark:text-white">Analysis Report
+                        </h2>
+                        <div
+                            class="flex justify-center items-center gap-4 text-xs font-sans font-bold text-slate-400 uppercase tracking-widest">
+                            <span>Intelligence Division</span>
+                            <span>&bull;</span>
+                            <span x-text="new Date().toLocaleDateString()"></span>
+                        </div>
+                    </div>
+
+                    <!-- Empty State -->
+                    <div x-show="!results"
+                        class="flex flex-col items-center justify-center h-64 border-4 border-double border-slate-200 dark:border-slate-700 p-8 text-center text-slate-400 italic font-serif">
+                        <i data-lucide="shield" class="w-16 h-16 mb-4"
+                            :class="scanning ? 'animate-pulse text-slate-800 dark:text-white' : ''"></i>
+                        <span
+                            x-text="scanning ? 'Receiving transmission from field agents...' : 'Awaiting Mission Directives. No intelligence data available.'"></span>
+                    </div>
+
+                    <!-- Results Data -->
+                    <div x-show="results" class="columns-1 md:columns-2 gap-8 text-justify">
+                        <!-- Ports -->
+                        <div class="break-inside-avoid mb-8">
+                            <h3
+                                class="font-sans font-bold text-lg uppercase border-b-2 border-black dark:border-white mb-2 pb-1 text-slate-900 dark:text-slate-200">
+                                Network Surface</h3>
+                            <p class="font-serif text-sm mb-2 text-slate-600 dark:text-slate-400">
+                                Field scanners have identified <span
+                                    x-text="results?.PortScanner?.open_ports?.length || 0" class="font-bold"></span>
+                                open entry points.
+                            </p>
+                            <div class="flex flex-wrap gap-2 mt-2">
+                                <template x-for="p in results?.PortScanner?.open_ports || []">
+                                    <span x-text="':' + p"
+                                        class="bg-slate-100 dark:bg-gray-800 border border-slate-300 dark:border-gray-600 px-2 py-1 font-mono text-xs font-bold text-slate-800 dark:text-slate-200"></span>
+                                </template>
+                            </div>
+                        </div>
+
+                        <!-- Vulns -->
+                        <div class="break-inside-avoid mb-8">
+                            <h3
+                                class="font-sans font-bold text-lg uppercase border-b-2 border-red-600 text-red-600 mb-2 pb-1">
+                                Critical Vulnerabilities</h3>
+                            <ul class="list-disc pl-4 space-y-2 font-serif text-sm text-slate-700 dark:text-slate-300">
+                                <template x-for="v in results?.ThreatScanner?.vulnerabilities || []">
+                                    <li>
+                                        <strong x-text="v.type"></strong>: <span x-text="v.details"></span>
+                                    </li>
+                                </template>
+                                <li x-show="!(results?.ThreatScanner?.vulnerabilities?.length)"
+                                    class="italic text-slate-500">
+                                    No immediate threats detected in this sector.
+                                </li>
+                            </ul>
+                        </div>
+
+                        <!-- Raw Data -->
+                        <div
+                            class="break-inside-avoid p-4 bg-slate-50 dark:bg-black border border-slate-200 dark:border-slate-800 text-xs">
+                            <h4 class="font-mono font-bold mb-2 text-slate-500">RAW_WIRE_TAP.log</h4>
+                            <pre class="font-mono whitespace-pre-wrap text-slate-600 dark:text-gray-400 overflow-x-auto"
+                                x-text="JSON.stringify(results, null, 2).substring(0, 500) + '...'"></pre>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+        </div>
+
+        <!-- View Report Modal (Optional expansion) -->
+        <div x-show="viewReportMode"
+            class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm" x-cloak>
+            <div @click.outside="viewReportMode = false"
+                class="bg-white dark:bg-cyber-dark w-full max-w-4xl max-h-[90vh] overflow-y-auto p-8 rounded shadow-2xl border border-slate-700">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold font-display text-white">Full Intelligence Report</h2>
+                    <button @click="viewReportMode = false"><i data-lucide="x" class="w-6 h-6 text-white"></i></button>
+                </div>
+                <pre class="font-mono text-xs p-4 bg-black text-green-400 rounded overflow-auto max-h-[60vh]"
+                    x-text="JSON.stringify(results, null, 2)"></pre>
+                <div class="mt-4 flex justify-end">
+                    <button @click="downloadResults()"
+                        class="bg-radium-600 text-black px-4 py-2 font-bold uppercase hover:bg-radium-500">Download
+                        JSON</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ASSETS VIEW -->
+        <div x-show="activeTab === 'assets'" x-transition.opacity.duration.500ms>
+            <div class="space-y-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 class="text-2xl font-display font-bold text-slate-900 dark:text-white mb-2">Classified
+                            Assets</h2>
+                        <p class="text-slate-500 dark:text-slate-400 text-sm font-serif italic">Inventory of discovered
+                            entities from surveillance operations.</p>
+                    </div>
+                    <button
+                        class="bg-slate-900 dark:bg-white text-white dark:text-black px-4 py-2 text-sm font-bold uppercase tracking-widest hover:opacity-80 transition-all">
+                        + Manual Entry
+                    </button>
+                </div>
+
+                <div
+                    class="bg-white dark:bg-[#1a1a1a] border-4 border-double border-slate-300 dark:border-gray-700 shadow-xl p-4">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr
+                                class="border-b-2 border-black dark:border-white text-slate-500 dark:text-slate-400 text-xs font-sans font-bold uppercase tracking-widest">
+                                <th class="p-4">Entity Name</th>
+                                <th class="p-4">Type</th>
+                                <th class="p-4">Details</th>
+                                <th class="p-4">Status</th>
+                                <th class="p-4"></th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-200 dark:divide-gray-800">
+                            <template x-for="(asset, index) in assets" :key="asset.id">
+                                <tr class="group hover:bg-slate-50 dark:hover:bg-gray-900 transition-colors">
+                                    <td class="p-4">
+                                        <div class="flex items-center gap-3">
+                                            <div
+                                                class="p-2 border border-slate-300 dark:border-gray-600 bg-slate-100 dark:bg-black text-slate-700 dark:text-slate-300">
+                                                <i :data-lucide="asset.type === 'Domain' ? 'globe' : asset.type === 'IP Address' ? 'server' : 'box'"
+                                                    class="w-4 h-4"></i>
+                                            </div>
+                                            <span x-text="asset.name"
+                                                class="font-bold font-serif text-lg text-slate-800 dark:text-slate-200 group-hover:underline decoration-red-500 decoration-2 underline-offset-4"></span>
+                                        </div>
+                                    </td>
+                                    <td x-text="asset.type"
+                                        class="p-4 font-mono text-sm text-slate-600 dark:text-slate-400 uppercase"></td>
+                                    <td x-text="asset.details" class="p-4 text-sm font-serif italic text-slate-500">
+                                    </td>
+                                    <td class="p-4">
+                                        <span x-text="asset.status.toUpperCase()" :class="{
+                                                'bg-green-500/10 text-green-400 border-green-500/20': asset.status === 'active',
+                                                'bg-slate-500/10 text-slate-400 border-slate-500/20': asset.status === 'inactive'
+                                              }" class="px-2 py-1 rounded text-xs font-mono border"></span>
+                                    </td>
+                                    <td class="p-4 text-right">
+                                        <button
+                                            class="text-slate-400 hover:text-black dark:hover:text-white transition-colors">
+                                            <i data-lucide="more-vertical" class="w-4 h-4"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            </template>
+                            <tr x-show="assets.length === 0">
+                                <td colSpan="5" class="p-8 text-center font-serif italic text-slate-500">No assets
+                                    discovered in current sector. Run a scan to populate.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- GRAPH VIEW -->
+        <div x-show="activeTab === 'graph'" x-transition.opacity.duration.500ms class="h-[700px]">
+            <div class="relative h-full w-full bg-cyber-black overflow-hidden rounded-xl border border-cyber-border">
+                <div class="absolute top-4 left-4 z-10 pointer-events-none">
+                    <h2 class="text-2xl font-display font-bold text-white">Asset Graph <span
+                            class="text-radium-500 text-sm">v2.0 Beta</span></h2>
+                    <p class="text-slate-400 text-sm">Visualizing relationships between domains, IPs, and cloud
+                        resources.</p>
+                </div>
+                <canvas id="graphCanvas" class="w-full h-full opacity-60"></canvas>
+            </div>
+        </div>
+
+        <!-- PLACEHOLDER (Settings, Threats) -->
+        <div x-show="['settings', 'threats'].includes(activeTab)"
+            class="flex flex-col items-center justify-center h-[600px] border-4 border-double border-slate-300 dark:border-slate-700 bg-white dark:bg-cyber-dark p-8 shadow-xl">
+            <div class="text-center">
+                <h2 class="text-4xl font-serif font-bold text-slate-800 dark:text-slate-100 mb-4 italic">"This Story is
+                    Developing..."</h2>
+                <div class="h-0.5 w-24 bg-radium-500 mx-auto mb-4"></div>
+                <p class="text-slate-600 dark:text-slate-400 font-mono text-lg">Our reporters are currently
+                    investigating this module. Check back in the next edition.</p>
+                <p class="mt-4 text-sm text-slate-500">Section: <span x-text="activeTab.toUpperCase()"></span></p>
+            </div>
+        </div>
+
+    </main>
+
+    <footer
+        class="border-t border-slate-300 dark:border-slate-800 py-8 text-center bg-slate-100 dark:bg-cyber-black mt-12">
+        <p class="font-serif italic text-slate-500">
+            &copy; 2025 The Netra Times. All rights reserved. | Printed in Docker.
+        </p>
+    </footer>
+
+    <!-- LOGIC -->
+    <script>
+        function app() {
+            return {
+                activeTab: 'dashboard',
+                darkMode: true,
+                target: '',
+                scanning: false,
+                scanStatus: 'IDLE',
+                viewReportMode: false,
+                results: null,
+                logs: [],
+                stats: { scans: 0, vulns: 0, assets: 0 },
+                options: { Cloud: false, IoT: false, GraphQL: false, AutoExploit: false },
+                activities: [],
+                menuItems: [
+                    { id: 'dashboard', label: 'FRONT PAGE' },
+                    { id: 'scans', label: 'LATEST CABLES' },
+                    { id: 'graph', label: 'INVESTIGATIONS' },
+                    { id: 'threats', label: 'OBITUARIES (VULNS)' },
+                    { id: 'assets', label: 'CLASSIFIEDS' },
+                    { id: 'settings', label: 'ARCHIVES' },
+                ],
+
+                assets: [],
+                graphInitialized: false,
+
+                initApp() {
+                    // Theme Init
+                    const savedTheme = localStorage.getItem('netra-theme');
+                    this.darkMode = savedTheme ? JSON.parse(savedTheme) : true;
+                    this.applyTheme();
+
+                    // Stats Init
+                    this.fetchStats();
+                    this.fetchActivity();
+                    this.fetchAssets(); // Load assets
+
+                    // Icons
+                    this.$nextTick(() => lucide.createIcons());
+
+                    // Watchers
+                    this.$watch('darkMode', val => {
+                        localStorage.setItem('netra-theme', JSON.stringify(val));
+                        this.applyTheme();
+                    });
+
+                    this.$watch('activeTab', (val) => {
+                        this.$nextTick(() => lucide.createIcons());
+                        if (val === 'graph' && !this.graphInitialized) {
+                            setTimeout(() => this.initGraph(), 100); // Wait for transition
+                        }
+                    });
+                },
+
+                fetchAssets() {
+                    fetch('/api/assets')
+                        .then(res => res.json())
+                        .then(data => {
+                            // Handle array or wrapped
+                            const list = Array.isArray(data) ? data : (data.assets || []);
+                            this.assets = list;
+                            this.$nextTick(() => lucide.createIcons());
+                        })
+                        .catch(err => console.error("Asset fetch error", err));
+                },
+
+                // Simple Particle Graph Simulation
+                initGraph() {
+                    const canvas = document.getElementById('graphCanvas');
+                    if (!canvas) return;
+                    this.graphInitialized = true;
+
+                    // Set correct scaling
+                    const rect = canvas.parentElement.getBoundingClientRect();
+                    canvas.width = rect.width;
+                    canvas.height = rect.height;
+
+                    const ctx = canvas.getContext('2d');
+                    let nodes = [];
+                    let links = [];
+
+                    fetch('/api/graph')
+                        .then(res => res.json())
+                        .then(data => {
+                            // API fallback
+                            if (!data.nodes) {
+                                nodes = []; links = [];
+                            } else {
+                                nodes = data.nodes.map(n => ({
+                                    ...n,
+                                    x: Math.random() * canvas.width,
+                                    y: Math.random() * canvas.height,
+                                    vx: (Math.random() - 0.5) * 0.2,
+                                    vy: (Math.random() - 0.5) * 0.2
+                                }));
+                                links = data.links;
+                            }
+                        })
+                        .catch(err => console.error("Graph error", err));
+
+                    const animate = () => {
+                        // Stop if switched away (simple check)
+                        if (this.activeTab !== 'graph') {
+                            requestAnimationFrame(animate);
+                            return;
+                        }
+
+                        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                        // Empty State Info
+                        if (nodes.length === 0) {
+                            ctx.fillStyle = "rgba(128, 128, 128, 0.5)";
+                            ctx.font = "16px monospace";
+                            ctx.textAlign = "center";
+                            ctx.fillText("Waiting for Graph Data...", canvas.width / 2, canvas.height / 2);
+                        }
+
+                        // Update & Draw Nodes
+                        nodes.forEach(p => {
+                            p.x += p.vx;
+                            p.y += p.vy;
+                            if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
+                            if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
+
+                            ctx.beginPath();
+                            ctx.arc(p.x, p.y, 4, 0, Math.PI * 2);
+                            ctx.fillStyle = p.group === 'Domain' ? '#ff00ff' : '#00f3ff';
+                            ctx.fill();
+
+                            // Label
+                            if (p.label) {
+                                ctx.fillStyle = "rgba(128, 255, 255, 0.7)";
+                                ctx.font = "10px sans-serif";
+                                ctx.fillText(p.label, p.x + 8, p.y);
+                            }
+                        });
+
+                        // Draw Links
+                        links.forEach(link => {
+                            const s = nodes.find(n => n.id === link.source);
+                            const t = nodes.find(n => n.id === link.target);
+
+                            if (s && t) {
+                                ctx.beginPath();
+                                ctx.moveTo(s.x, s.y);
+                                ctx.lineTo(t.x, t.y);
+                                ctx.strokeStyle = 'rgba(100, 100, 255, 0.2)';
+                                ctx.stroke();
+                            }
+                        });
+
+                        requestAnimationFrame(animate);
+                    };
+                    animate();
+                },
+
+                applyTheme() {
+                    if (this.darkMode) {
+                        document.documentElement.classList.add('dark');
+                    } else {
+                        document.documentElement.classList.remove('dark');
+                    }
+                },
+
+                toggleTheme() {
+                    this.darkMode = !this.darkMode;
+                },
+
+                downloadResults() {
+                    if (!this.results) return;
+                    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(this.results, null, 2));
+                    const downloadAnchorNode = document.createElement('a');
+                    downloadAnchorNode.setAttribute("href", dataStr);
+                    downloadAnchorNode.setAttribute("download", "netra_intelligence_report.json");
+                    document.body.appendChild(downloadAnchorNode); // required for firefox
+                    downloadAnchorNode.click();
+                    downloadAnchorNode.remove();
+                },
+
+                async pollStatus() {
+                    // Manual refresh placeholder
+                },
+
+                async checkScanStatus(interval, scanId) {
+                    try {
+                        const res = await fetch(`/scans/${scanId}`);
+                        if (!res.ok) return;
+                        const data = await res.json();
+
+                        // Update status indicator
+                        if (data.status) this.scanStatus = data.status.toUpperCase();
+
+                        if (data.status === 'completed') {
+                            if (interval) clearInterval(interval);
+                            this.results = data.results || {};
+                            this.scanning = false;
+                            this.scanStatus = 'COMPLETED';
+                            this.addLog('Scan Completed. Intelligence received.');
+                            this.fetchStats();
+                            this.fetchActivity();
+                            this.$nextTick(() => lucide.createIcons());
+                        } else if (data.status === 'failed') {
+                            if (interval) clearInterval(interval);
+                            this.scanning = false;
+                            this.scanStatus = 'FAILED';
+                            this.addLog('Scan Failed.');
+                        }
+                    } catch (e) { console.error(e); }
+                },
+
+                addLog(msg) {
+                    this.logs.unshift(`[${new Date().toLocaleTimeString()}] ${msg}`);
+                },
+
+                fetchStats() {
+                    fetch('/api/stats')
+                        .then(res => res.json())
+                        .then(data => this.stats = data)
+                        .catch(err => console.error(err));
+                },
+
+                fetchActivity() {
+                    fetch('/scans?limit=5')
+                        .then(res => res.json())
+                        .then(data => {
+                            this.activities = data.map(scan => ({
+                                id: scan.id,
+                                msg: `Scan ${scan.status} for ${scan.target}`,
+                                time: new Date(scan.timestamp || Date.now()).toLocaleTimeString(),
+                                iconName: scan.status === 'completed' ? 'shield-check' : 'activity',
+                                status: scan.status
+                            }));
+                            this.$nextTick(() => lucide.createIcons());
+                        })
+                        .catch(err => console.error(err));
+                },
+
+                async startScan() {
+                    if (!this.target) return;
+                    this.scanning = true;
+                    this.scanStatus = 'DISPATCHING';
+                    this.results = null;
+                    this.logs = [];
+                    this.addLog(`INITIALIZING SCAN: ${this.target}`);
+
+                    try {
+                        const response = await fetch('/scans', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                target: this.target,
+                                scan_type: 'full',
+                                options: this.options
+                            }),
+                        });
+
+                        if (!response.ok) throw new Error('Failed to start scan');
+                        const scan = await response.json();
+                        this.addLog(`Scan ID: ${scan.id} dispatched.`);
+                        this.scanStatus = 'IN PROGRESS';
+
+                        // Poll
+                        const interval = setInterval(async () => {
+                            await this.checkScanStatus(interval, scan.id);
+                        }, 2000);
+
+                    } catch (e) {
+                        this.addLog(`Error: ${e.message}`);
+                        this.scanning = false;
+                        this.scanStatus = 'FAILED';
+                    }
+                }
+            }
+        }
+    </script>
+</body>
+
+</html>

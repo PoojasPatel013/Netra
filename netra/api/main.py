@@ -34,6 +34,7 @@ REDIS_URL = os.getenv("REDIS_URL")
 
 class ScanRequest(BaseModel):
     target: str
+    options: dict = {}
 
 engine = create_async_engine(DATABASE_URL, echo=True, future=True)
 
@@ -50,14 +51,30 @@ async def get_session():
 
 app = FastAPI(title="Netra API", version="0.1.0")
 
-# Setup Static & Templates
+# Setup Static Files
+# Serve from 'netra/static' directly
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-app.mount("/static", StaticFiles(directory=os.path.join(BASE_DIR, "static")), name="static")
-templates = Jinja2Templates(directory=os.path.join(BASE_DIR, "templates"))
+STATIC_DIR = os.path.join(os.path.dirname(BASE_DIR), "static")
 
-@app.get("/", response_class=HTMLResponse)
-async def read_root(request: Request):
-    return templates.TemplateResponse("index.html", {"request": request})
+if os.path.exists(STATIC_DIR):
+    app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+
+from fastapi.responses import FileResponse
+
+# Catch-all for SPA (must be last)
+@app.get("/{full_path:path}")
+async def catch_all(full_path: str):
+    # Allow API routes to pass through (though they should be matched before this if defined above)
+    if full_path.startswith("api") or full_path.startswith("scans") or full_path.startswith("docs") or full_path.startswith("openapi.json"):
+        raise HTTPException(status_code=404, detail="Not Found")
+    
+    # Serve index.html for everything else
+    index_path = os.path.join(STATIC_DIR, "index.html")
+    if os.path.exists(index_path):
+        return FileResponse(index_path)
+    return {"error": "Static UI not found. Ensure netra/static/index.html exists."}
+
+
 
 @app.post("/api/scan")
 async def trigger_v2_scan(request: ScanRequest):
@@ -67,13 +84,21 @@ async def trigger_v2_scan(request: ScanRequest):
     try:
         # Connect to the Ingestion Stream
         stream = NetraStream(stream_key="netra:events:ingest")
-        await stream.publish_target(request.target, source="api")
+        await stream.publish_target(request.target, source="api", options=request.options)
         return {"status": "queued", "target": request.target, "message": "Dispatched to Ingestion Worker"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.on_event("startup")
 async def on_startup():
+    print(f"DEBUG: BASE_DIR={BASE_DIR}")
+    print(f"DEBUG: STATIC_DIR={STATIC_DIR}")
+    print(f"DEBUG: STATIC_DIR={STATIC_DIR}")
+    if os.path.exists(STATIC_DIR):
+        print(f"DEBUG: STATIC_DIR exists. Contents: {os.listdir(STATIC_DIR)}")
+    else:
+        print(f"DEBUG: STATIC_DIR DOES NOT EXIST at {STATIC_DIR}")
+        
     retries = 5
     wait = 2
     for i in range(retries):
@@ -88,6 +113,24 @@ async def on_startup():
                 wait *= 2  # Exponential backoff
             else:
                 raise e
+
+@app.get("/debug/fs")
+async def debug_fs():
+    """Temporary debug endpoint to inspect container filesystem"""
+    try:
+        debug_info = {
+            "cwd": os.getcwd(),
+            "base_dir": BASE_DIR,
+            "static_dir": STATIC_DIR,
+            "dist_dir": DIST_DIR,
+            "dist_exists": os.path.exists(DIST_DIR),
+            "dist_contents": os.listdir(DIST_DIR) if os.path.exists(DIST_DIR) else [],
+            "static_contents": os.listdir(STATIC_DIR) if os.path.exists(STATIC_DIR) else [],
+            "app_netra_contents": os.listdir("/app/netra") if os.path.exists("/app/netra") else "Not found",
+        }
+        return debug_info
+    except Exception as e:
+        return {"error": str(e)}
 
 async def run_scan_task(scan_id: int):
     # Create a new session for this task
@@ -222,11 +265,6 @@ async def delete_scan(scan_id: int, session: AsyncSession = Depends(get_session)
     await session.commit()
     return {"ok": True}
 
-@app.get("/scans/{scan_id}/sarif")
-async def export_scan_sarif(scan_id: int, session: AsyncSession = Depends(get_session)):
-    scan = await session.get(Scan, scan_id)
-    if not scan:
-        raise HTTPException(status_code=404, detail="Scan not found")
     
     if not scan.results:
         return {"error": "Scan has no results yet"}
@@ -235,3 +273,136 @@ async def export_scan_sarif(scan_id: int, session: AsyncSession = Depends(get_se
     sarif_data = reporter.convert_scan_results(scan.results, scan.target)
     
     return sarif_data
+
+# Graph & Asset Endpoints (Real Data Wiring)
+from neomodel import config, db
+
+# Initialize Neo4j (Lazy connection)
+# Ensure NEO4J_URL is suitable for neomodel (bolt://user:pass@host:port)
+config.DATABASE_URL = os.getenv("NEO4J_URL", "bolt://neo4j:netra-secret@neo4j:7687")
+
+@app.get("/api/graph")
+async def get_graph_data():
+    """
+    Returns the Knowledge Graph (Nodes & Edges) for visualization.
+    """
+    try:
+        # Fetch generic graph data (Limit to avoid exploding the UI)
+        query = "MATCH (n)-[r]->(m) RETURN n, r, m LIMIT 200"
+        results, meta = db.cypher_query(query)
+        
+        nodes = {}
+        links = []
+        
+        for row in results:
+            source_node = row[0]
+            rel = row[1]
+            target_node = row[2]
+            
+            # Helper to deduplicate nodes
+            def process_node(node):
+                labels = list(node.labels)
+                node_id = str(node.id)
+                if node_id not in nodes:
+                    # Try to find a meaningful label/name
+                    label = node.get('name') or node.get('address') or node.get('resource_id') or node.get('fingerprint') or "Unknown"
+                    nodes[node_id] = {
+                        "id": node_id,
+                        "group": labels[0] if labels else "Node",
+                        "label": label,
+                        "properties": dict(node)
+                    }
+                return node_id
+
+            s_id = process_node(source_node)
+            t_id = process_node(target_node)
+            
+            links.append({
+                "source": s_id,
+                "target": t_id,
+                "type": rel.type
+            })
+            
+        return {
+            "nodes": list(nodes.values()),
+            "links": links
+        }
+    except Exception as e:
+        print(f"Graph Query Error: {e}")
+        # Return empty structure on failure to prevent UI crash
+        return {"nodes": [], "links": []}
+
+@app.get("/api/assets")
+async def get_assets_inventory():
+    """
+    Returns a flattened inventory of all discovered assets.
+    """
+    try:
+        # Fetch Domains
+        query_domains = "MATCH (d:Domain) RETURN d"
+        domains, _ = db.cypher_query(query_domains)
+        
+        # Fetch IPs
+        query_ips = "MATCH (i:IPAddress) RETURN i"
+        ips, _ = db.cypher_query(query_ips)
+        
+        assets = []
+        
+        for row in domains:
+            d = row[0]
+            assets.append({
+                "id": d.id,
+                "name": d['name'],
+                "type": "Domain",
+                "details": f"Registrar: {d.get('registrar', 'N/A')}",
+                "status": "active" # Placeholder
+            })
+            
+        for row in ips:
+            i = row[0]
+            assets.append({
+                "id": i.id,
+                "name": i['address'],
+                "type": "IP Address",
+                "details": f"Version: {i.get('version', 'IPv4')}",
+                "status": "active"
+            })
+            
+        return assets
+    except Exception as e:
+        print(f"Asset Query Error: {e}")
+        return []
+
+@app.get("/api/stats")
+async def get_stats(session: AsyncSession = Depends(get_session)):
+    """
+    Returns aggregated system stats for the dashboard.
+    """
+    try:
+        # 1. Count Scans
+        result = await session.execute(select(Scan))
+        scans = result.scalars().all()
+        scan_count = len(scans)
+        
+        # 2. Count Assets (Neo4j)
+        # Use a fast count query
+        nodes_result, _ = db.cypher_query("MATCH (n) RETURN count(n)")
+        asset_count = nodes_result[0][0]
+        
+        # 3. Count Vulns (Approximate from Scans for now, or specific node label)
+        # For now, let's sum vulns found in recent scans if stored, or just placeholder '0' until VulnModel is strict.
+        # Simple approach: sum scan.results['ThreatScanner']['vulnerabilities'].length
+        vuln_count = 0
+        for s in scans:
+            if s.results and isinstance(s.results, dict):
+                 threats = s.results.get('ThreatScanner', {}).get('vulnerabilities', [])
+                 vuln_count += len(threats)
+
+        return {
+            "scans": scan_count,
+            "assets": asset_count,
+            "vulns": vuln_count
+        }
+    except Exception as e:
+        print(f"Stats Error: {e}")
+        return {"scans": 0, "assets": 0, "vulns": 0}

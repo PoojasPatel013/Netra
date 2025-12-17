@@ -1,7 +1,7 @@
 services:
   netra:
     build:
-      context: .
+      context: 
       dockerfile: Dockerfile
     container_name: netra-backend
     command: python run.py serve

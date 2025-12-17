@@ -1,0 +1,28 @@
+# Labeler Configuration
+# Maps files to labels
+
+# Area Labels
+area/ui:
+  - changed-files:
+      - any-glob-to-any-file: 'netra/ui/**'
+
+area/api:
+  - changed-files:
+      - any-glob-to-any-file: 'netra/api/**'
+
+area/core:
+  - changed-files:
+      - any-glob-to-any-file: 'netra/core/**'
+
+area/docs:
+  - changed-files:
+      - any-glob-to-any-file: 
+          - '**/*.md'
+          - 'docs/**'
+
+area/ci:
+  - changed-files:
+      - any-glob-to-any-file: 
+          - '.github/**'
+          - 'docker-compose.yml'
+          - 'Dockerfile'

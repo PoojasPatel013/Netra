@@ -11,9 +11,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 WORKDIR /app
 
 # Install Python Deps
-COPY pyproject.toml .
+COPY pyproject.toml poetry.lock ./
 RUN pip install poetry && poetry config virtualenvs.create false
-RUN poetry install --no-dev
+RUN poetry install --only main --no-root
 
 # Copy Application Code
 COPY netra ./netra

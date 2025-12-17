@@ -11,6 +11,7 @@ downloads/
 eggs/
 .eggs/
 lib/
+*.log
 lib64/
 parts/
 sdist/
@@ -20,6 +21,8 @@ wheels/
 .installed.cfg
 *.egg
 MANIFEST
+poetry.lock
+scan_version.json
 
 # Virtual Environment
 .env
