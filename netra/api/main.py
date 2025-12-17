@@ -62,17 +62,7 @@ if os.path.exists(STATIC_DIR):
 from fastapi.responses import FileResponse
 
 # Catch-all for SPA (must be last)
-@app.get("/{full_path:path}")
-async def catch_all(full_path: str):
-    # Allow API routes to pass through (though they should be matched before this if defined above)
-    if full_path.startswith("api") or full_path.startswith("scans") or full_path.startswith("docs") or full_path.startswith("openapi.json"):
-        raise HTTPException(status_code=404, detail="Not Found")
-    
-    # Serve index.html for everything else
-    index_path = os.path.join(STATIC_DIR, "index.html")
-    if os.path.exists(index_path):
-        return FileResponse(index_path)
-    return {"error": "Static UI not found. Ensure netra/static/index.html exists."}
+
 
 
 
@@ -406,3 +396,17 @@ async def get_stats(session: AsyncSession = Depends(get_session)):
     except Exception as e:
         print(f"Stats Error: {e}")
         return {"scans": 0, "assets": 0, "vulns": 0}
+
+# Catch-all for SPA (must be last)
+@app.get("/{full_path:path}")
+async def catch_all(full_path: str):
+    # Allow API routes to pass through (though they should be matched before this if defined above)
+    if full_path.startswith("api") or full_path.startswith("scans") or full_path.startswith("docs") or full_path.startswith("openapi.json"):
+        raise HTTPException(status_code=404, detail="Not Found")
+    
+    # Serve index.html for everything else
+    index_path = os.path.join(STATIC_DIR, "index.html")
+    if os.path.exists(index_path):
+        return FileResponse(index_path)
+    return {"error": "Static UI not found. Ensure netra/static/index.html exists."}
+
