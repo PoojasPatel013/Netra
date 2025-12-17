@@ -364,6 +364,52 @@
                             </template>
                         </div>
 
+                        <!-- RCE & Hijack Report -->
+                        <div class="break-inside-avoid mb-8" x-show="results?.RCEScanner?.vulnerabilities?.length > 0">
+                            <h3
+                                class="font-sans font-bold text-lg uppercase border-b-2 border-red-600 text-red-600 mb-2 pb-1">
+                                Critical Hijack Risks (RCE)</h3>
+                            <div class="space-y-2">
+                                <template x-for="v in results.RCEScanner.vulnerabilities">
+                                    <div class="p-3 bg-red-950/30 border border-red-500 rounded text-red-200">
+                                        <div class="flex items-center gap-2 mb-1">
+                                            <i data-lucide="skull" class="w-4 h-4 text-red-500"></i>
+                                            <span class="font-bold text-sm" x-text="v.type"></span>
+                                        </div>
+                                        <p class="text-xs text-red-300" x-text="v.details"></p>
+                                        <div class="mt-2 text-[10px] font-mono bg-black/50 p-1 rounded">
+                                            Evidence: <span x-text="v.evidence"></span>
+                                        </div>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+
+                        <!-- Zombie API Report -->
+                        <div class="break-inside-avoid mb-8"
+                            x-show="results?.ZombieScanner?.vulnerabilities?.length > 0">
+                            <h3
+                                class="font-sans font-bold text-lg uppercase border-b-2 border-purple-600 text-purple-600 mb-2 pb-1">
+                                Zombie & Shadow APIs</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <template x-for="z in results.ZombieScanner.vulnerabilities">
+                                    <div
+                                        class="p-3 bg-purple-50 dark:bg-slate-900 border border-purple-200 dark:border-purple-900 rounded">
+                                        <div class="flex justify-between items-start mb-2">
+                                            <span
+                                                class="px-2 py-0.5 text-[10px] font-bold uppercase rounded bg-purple-200 text-purple-800"
+                                                x-text="z.type"></span>
+                                            <span class="text-xs font-bold text-red-500" x-text="z.severity"></span>
+                                        </div>
+                                        <div class="font-mono text-xs text-slate-700 dark:text-slate-300 break-all mb-1"
+                                            x-text="z.endpoint"></div>
+                                        <p class="text-xs text-slate-500 dark:text-slate-400 leading-tight"
+                                            x-text="z.details"></p>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+
                         <!-- Raw Data -->
                         <div
                             class="break-inside-avoid p-4 bg-slate-50 dark:bg-black border border-slate-200 dark:border-slate-800 text-xs">
@@ -485,6 +531,18 @@
                                             class="text-slate-400 hover:text-blue-500 transition-colors mr-2">
                                             <i data-lucide="file-text" class="w-4 h-4"></i>
                                         </button>
+                                        <div class="flex items-center space-x-2">
+                                            <input type="checkbox" id="acquis" x-model="scanOptions.acquis"
+                                                class="w-4 h-4 bg-slate-800 border-slate-600 rounded focus:ring-blue-500">
+                                            <label for="acquis"
+                                                class="font-mono text-xs text-slate-400">Acquisitions</label>
+                                        </div>
+                                        <div class="flex items-center space-x-2">
+                                            <input type="checkbox" id="zombie" x-model="scanOptions.zombie"
+                                                class="w-4 h-4 bg-slate-800 border-slate-600 rounded focus:ring-purple-500">
+                                            <label for="zombie" class="font-mono text-xs text-slate-400">Zombie APIs
+                                                (BOLA)</label>
+                                        </div>
                                         <button @click="deleteAsset(asset.id)" title="Delete Asset"
                                             class="text-slate-400 hover:text-red-500 transition-colors">
                                             <i data-lucide="trash-2" class="w-4 h-4"></i>
@@ -916,7 +974,7 @@
                             body: JSON.stringify({
                                 target: this.target,
                                 scan_type: 'full',
-                                options: this.options
+                                options: this.scanOptions
                             }),
                         });
 

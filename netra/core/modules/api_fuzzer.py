@@ -7,10 +7,10 @@ from netra.core.http import SafeHTTPClient
 
 logger = logging.getLogger("netra.core.api")
 
-class APIScanner(BaseScanner):
+class ZombieScanner(BaseScanner):
     async def scan(self, target: str) -> Dict[str, Any]:
         """
-        API Security: Detects OpenAPI/Swagger definitions and fuzzes endpoints.
+        API Security: Detects OpenAPI/Swagger, Shadow APIs, and Zombie Versions.
         """
         results = {
             "swagger_detected": False,
@@ -20,6 +20,9 @@ class APIScanner(BaseScanner):
         
         target = target if target.startswith("http") else f"http://{target}"
         base_url = target.rstrip("/")
+        
+        # 0. Zombie Version Check (Deprecated APIs)
+        await self._check_deprecated_versions(base_url, results)
         
         # 1. Discovery: Check common Swagger locations
         swagger_paths = [
@@ -61,6 +64,34 @@ class APIScanner(BaseScanner):
             await self._find_shadow_apis(base_url, client, results, found_schema)
                 
         return results
+
+    async def _check_deprecated_versions(self, base_url: str, results: Dict):
+        """
+        Checks for Zombie API versions (e.g., /v1/ if /v2/ is present).
+        """
+        import re
+        # Heuristic: guess current version from URL or just try common ones
+        versions = ["v1", "v2", "v3", "api/v1", "api/v2"]
+        
+        async with SafeHTTPClient() as client:
+            for v in versions:
+                # If the base URL doesn't already contain this version
+                if f"/{v}" not in base_url:
+                     try:
+                         # Probe for root of version
+                         test_url = f"{base_url}/{v}/"
+                         resp = await client.get(test_url, timeout=5)
+                         # 200 or 401/403 often means it exists
+                         if resp.status in [200, 401, 403]:
+                             results["vulnerabilities"].append({
+                                 "type": "Zombie API Version Detected",
+                                 "severity": "High",
+                                 "endpoint": test_url,
+                                 "details": f"Found potentially deprecated API version '{v}' which is still active.",
+                                 "evidence": f"Status: {resp.status}"
+                             })
+                     except:
+                         pass
 
     async def _find_shadow_apis(self, base_url: str, client: SafeHTTPClient, results: Dict, schema: Dict = None):
         import re
@@ -118,8 +149,10 @@ class APIScanner(BaseScanner):
                 
                 # Construct Fuzz URL
                 # Replace {id} with test IDs for BOLA check
+                # 1. Sequential ID Fuzzing (1, 2, 1000)
                 fuzzed_path = path.replace("{id}", "1").replace("{userId}", "1")
-                # Also try a high number to check for error handling
+                
+                # 2. Error Handling Check (Big Int)
                 err_path = path.replace("{id}", "999999").replace("{userId}", "999999")
                 
                 url = f"{base_url}{fuzzed_path}"
@@ -156,10 +189,11 @@ class APIScanner(BaseScanner):
                  # If we accessed ID 1 without auth, it's interesting (oversimplified BOLA check)
                  # Real BOLA requires auth context, but this proves the endpoint is reachable.
                  results["vulnerabilities"].append({
-                     "type": "Unauthenticated API Access",
-                     "severity": "Low", 
+                     "type": "Possible BOLA / ID Enumeration",
+                     "severity": "High", 
                      "endpoint": f"{method} {url}",
-                     "details": "Endpoint is publicly accessible. Verify if this data should be public."
+                     "details": "Endpoint accepted ID '1' and returned 200 OK. Verify authorization logic.",
+                     "evidence": f"Status: {resp.status}"
                  })
                  
         except Exception as e:

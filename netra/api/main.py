@@ -22,7 +22,7 @@ from netra.integrations.defectdojo import DefectDojoClient
 from netra.core.reporter import SARIFReporter
 from netra.core.modules.recon import CTScanner
 from netra.core.modules.secrets import SecretScanner
-from netra.core.modules.api_fuzzer import APIScanner
+from netra.core.modules.api_fuzzer import ZombieScanner
 from netra.core.orchestration.messaging import NetraStream
 from redis import asyncio as aioredis
 from pydantic import BaseModel
@@ -231,8 +231,9 @@ async def run_scan_task(scan_id: int):
             if opts.get("secrets", False):
                 v_engine.register_scanner(SecretScanner())
                 
-            if opts.get("api_fuzz", False):
-                v_engine.register_scanner(APIScanner())
+            if opts.get("api_fuzz", False) or opts.get("zombie", False):
+                v_engine.register_scanner(ZombieScanner())
+                v_engine.register_scanner(RubyBridge(script_name="rce_scan.rb", name="RCEScanner"))
             
             if opts.get("cloud", False):
                 v_engine.register_scanner(CloudScanner())
