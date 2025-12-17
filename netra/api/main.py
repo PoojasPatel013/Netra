@@ -122,6 +122,52 @@ async def debug_fs():
     except Exception as e:
         return {"error": str(e)}
 
+async def sync_graph_results(scan_results: dict, target: str):
+    """
+    Syncs scan results to Neo4j Graph.
+    """
+    try:
+        # 1. Create/Merge Target Domain Node
+        query_target = "MERGE (d:Domain {name: $name}) SET d.last_seen = timestamp() RETURN d"
+        db.cypher_query(query_target, {"name": target})
+        
+        # 2. Process Ports -> IP Address Nodes
+        if "PortScanner" in scan_results:
+             ports = scan_results["PortScanner"].get("open_ports", [])
+             ip_addr = scan_results["PortScanner"].get("ip", "unknown")
+             
+             if ip_addr and ip_addr != "unknown":
+                 # Create IP Node
+                 query_ip = """
+                 MATCH (d:Domain {name: $domain})
+                 MERGE (i:IPAddress {address: $ip})
+                 MERGE (d)-[:RESOLVES_TO]->(i)
+                 """
+                 db.cypher_query(query_ip, {"domain": target, "ip": ip_addr})
+                 
+                 # Create Service Nodes for Ports
+                 for p in ports:
+                     query_port = """
+                     MATCH (i:IPAddress {address: $ip})
+                     MERGE (s:Service {port: $port, protocol: 'tcp'})
+                     MERGE (i)-[:EXPOSES]->(s)
+                     """
+                     db.cypher_query(query_port, {"ip": ip_addr, "port": p})
+
+        # 3. Process Vulnerabilities -> Threat Nodes
+        if "ThreatScanner" in scan_results:
+            vulns = scan_results["ThreatScanner"].get("vulnerabilities", [])
+            for v in vulns:
+                query_vuln = """
+                MATCH (d:Domain {name: $domain})
+                MERGE (v:Vulnerability {name: $name, severity: $severity})
+                MERGE (d)-[:HAS_VULNERABILITY]->(v)
+                """
+                db.cypher_query(query_vuln, {"domain": target, "name": v.get("type", "Unknown"), "severity": "High"})
+
+    except Exception as e:
+        print(f"Graph Sync Error: {e}")
+
 async def run_scan_task(scan_id: int):
     # Create a new session for this task
     async_session = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
@@ -183,7 +229,11 @@ async def run_scan_task(scan_id: int):
             results = await asyncio.wait_for(v_engine.scan_target(scan.target), timeout=600)
             
             scan.results = results
+            scan.results = results
             scan.status = "completed"
+            
+            # Sync to Graph (New Feature)
+            await sync_graph_results(results, scan.target)
             
             # Post-Scan Actions: DefectDojo Import
             if opts.get("defect_dojo_url") and opts.get("defect_dojo_key") and opts.get("engagement_id"):

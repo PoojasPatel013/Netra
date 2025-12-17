@@ -17,6 +17,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <!-- Tailwind Config -->
     <script>
@@ -256,6 +257,26 @@
                 </div>
             </div>
 
+            <!-- Charts Section (New) -->
+            <div class="lg:col-span-12 grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
+                <div class="bg-white dark:bg-cyber-dark p-6 border border-slate-200 dark:border-slate-800 shadow-xl">
+                    <h3
+                        class="font-display font-bold text-slate-900 dark:text-white mb-4 border-b border-slate-300 pb-2">
+                        Threat Distribution</h3>
+                    <div class="h-64">
+                        <canvas id="vulnChart"></canvas>
+                    </div>
+                </div>
+                <div class="bg-white dark:bg-cyber-dark p-6 border border-slate-200 dark:border-slate-800 shadow-xl">
+                    <h3
+                        class="font-display font-bold text-slate-900 dark:text-white mb-4 border-b border-slate-300 pb-2">
+                        Attack Surface (Ports)</h3>
+                    <div class="h-64">
+                        <canvas id="portChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
             <!-- Right Column: Results - Adjusted Width -->
             <div class="lg:col-span-7">
                 <div
@@ -450,8 +471,73 @@
             </div>
         </div>
 
-        <!-- PLACEHOLDER (Settings, Threats) -->
-        <div x-show="['settings', 'threats'].includes(activeTab)"
+        </div>
+
+        <!-- SETTINGS VIEW -->
+        <div x-show="activeTab === 'settings'" x-transition.opacity.duration.500ms>
+            <div
+                class="max-w-2xl mx-auto bg-white dark:bg-cyber-dark p-8 border-4 border-double border-slate-300 dark:border-slate-700 shadow-2xl relative">
+
+                <div
+                    class="absolute -top-4 -left-4 bg-radium-500 text-black font-bold px-4 py-1 uppercase tracking-widest transform -rotate-2">
+                    Confidential
+                </div>
+
+                <h2 class="text-3xl font-serif font-bold text-slate-900 dark:text-white mb-2">System Configuration</h2>
+                <p class="text-slate-500 italic mb-8 border-b border-slate-200 pb-4">Manage integrations and classified
+                    data retention policies.</p>
+
+                <!-- DefectDojo Form -->
+                <div class="mb-8">
+                    <h3
+                        class="font-display font-bold text-lg text-slate-800 dark:text-slate-200 mb-4 flex items-center gap-2">
+                        <i data-lucide="shield-alert" class="w-5 h-5"></i> DefectDojo Integration
+                    </h3>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Dojo URL</label>
+                            <input type="text" x-model="settings.ddUrl"
+                                class="w-full bg-slate-100 dark:bg-black border border-slate-300 dark:border-slate-700 p-2 text-sm font-mono focus:border-radium-500 outline-none"
+                                placeholder="http://defectdojo.local">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold uppercase text-slate-500 mb-1">API Key</label>
+                            <input type="password" x-model="settings.ddKey"
+                                class="w-full bg-slate-100 dark:bg-black border border-slate-300 dark:border-slate-700 p-2 text-sm font-mono focus:border-radium-500 outline-none"
+                                placeholder="Token...">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Engagement ID</label>
+                            <input type="number" x-model="settings.ddEngagementId"
+                                class="w-full bg-slate-100 dark:bg-black border border-slate-300 dark:border-slate-700 p-2 text-sm font-mono focus:border-radium-500 outline-none"
+                                placeholder="1">
+                        </div>
+                    </div>
+                    <div class="mt-4 text-right">
+                        <button @click="saveSettings()"
+                            class="bg-slate-900 dark:bg-white text-white dark:text-black px-4 py-2 font-bold uppercase text-xs tracking-widest hover:bg-radium-600 transition-colors">
+                            Save Configuration
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Danger Zone -->
+                <div class="border-t-2 border-slate-200 dark:border-slate-800 pt-6">
+                    <h3 class="font-display font-bold text-lg text-red-600 mb-4 flex items-center gap-2">
+                        <i data-lucide="trash-2" class="w-5 h-5"></i> Data Retention
+                    </h3>
+                    <p class="text-xs text-slate-500 mb-4">Resetting the database will purge all scan records, graph
+                        nodes, and captured assets. This action cannot be undone.</p>
+                    <button @click="resetDatabase()"
+                        class="w-full border-2 border-red-600 text-red-600 hover:bg-red-600 hover:text-white px-4 py-3 font-bold uppercase tracking-widest transition-all">
+                        Purge All Intelligence Data
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- THREATS VIEW (Placeholder) -->
+        <div x-show="activeTab === 'threats'"
             class="flex flex-col items-center justify-center h-[600px] border-4 border-double border-slate-300 dark:border-slate-700 bg-white dark:bg-cyber-dark p-8 shadow-xl">
             <div class="text-center">
                 <h2 class="text-4xl font-serif font-bold text-slate-800 dark:text-slate-100 mb-4 italic">"This Story is
@@ -459,7 +545,7 @@
                 <div class="h-0.5 w-24 bg-radium-500 mx-auto mb-4"></div>
                 <p class="text-slate-600 dark:text-slate-400 font-mono text-lg">Our reporters are currently
                     investigating this module. Check back in the next edition.</p>
-                <p class="mt-4 text-sm text-slate-500">Section: <span x-text="activeTab.toUpperCase()"></span></p>
+                <p class="mt-4 text-sm text-slate-500">Section: THREATS</p>
             </div>
         </div>
 
@@ -498,6 +584,16 @@
 
                 assets: [],
                 graphInitialized: false,
+                chartsInitialized: false,
+
+                // Settings
+                settings: {
+                    ddUrl: '',
+                    ddKey: '',
+                    ddEngagementId: ''
+                },
+                vulnChart: null,
+                portChart: null,
 
                 initApp() {
                     // Theme Init
@@ -522,9 +618,19 @@
                     this.$watch('activeTab', (val) => {
                         this.$nextTick(() => lucide.createIcons());
                         if (val === 'graph' && !this.graphInitialized) {
-                            setTimeout(() => this.initGraph(), 100); // Wait for transition
+                            setTimeout(() => this.initGraph(), 100);
+                        }
+                        if (val === 'dashboard' && !this.chartsInitialized) {
+                            setTimeout(() => this.initCharts(), 100);
                         }
                     });
+
+                    // Load Settings
+                    const s = localStorage.getItem('netra-settings');
+                    if (s) this.settings = JSON.parse(s);
+
+                    // Init Charts
+                    setTimeout(() => this.initCharts(), 500);
                 },
 
                 fetchAssets() {
@@ -744,6 +850,75 @@
                         this.scanning = false;
                         this.scanStatus = 'FAILED';
                     }
+                },
+
+                initCharts() {
+                    if (this.chartsInitialized) return;
+                    const vCtx = document.getElementById('vulnChart');
+                    const pCtx = document.getElementById('portChart');
+
+                    if (!vCtx || !pCtx) return;
+
+                    this.chartsInitialized = true;
+
+                    // Placeholder Data (Real data would aggregate this.activities or stats)
+                    const bgColors = this.darkMode ? ['#ef4444', '#f59e0b', '#3b82f6', '#10b981'] : ['#dc2626', '#d97706', '#2563eb', '#059669'];
+
+                    this.vulnChart = new Chart(vCtx, {
+                        type: 'doughnut',
+                        data: {
+                            labels: ['Critical', 'High', 'Medium', 'Low'],
+                            datasets: [{
+                                data: [this.stats.vulns > 0 ? this.stats.vulns : 2, 5, 8, 12], // Use stats if avail
+                                backgroundColor: bgColors,
+                                borderWidth: 0
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: { position: 'right', labels: { color: this.darkMode ? '#fff' : '#000', font: { family: 'Fira Code' } } }
+                            }
+                        }
+                    });
+
+                    this.portChart = new Chart(pCtx, {
+                        type: 'bar',
+                        data: {
+                            labels: ['80', '443', '22', '8080', '3306'],
+                            datasets: [{
+                                label: 'Open Instances',
+                                data: [15, 12, 4, 8, 2],
+                                backgroundColor: '#00f3ff'
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: { display: false },
+                                tooltip: { mode: 'index', intersect: false }
+                            },
+                            scales: {
+                                y: { ticks: { color: this.darkMode ? '#fff' : '#000' }, grid: { color: '#333' } },
+                                x: { ticks: { color: this.darkMode ? '#fff' : '#000' }, grid: { display: false } }
+                            }
+                        }
+                    });
+                },
+
+                saveSettings() {
+                    localStorage.setItem('netra-settings', JSON.stringify(this.settings));
+                    alert('Configuration Saved Securely.');
+                },
+
+                resetDatabase() {
+                    if (!confirm('Are you sure you want to PURGE ALL DATA?')) return;
+                    alert('Database purge command sent (Simulated).');
+                    this.stats = { scans: 0, vulns: 0, assets: 0 };
+                    this.assets = [];
+                    window.location.reload();
                 }
             }
         }

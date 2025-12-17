@@ -1,11 +1,55 @@
 services:
+  # 1. Message Bus
+  redis:
+    image: redis:alpine
+    container_name: netra-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - netra-net
+
+  # 2. Graph Database
+  neo4j:
+    image: neo4j:community
+    container_name: netra-neo4j
+    ports:
+      - "7474:7474"
+      - "7687:7687"
+    environment:
+      - NEO4J_AUTH=neo4j/netra-secret
+      - NEO4J_dbms_memory_heap_initial__size=512m
+      - NEO4J_dbms_memory_heap_max__size=512m
+    volumes:
+      - neo4j_data:/data
+    networks:
+      - netra-net
+
+  # 3. Backend API
   netra:
     build:
-      context: 
+      context: .
       dockerfile: Dockerfile
     container_name: netra-backend
     command: python run.py serve
     ports:
       - "8000:8000"
+    environment:
+      - NETRA_REDIS_URL=redis://redis:6379
+      - NEO4J_URL=bolt://neo4j:netra-secret@neo4j:7687
     volumes:
       - ./netra:/app/netra
+    depends_on:
+      - redis
+      - neo4j
+    networks:
+      - netra-net
+
+networks:
+  netra-net:
+    driver: bridge
+
+volumes:
+  redis_data:
+  neo4j_data:
