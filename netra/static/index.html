@@ -589,33 +589,29 @@
                                             class="text-slate-400 hover:text-blue-500 transition-colors mr-2">
                                             <i data-lucide="file-text" class="w-4 h-4"></i>
                                         </button>
-                                        <div class="flex items-center space-x-2">
-                                            <input type="checkbox" id="acquis" x-model="scanOptions.acquis"
-                                                class="w-4 h-4 bg-slate-800 border-slate-600 rounded focus:ring-blue-500">
-                                            <label for="acquis"
-                                                class="font-mono text-xs text-slate-400">Acquisitions</label>
-                                        </div>
-                                        <div class="flex items-center space-x-2">
-                                            <input type="checkbox" id="zombie" x-model="scanOptions.zombie"
-                                                class="w-4 h-4 bg-slate-800 border-slate-600 rounded focus:ring-purple-500">
-                                            <label for="zombie" class="font-mono text-xs text-slate-400">Zombie APIs
-                                                (BOLA)</label>
-                                        </div>
                                         <button @click="deleteAsset(asset.id)" title="Delete Asset"
                                             class="text-slate-400 hover:text-red-500 transition-colors">
                                             <i data-lucide="trash-2" class="w-4 h-4"></i>
                                         </button>
                                     </td>
-                                </tr>
-                            </template>
-                            <tr x-show="assets.length === 0">
-                                <td colSpan="5" class="p-8 text-center font-serif italic text-slate-500">No assets
-                                    discovered in current sector. Run a scan to populate.</td>
-                            </tr>
-                        </tbody>
-                    </table>
+                                    <label for="zombie" class="font-mono text-xs text-slate-400">Zombie APIs
+                                        (BOLA)</label>
                 </div>
+                <button @click="deleteAsset(asset.id)" title="Delete Asset"
+                    class="text-slate-400 hover:text-red-500 transition-colors">
+                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                </button>
+                </td>
+                </tr>
+                </template>
+                <tr x-show="assets.length === 0">
+                    <td colSpan="5" class="p-8 text-center font-serif italic text-slate-500">No assets
+                        discovered in current sector. Run a scan to populate.</td>
+                </tr>
+                </tbody>
+                </table>
             </div>
+        </div>
         </div>
 
         <!-- GRAPH VIEW -->
@@ -631,7 +627,7 @@
             </div>
 
             <!-- Moved Charts -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div x-show="stats.scans > 0 || results" class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div class="h-64 bg-slate-100 dark:bg-black p-4 border border-slate-300 dark:border-gray-700 relative">
                     <h3 class="absolute top-2 left-2 text-xs font-bold uppercase text-slate-500">Threat Distribution
                     </h3>
@@ -716,15 +712,58 @@
         </div>
 
         <!-- THREATS VIEW (Placeholder) -->
-        <div x-show="activeTab === 'threats'"
-            class="flex flex-col items-center justify-center h-[600px] border-4 border-double border-slate-300 dark:border-slate-700 bg-white dark:bg-cyber-dark p-8 shadow-xl">
-            <div class="text-center">
-                <h2 class="text-4xl font-serif font-bold text-slate-800 dark:text-slate-100 mb-4 italic">"This Story is
-                    Developing..."</h2>
-                <div class="h-0.5 w-24 bg-radium-500 mx-auto mb-4"></div>
-                <p class="text-slate-600 dark:text-slate-400 font-mono text-lg">Our reporters are currently
-                    investigating this module. Check back in the next edition.</p>
-                <p class="mt-4 text-sm text-slate-500">Section: THREATS</p>
+        <!-- THREATS VIEW (VULNERABILITIES) -->
+        <div x-show="activeTab === 'threats'" x-transition.opacity.duration.500ms>
+            <div class="bg-white dark:bg-cyber-dark border-4 border-double border-red-500 shadow-xl p-6 relative">
+                <div
+                    class="absolute -top-3 -right-3 bg-red-600 text-white font-bold px-4 py-1 uppercase text-xs tracking-widest transform rotate-2">
+                    Top Secret
+                </div>
+
+                <h2 class="text-3xl font-serif font-bold text-slate-900 dark:text-white mb-6">Obituary Section <span
+                        class="text-base font-sans font-normal text-slate-500 not-italic">(Vulnerabilities)</span></h2>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr
+                                class="border-b-2 border-black dark:border-white text-slate-500 dark:text-slate-400 text-xs font-sans font-bold uppercase tracking-widest">
+                                <th class="p-3">Severity</th>
+                                <th class="p-3">Vulnerability</th>
+                                <th class="p-3">Target</th>
+                                <th class="p-3">Scanner</th>
+                                <th class="p-3">Time</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-200 dark:divide-gray-800">
+                            <template x-for="v in allVulns" :key="v.id">
+                                <tr class="hover:bg-red-50 dark:hover:bg-red-900/10 transition-colors">
+                                    <td class="p-3">
+                                        <span x-text="v.severity.toUpperCase()" :class="{
+                                                'text-red-600 bg-red-100 border-red-200': v.severity === 'High' || v.severity === 'Critical',
+                                                'text-yellow-600 bg-yellow-100 border-yellow-200': v.severity === 'Medium',
+                                                'text-blue-600 bg-blue-100 border-blue-200': v.severity === 'Low' || v.severity === 'Info'
+                                              }" class="px-2 py-1 rounded text-[10px] font-bold border"></span>
+                                    </td>
+                                    <td class="p-3">
+                                        <div class="font-bold text-slate-800 dark:text-slate-200 text-sm"
+                                            x-text="v.type"></div>
+                                        <div class="text-xs text-slate-500 truncate max-w-xs" x-text="v.details"></div>
+                                    </td>
+                                    <td class="p-3 font-mono text-xs text-slate-600 dark:text-slate-400"
+                                        x-text="v.target"></td>
+                                    <td class="p-3 text-xs text-slate-500" x-text="v.scanner"></td>
+                                    <td class="p-3 text-[10px] font-mono text-slate-400"
+                                        x-text="new Date(v.timestamp).toLocaleTimeString()"></td>
+                                </tr>
+                            </template>
+                            <tr x-show="allVulns.length === 0">
+                                <td colspan="5" class="p-8 text-center text-slate-500 italic">No vulnerabilities
+                                    recorded in recent cables.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
 
@@ -764,6 +803,7 @@
                 ],
 
                 assets: [],
+                allVulns: [], // Feature: Vuln Table
                 graphInitialized: false,
                 chartsInitialized: false,
 
@@ -786,6 +826,7 @@
                     this.fetchStats();
                     this.fetchActivity();
                     this.fetchAssets(); // Load assets
+                    this.fetchVulns(); // Load vulnerabilities table
 
                     // Icons
                     this.$nextTick(() => lucide.createIcons());
@@ -825,6 +866,15 @@
                             this.$nextTick(() => lucide.createIcons());
                         })
                         .catch(err => console.error("Asset fetch error", err));
+                },
+
+                fetchVulns() {
+                    fetch('/api/vulnerabilities')
+                        .then(res => res.json())
+                        .then(data => {
+                            this.allVulns = data;
+                        })
+                        .catch(err => console.error("Vuln fetch error", err));
                 },
 
                 // Simple Particle Graph Simulation

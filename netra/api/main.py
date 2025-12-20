@@ -460,7 +460,39 @@ async def get_assets_inventory():
         return assets
     except Exception as e:
         print(f"Asset Query Error: {e}")
-@app.delete("/api/assets/{asset_id}")
+
+@app.get("/api/vulnerabilities")
+async def get_all_vulnerabilities(limit: int = 100, session: AsyncSession = Depends(get_session)):
+    """
+    Aggregates vulnerabilities from all recent scans.
+    """
+    # In a real system, we might query Neo4j for (v:Vulnerability), but since we store report JSON in PG:
+    result = await session.execute(select(Scan).order_by(Scan.timestamp.desc()).limit(50))
+    scans = result.scalars().all()
+    
+    vulns = []
+    for scan in scans:
+        if not scan.results: continue
+        
+        # Helper to extract from scanner dicts
+        for scanner_name, data in scan.results.items():
+            # Check for standard 'vulnerabilities' list
+            if isinstance(data, dict) and "vulnerabilities" in data:
+                for v in data["vulnerabilities"]:
+                    # Normalize
+                    vulns.append({
+                        "id": str(uuid.uuid4())[:8],
+                        "scan_id": scan.id,
+                        "target": scan.target,
+                        "type": v.get("type", "Unknown"),
+                        "severity": v.get("severity", "Info"),
+                        "scanner": scanner_name,
+                        "details": v.get("details", "") or v.get("description", ""),
+                        "timestamp": scan.timestamp.isoformat() if scan.timestamp else ""
+                    })
+    
+    # Return flattened list (client can filter)
+    return vulns[:limit]
 async def delete_asset(asset_id: int):
     """
     Deletes an asset (Domain or IP) by its Neo4j ID.
