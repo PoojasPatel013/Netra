@@ -10,6 +10,7 @@ class Scan(SQLModel, table=True):
     created_at: datetime = Field(default_factory=datetime.utcnow)
     options: Dict[str, Any] = Field(default={}, sa_column=Column(JSON))
     results: Dict[str, Any] = Field(default={}, sa_column=Column(JSON))
+    user_id: Optional[int] = Field(default=None, foreign_key="user.id")
 
 class ScanCreate(SQLModel):
     target: str
@@ -23,3 +24,12 @@ class ScanRead(SQLModel):
     status: str
     created_at: datetime
     results: Dict[str, Any]
+
+class User(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    username: str = Field(index=True, unique=True)
+    full_name: Optional[str] = None
+    email: Optional[str] = None
+    hashed_password: str
+    disabled: bool = False
+    created_at: datetime = Field(default_factory=datetime.utcnow)

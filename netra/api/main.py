@@ -10,7 +10,7 @@ from sqlmodel import SQLModel, select
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 
-from netra.api.models import Scan, ScanCreate, ScanRead
+from netra.api.models import Scan, ScanCreate, ScanRead, User
 from netra.core.engine import NetraEngine
 from netra.core.modules.cloud import CloudScanner
 from netra.core.modules.acquisition import AcquisitionScanner
@@ -26,6 +26,9 @@ from netra.core.modules.api_fuzzer import ZombieScanner
 from netra.core.orchestration.messaging import NetraStream
 from redis import asyncio as aioredis
 from pydantic import BaseModel
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from netra.core.auth import verify_password, get_password_hash, create_access_token, Token, UserInDB
+from datetime import timedelta
 
 # Database Setup
 # Use SQLite for local development default, Postgres for Docker
@@ -306,12 +309,15 @@ async def run_scan_task(scan_id: int):
             await session.commit()
 
 @app.post("/scans", response_model=ScanRead)
-async def create_scan(scan_in: ScanCreate, background_tasks: BackgroundTasks, session: AsyncSession = Depends(get_session)):
+async def create_scan(scan_in: ScanCreate, background_tasks: BackgroundTasks, 
+                      session: AsyncSession = Depends(get_session),
+                      current_user: User = Depends(get_current_user)):
     scan = Scan(
         target=scan_in.target,
         scan_type=scan_in.scan_type,
         options=scan_in.options,
-        status="pending"
+        status="pending",
+        user_id=current_user.id
     )
     session.add(scan)
     await session.commit()
@@ -333,24 +339,35 @@ async def create_scan(scan_in: ScanCreate, background_tasks: BackgroundTasks, se
     return scan
 
 @app.get("/scans", response_model=List[ScanRead])
-async def list_scans(offset: int = 0, limit: int = 100, session: AsyncSession = Depends(get_session)):
-    result = await session.execute(select(Scan).offset(offset).limit(limit))
+async def list_scans(offset: int = 0, limit: int = 100, 
+                     session: AsyncSession = Depends(get_session),
+                     current_user: User = Depends(get_current_user)):
+    # Filter by user
+    query = select(Scan).where(Scan.user_id == current_user.id).offset(offset).limit(limit)
+    result = await session.execute(query)
     scans = result.scalars().all()
     return scans
 
 @app.get("/scans/{scan_id}", response_model=ScanRead)
-async def read_scan(scan_id: int, session: AsyncSession = Depends(get_session)):
+async def read_scan(scan_id: int, session: AsyncSession = Depends(get_session),
+                    current_user: User = Depends(get_current_user)):
     scan = await session.get(Scan, scan_id)
     if not scan:
         raise HTTPException(status_code=404, detail="Scan not found")
+    if scan.user_id != current_user.id:
+         raise HTTPException(status_code=403, detail="Not authorized to access this scan")
     return scan
 
 @app.delete("/scans/{scan_id}")
-async def delete_scan(scan_id: int, session: AsyncSession = Depends(get_session)):
+async def delete_scan(scan_id: int, session: AsyncSession = Depends(get_session),
+                      current_user: User = Depends(get_current_user)):
     scan = await session.get(Scan, scan_id)
     if not scan:
         raise HTTPException(status_code=404, detail="Scan not found")
-    await session.delete(scan)
+    if scan.user_id != current_user.id:
+         raise HTTPException(status_code=403, detail="Not authorized to delete this scan")
+    
+    session.delete(scan)
     await session.commit()
     return {"ok": True}
 

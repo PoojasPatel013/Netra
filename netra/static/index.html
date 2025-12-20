@@ -483,6 +483,62 @@
         </div>
         </div>
 
+        </div>
+        </div>
+
+        <!-- AUTH MODAL -->
+        <div x-show="!isAuthenticated"
+            class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md" x-cloak>
+            <div
+                class="bg-white dark:bg-cyber-dark w-full max-w-sm p-8 rounded border-2 border-slate-700 shadow-2xl relative overflow-hidden">
+                <!-- Decorative scan line -->
+                <div
+                    class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-radium-500 to-transparent animate-scan">
+                </div>
+
+                <div class="text-center mb-6">
+                    <h2 class="text-3xl font-display font-bold text-slate-800 dark:text-white">NETRA <span
+                            class="text-radium-500">SYSTEM</span></h2>
+                    <p class="text-slate-500 text-xs uppercase tracking-widest mt-1">Authorized Personnel Only</p>
+                </div>
+
+                <form @submit.prevent="handleAuth" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Agent ID</label>
+                        <input type="text" x-model="authForm.username" required
+                            class="w-full bg-slate-100 dark:bg-black border border-slate-300 dark:border-slate-700 p-3 text-sm font-mono focus:border-radium-500 outline-none transition-colors"
+                            placeholder="username">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Passkey</label>
+                        <input type="password" x-model="authForm.password" required
+                            class="w-full bg-slate-100 dark:bg-black border border-slate-300 dark:border-slate-700 p-3 text-sm font-mono focus:border-radium-500 outline-none transition-colors"
+                            placeholder="••••••••">
+                    </div>
+
+                    <div class="pt-2">
+                        <button type="submit"
+                            class="w-full bg-radium-600 text-black font-bold uppercase tracking-widest py-3 hover:bg-radium-500 transition-colors flex items-center justify-center gap-2">
+                            <i data-lucide="fingerprint" class="w-5 h-5"></i>
+                            <span x-text="authMode === 'login' ? 'Authenticate' : 'Register Agent'"></span>
+                        </button>
+                    </div>
+                </form>
+
+                <div class="mt-4 text-center">
+                    <button @click="authMode = authMode === 'login' ? 'register' : 'login'"
+                        class="text-xs text-slate-400 hover:text-radium-500 underline decoration-dashed underline-offset-4">
+                        <span
+                            x-text="authMode === 'login' ? 'New Recruit? Register Identity' : 'Already have credentials? Login'"></span>
+                    </button>
+                </div>
+
+                <div x-show="authError"
+                    class="mt-4 p-2 bg-red-900/20 border border-red-500/50 text-red-400 text-xs text-center"
+                    x-text="authError"></div>
+            </div>
+        </div>
+
         <!-- View Report Modal (Optional expansion) -->
         <div x-show="viewReportMode"
             class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm" x-cloak>
@@ -804,6 +860,14 @@
 
                 assets: [],
                 allVulns: [], // Feature: Vuln Table
+
+                // Auth State
+                isAuthenticated: false,
+                authMode: 'login', // 'login' or 'register'
+                authForm: { username: '', password: '' },
+                authError: null,
+                currentUser: null,
+
                 graphInitialized: false,
                 chartsInitialized: false,
 
@@ -817,17 +881,96 @@
                 portChart: null,
 
                 initApp() {
+                    // Check Auth Token
+                    this.checkAuth();
+
                     // Theme Init
                     const savedTheme = localStorage.getItem('netra-theme');
                     this.darkMode = savedTheme ? JSON.parse(savedTheme) : true;
                     this.applyTheme();
 
+                    if (this.isAuthenticated) {
+                        this.loadDashboardData();
+                    }
+
+                    this.initLogic();
+                },
+
+                checkAuth() {
+                    const token = localStorage.getItem('netra_token');
+                    if (token) {
+                        this.isAuthenticated = true;
+                        // Build Basic User Profile (decode JWT roughly or fetch profile)
+                        // For speed, we trust token existence until 401
+                        this.currentUser = { username: "Agent" };
+                        this.fetchUserProfile();
+                    }
+                },
+
+                async handleAuth() {
+                    this.authError = null;
+                    const endpoint = this.authMode === 'login' ? '/token' : '/auth/register';
+
+                    try {
+                        const formData = new URLSearchParams();
+                        formData.append('username', this.authForm.username);
+                        formData.append('password', this.authForm.password);
+
+                        const res = await fetch(endpoint, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                            body: formData
+                        });
+
+                        if (!res.ok) {
+                            const err = await res.json();
+                            throw new Error(err.detail || 'Authentication failed');
+                        }
+
+                        const data = await res.json();
+                        localStorage.setItem('netra_token', data.access_token);
+                        this.isAuthenticated = true;
+                        this.authForm = { username: '', password: '' };
+                        this.loadDashboardData();
+                        this.fetchUserProfile();
+
+                    } catch (e) {
+                        this.authError = e.message;
+                    }
+                },
+
+                logout() {
+                    localStorage.removeItem('netra_token');
+                    this.isAuthenticated = false;
+                    this.results = null;
+                    this.assets = [];
+                    this.logs = [];
+                },
+
+                async fetchUserProfile() {
+                    const token = localStorage.getItem('netra_token');
+                    if (!token) return;
+                    try {
+                        const res = await fetch('/users/me', { headers: { 'Authorization': `Bearer ${token}` } });
+                        if (res.ok) {
+                            const user = await res.json();
+                            this.currentUser = user;
+                        } else {
+                            // Token expired
+                            this.logout();
+                        }
+                    } catch (e) { }
+                },
+
+                loadDashboardData() {
                     // Stats Init
                     this.fetchStats();
                     this.fetchActivity();
                     this.fetchAssets(); // Load assets
                     this.fetchVulns(); // Load vulnerabilities table
+                },
 
+                initLogic() {
                     // Icons
                     this.$nextTick(() => lucide.createIcons());
 
@@ -855,322 +998,324 @@
                     // Init Charts
                     setTimeout(() => this.initCharts(), 500);
                 },
+                setTimeout(() => this.initCharts(), 500);
+        },
 
-                fetchAssets() {
-                    fetch('/api/assets')
-                        .then(res => res.json())
-                        .then(data => {
-                            // Handle array or wrapped
-                            const list = Array.isArray(data) ? data : (data.assets || []);
-                            this.assets = list;
-                            this.$nextTick(() => lucide.createIcons());
-                        })
-                        .catch(err => console.error("Asset fetch error", err));
-                },
+        fetchAssets() {
+            fetch('/api/assets')
+                .then(res => res.json())
+                .then(data => {
+                    // Handle array or wrapped
+                    const list = Array.isArray(data) ? data : (data.assets || []);
+                    this.assets = list;
+                    this.$nextTick(() => lucide.createIcons());
+                })
+                .catch(err => console.error("Asset fetch error", err));
+        },
 
-                fetchVulns() {
-                    fetch('/api/vulnerabilities')
-                        .then(res => res.json())
-                        .then(data => {
-                            this.allVulns = data;
-                        })
-                        .catch(err => console.error("Vuln fetch error", err));
-                },
+        fetchVulns() {
+            fetch('/api/vulnerabilities')
+                .then(res => res.json())
+                .then(data => {
+                    this.allVulns = data;
+                })
+                .catch(err => console.error("Vuln fetch error", err));
+        },
 
-                // Simple Particle Graph Simulation
-                initGraph() {
-                    const canvas = document.getElementById('graphCanvas');
-                    if (!canvas) return;
-                    this.graphInitialized = true;
+        // Simple Particle Graph Simulation
+        initGraph() {
+            const canvas = document.getElementById('graphCanvas');
+            if (!canvas) return;
+            this.graphInitialized = true;
 
-                    // Set correct scaling
-                    const rect = canvas.parentElement.getBoundingClientRect();
-                    canvas.width = rect.width;
-                    canvas.height = rect.height;
+            // Set correct scaling
+            const rect = canvas.parentElement.getBoundingClientRect();
+            canvas.width = rect.width;
+            canvas.height = rect.height;
 
-                    const ctx = canvas.getContext('2d');
-                    let nodes = [];
-                    let links = [];
+            const ctx = canvas.getContext('2d');
+            let nodes = [];
+            let links = [];
 
-                    fetch('/api/graph')
-                        .then(res => res.json())
-                        .then(data => {
-                            // API fallback
-                            if (!data.nodes) {
-                                nodes = []; links = [];
-                            } else {
-                                nodes = data.nodes.map(n => ({
-                                    ...n,
-                                    x: Math.random() * canvas.width,
-                                    y: Math.random() * canvas.height,
-                                    vx: (Math.random() - 0.5) * 0.2,
-                                    vy: (Math.random() - 0.5) * 0.2
-                                }));
-                                links = data.links;
-                            }
-                        })
-                        .catch(err => console.error("Graph error", err));
-
-                    const animate = () => {
-                        // Stop if switched away (simple check)
-                        if (this.activeTab !== 'graph') {
-                            requestAnimationFrame(animate);
-                            return;
-                        }
-
-                        ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-                        // Empty State Info
-                        if (nodes.length === 0) {
-                            ctx.fillStyle = "rgba(128, 128, 128, 0.5)";
-                            ctx.font = "16px monospace";
-                            ctx.textAlign = "center";
-                            ctx.fillText("Waiting for Graph Data...", canvas.width / 2, canvas.height / 2);
-                        }
-
-                        // Update & Draw Nodes
-                        nodes.forEach(p => {
-                            p.x += p.vx;
-                            p.y += p.vy;
-                            if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
-                            if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
-
-                            ctx.beginPath();
-                            ctx.arc(p.x, p.y, 4, 0, Math.PI * 2);
-                            ctx.fillStyle = p.group === 'Domain' ? '#ff00ff' : '#00f3ff';
-                            ctx.fill();
-
-                            // Label
-                            if (p.label) {
-                                ctx.fillStyle = "rgba(128, 255, 255, 0.7)";
-                                ctx.font = "10px sans-serif";
-                                ctx.fillText(p.label, p.x + 8, p.y);
-                            }
-                        });
-
-                        // Draw Links
-                        links.forEach(link => {
-                            const s = nodes.find(n => n.id === link.source);
-                            const t = nodes.find(n => n.id === link.target);
-
-                            if (s && t) {
-                                ctx.beginPath();
-                                ctx.moveTo(s.x, s.y);
-                                ctx.lineTo(t.x, t.y);
-                                ctx.strokeStyle = 'rgba(100, 100, 255, 0.2)';
-                                ctx.stroke();
-                            }
-                        });
-
-                        requestAnimationFrame(animate);
-                    };
-                    animate();
-                },
-
-                applyTheme() {
-                    if (this.darkMode) {
-                        document.documentElement.classList.add('dark');
+            fetch('/api/graph')
+                .then(res => res.json())
+                .then(data => {
+                    // API fallback
+                    if (!data.nodes) {
+                        nodes = []; links = [];
                     } else {
-                        document.documentElement.classList.remove('dark');
+                        nodes = data.nodes.map(n => ({
+                            ...n,
+                            x: Math.random() * canvas.width,
+                            y: Math.random() * canvas.height,
+                            vx: (Math.random() - 0.5) * 0.2,
+                            vy: (Math.random() - 0.5) * 0.2
+                        }));
+                        links = data.links;
                     }
-                },
+                })
+                .catch(err => console.error("Graph error", err));
 
-                toggleTheme() {
-                    this.darkMode = !this.darkMode;
-                },
+            const animate = () => {
+                // Stop if switched away (simple check)
+                if (this.activeTab !== 'graph') {
+                    requestAnimationFrame(animate);
+                    return;
+                }
 
-                downloadResults() {
-                    if (!this.results) return;
-                    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(this.results, null, 2));
-                    const downloadAnchorNode = document.createElement('a');
-                    downloadAnchorNode.setAttribute("href", dataStr);
-                    downloadAnchorNode.setAttribute("download", "netra_intelligence_report.json");
-                    document.body.appendChild(downloadAnchorNode); // required for firefox
-                    downloadAnchorNode.click();
-                    downloadAnchorNode.remove();
-                },
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                // Empty State Info
+                if (nodes.length === 0) {
+                    ctx.fillStyle = "rgba(128, 128, 128, 0.5)";
+                    ctx.font = "16px monospace";
+                    ctx.textAlign = "center";
+                    ctx.fillText("Waiting for Graph Data...", canvas.width / 2, canvas.height / 2);
+                }
+
+                // Update & Draw Nodes
+                nodes.forEach(p => {
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
+                    if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
+
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, 4, 0, Math.PI * 2);
+                    ctx.fillStyle = p.group === 'Domain' ? '#ff00ff' : '#00f3ff';
+                    ctx.fill();
+
+                    // Label
+                    if (p.label) {
+                        ctx.fillStyle = "rgba(128, 255, 255, 0.7)";
+                        ctx.font = "10px sans-serif";
+                        ctx.fillText(p.label, p.x + 8, p.y);
+                    }
+                });
+
+                // Draw Links
+                links.forEach(link => {
+                    const s = nodes.find(n => n.id === link.source);
+                    const t = nodes.find(n => n.id === link.target);
+
+                    if (s && t) {
+                        ctx.beginPath();
+                        ctx.moveTo(s.x, s.y);
+                        ctx.lineTo(t.x, t.y);
+                        ctx.strokeStyle = 'rgba(100, 100, 255, 0.2)';
+                        ctx.stroke();
+                    }
+                });
+
+                requestAnimationFrame(animate);
+            };
+            animate();
+        },
+
+        applyTheme() {
+            if (this.darkMode) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        },
+
+        toggleTheme() {
+            this.darkMode = !this.darkMode;
+        },
+
+        downloadResults() {
+            if (!this.results) return;
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(this.results, null, 2));
+            const downloadAnchorNode = document.createElement('a');
+            downloadAnchorNode.setAttribute("href", dataStr);
+            downloadAnchorNode.setAttribute("download", "netra_intelligence_report.json");
+            document.body.appendChild(downloadAnchorNode); // required for firefox
+            downloadAnchorNode.click();
+            downloadAnchorNode.remove();
+        },
 
                 async pollStatus() {
-                    // Manual refresh placeholder
-                },
+            // Manual refresh placeholder
+        },
 
                 async checkScanStatus(interval, scanId) {
-                    try {
-                        const res = await fetch(`/scans/${scanId}`);
-                        if (!res.ok) return;
-                        const data = await res.json();
+            try {
+                const res = await fetch(`/scans/${scanId}`);
+                if (!res.ok) return;
+                const data = await res.json();
 
-                        // Update status indicator
-                        if (data.status) this.scanStatus = data.status.toUpperCase();
+                // Update status indicator
+                if (data.status) this.scanStatus = data.status.toUpperCase();
 
-                        if (data.status === 'completed') {
-                            if (interval) clearInterval(interval);
-                            this.results = data.results || {};
-                            this.scanning = false;
-                            this.scanStatus = 'COMPLETED';
-                            this.addLog('Scan Completed. Intelligence received.');
-                            this.fetchStats();
-                            this.fetchActivity();
-                            this.$nextTick(() => lucide.createIcons());
-                        } else if (data.status === 'failed') {
-                            if (interval) clearInterval(interval);
-                            this.scanning = false;
-                            this.scanStatus = 'FAILED';
-                            this.addLog('Scan Failed.');
-                        }
-                    } catch (e) { console.error(e); }
-                },
+                if (data.status === 'completed') {
+                    if (interval) clearInterval(interval);
+                    this.results = data.results || {};
+                    this.scanning = false;
+                    this.scanStatus = 'COMPLETED';
+                    this.addLog('Scan Completed. Intelligence received.');
+                    this.fetchStats();
+                    this.fetchActivity();
+                    this.$nextTick(() => lucide.createIcons());
+                } else if (data.status === 'failed') {
+                    if (interval) clearInterval(interval);
+                    this.scanning = false;
+                    this.scanStatus = 'FAILED';
+                    this.addLog('Scan Failed.');
+                }
+            } catch (e) { console.error(e); }
+        },
 
-                addLog(msg) {
-                    this.logs.unshift(`[${new Date().toLocaleTimeString()}] ${msg}`);
-                },
+        addLog(msg) {
+            this.logs.unshift(`[${new Date().toLocaleTimeString()}] ${msg}`);
+        },
 
-                fetchStats() {
-                    fetch('/api/stats')
-                        .then(res => res.json())
-                        .then(data => this.stats = data)
-                        .catch(err => console.error(err));
-                },
+        fetchStats() {
+            fetch('/api/stats')
+                .then(res => res.json())
+                .then(data => this.stats = data)
+                .catch(err => console.error(err));
+        },
 
-                fetchActivity() {
-                    fetch('/scans?limit=5')
-                        .then(res => res.json())
-                        .then(data => {
-                            this.activities = data.map(scan => ({
-                                id: scan.id,
-                                msg: `Scan ${scan.status} for ${scan.target}`,
-                                time: new Date(scan.timestamp || Date.now()).toLocaleTimeString(),
-                                iconName: scan.status === 'completed' ? 'shield-check' : 'activity',
-                                status: scan.status
-                            }));
-                            this.$nextTick(() => lucide.createIcons());
-                        })
-                        .catch(err => alert("Scan failed to start: " + err));
-                },
+        fetchActivity() {
+            fetch('/scans?limit=5')
+                .then(res => res.json())
+                .then(data => {
+                    this.activities = data.map(scan => ({
+                        id: scan.id,
+                        msg: `Scan ${scan.status} for ${scan.target}`,
+                        time: new Date(scan.timestamp || Date.now()).toLocaleTimeString(),
+                        iconName: scan.status === 'completed' ? 'shield-check' : 'activity',
+                        status: scan.status
+                    }));
+                    this.$nextTick(() => lucide.createIcons());
+                })
+                .catch(err => alert("Scan failed to start: " + err));
+        },
 
-                viewAsset(asset) {
-                    this.selectedAsset = asset;
-                    this.viewAssetMode = true;
-                },
+        viewAsset(asset) {
+            this.selectedAsset = asset;
+            this.viewAssetMode = true;
+        },
 
-                deleteAsset(id) {
-                    if (!confirm("Are you sure you want to permanently delete this asset?")) return;
-                    fetch('/api/assets/' + id, { method: 'DELETE' })
-                        .then(res => {
-                            if (res.ok) {
-                                this.assets = this.assets.filter(a => a.id !== id);
-                                this.fetchStats(); // Update stats
-                            } else {
-                                alert("Failed to delete asset");
-                            }
-                        })
-                        .catch(e => console.error(e));
-                },
+        deleteAsset(id) {
+            if (!confirm("Are you sure you want to permanently delete this asset?")) return;
+            fetch('/api/assets/' + id, { method: 'DELETE' })
+                .then(res => {
+                    if (res.ok) {
+                        this.assets = this.assets.filter(a => a.id !== id);
+                        this.fetchStats(); // Update stats
+                    } else {
+                        alert("Failed to delete asset");
+                    }
+                })
+                .catch(e => console.error(e));
+        },
 
                 async startScan() {
-                    if (!this.target) return;
-                    this.scanning = true;
-                    this.scanStatus = 'DISPATCHING';
-                    this.results = null;
-                    this.logs = [];
-                    this.addLog(`INITIALIZING SCAN: ${this.target}`);
+            if (!this.target) return;
+            this.scanning = true;
+            this.scanStatus = 'DISPATCHING';
+            this.results = null;
+            this.logs = [];
+            this.addLog(`INITIALIZING SCAN: ${this.target}`);
 
-                    try {
-                        const response = await fetch('/scans', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                target: this.target,
-                                scan_type: 'full',
-                                options: this.scanOptions
-                            }),
-                        });
+            try {
+                const response = await fetch('/scans', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        target: this.target,
+                        scan_type: 'full',
+                        options: this.scanOptions
+                    }),
+                });
 
-                        if (!response.ok) throw new Error('Failed to start scan');
-                        const scan = await response.json();
-                        this.addLog(`Scan ID: ${scan.id} dispatched.`);
-                        this.scanStatus = 'IN PROGRESS';
+                if (!response.ok) throw new Error('Failed to start scan');
+                const scan = await response.json();
+                this.addLog(`Scan ID: ${scan.id} dispatched.`);
+                this.scanStatus = 'IN PROGRESS';
 
-                        // Poll
-                        const interval = setInterval(async () => {
-                            await this.checkScanStatus(interval, scan.id);
-                        }, 2000);
+                // Poll
+                const interval = setInterval(async () => {
+                    await this.checkScanStatus(interval, scan.id);
+                }, 2000);
 
-                    } catch (e) {
-                        this.addLog(`Error: ${e.message}`);
-                        this.scanning = false;
-                        this.scanStatus = 'FAILED';
+            } catch (e) {
+                this.addLog(`Error: ${e.message}`);
+                this.scanning = false;
+                this.scanStatus = 'FAILED';
+            }
+        },
+
+        initCharts() {
+            if (this.chartsInitialized) return;
+            const vCtx = document.getElementById('vulnChart');
+            const pCtx = document.getElementById('portChart');
+
+            if (!vCtx || !pCtx) return;
+
+            this.chartsInitialized = true;
+
+            // Placeholder Data (Real data would aggregate this.activities or stats)
+            const bgColors = this.darkMode ? ['#ef4444', '#f59e0b', '#3b82f6', '#10b981'] : ['#dc2626', '#d97706', '#2563eb', '#059669'];
+
+            this.vulnChart = new Chart(vCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Critical', 'High', 'Medium', 'Low'],
+                    datasets: [{
+                        data: [this.stats.vulns > 0 ? this.stats.vulns : 2, 5, 8, 12], // Use stats if avail
+                        backgroundColor: bgColors,
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'right', labels: { color: this.darkMode ? '#fff' : '#000', font: { family: 'Fira Code' } } }
                     }
-                },
-
-                initCharts() {
-                    if (this.chartsInitialized) return;
-                    const vCtx = document.getElementById('vulnChart');
-                    const pCtx = document.getElementById('portChart');
-
-                    if (!vCtx || !pCtx) return;
-
-                    this.chartsInitialized = true;
-
-                    // Placeholder Data (Real data would aggregate this.activities or stats)
-                    const bgColors = this.darkMode ? ['#ef4444', '#f59e0b', '#3b82f6', '#10b981'] : ['#dc2626', '#d97706', '#2563eb', '#059669'];
-
-                    this.vulnChart = new Chart(vCtx, {
-                        type: 'doughnut',
-                        data: {
-                            labels: ['Critical', 'High', 'Medium', 'Low'],
-                            datasets: [{
-                                data: [this.stats.vulns > 0 ? this.stats.vulns : 2, 5, 8, 12], // Use stats if avail
-                                backgroundColor: bgColors,
-                                borderWidth: 0
-                            }]
-                        },
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            plugins: {
-                                legend: { position: 'right', labels: { color: this.darkMode ? '#fff' : '#000', font: { family: 'Fira Code' } } }
-                            }
-                        }
-                    });
-
-                    this.portChart = new Chart(pCtx, {
-                        type: 'bar',
-                        data: {
-                            labels: ['80', '443', '22', '8080', '3306'],
-                            datasets: [{
-                                label: 'Open Instances',
-                                data: [15, 12, 4, 8, 2],
-                                backgroundColor: '#00f3ff'
-                            }]
-                        },
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            plugins: {
-                                legend: { display: false },
-                                tooltip: { mode: 'index', intersect: false }
-                            },
-                            scales: {
-                                y: { ticks: { color: this.darkMode ? '#fff' : '#000' }, grid: { color: '#333' } },
-                                x: { ticks: { color: this.darkMode ? '#fff' : '#000' }, grid: { display: false } }
-                            }
-                        }
-                    });
-                },
-
-                saveSettings() {
-                    localStorage.setItem('netra-settings', JSON.stringify(this.settings));
-                    alert('Configuration Saved Securely.');
-                },
-
-                resetDatabase() {
-                    if (!confirm('Are you sure you want to PURGE ALL DATA?')) return;
-                    alert('Database purge command sent (Simulated).');
-                    this.stats = { scans: 0, vulns: 0, assets: 0 };
-                    this.assets = [];
-                    window.location.reload();
                 }
+            });
+
+            this.portChart = new Chart(pCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['80', '443', '22', '8080', '3306'],
+                    datasets: [{
+                        label: 'Open Instances',
+                        data: [15, 12, 4, 8, 2],
+                        backgroundColor: '#00f3ff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: { mode: 'index', intersect: false }
+                    },
+                    scales: {
+                        y: { ticks: { color: this.darkMode ? '#fff' : '#000' }, grid: { color: '#333' } },
+                        x: { ticks: { color: this.darkMode ? '#fff' : '#000' }, grid: { display: false } }
+                    }
+                }
+            });
+        },
+
+        saveSettings() {
+            localStorage.setItem('netra-settings', JSON.stringify(this.settings));
+            alert('Configuration Saved Securely.');
+        },
+
+        resetDatabase() {
+            if (!confirm('Are you sure you want to PURGE ALL DATA?')) return;
+            alert('Database purge command sent (Simulated).');
+            this.stats = { scans: 0, vulns: 0, assets: 0 };
+            this.assets = [];
+            window.location.reload();
+        }
             }
         }
     </script>
