@@ -9,7 +9,9 @@
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Inter:wght@400;500;600;700&family=Orbitron:wght@400;500;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Inter:wght@400;500;600;700&family=Orbitron:wght@400;500;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap"
+        rel="stylesheet">
 
     <!-- Libraries -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -49,19 +51,27 @@
     </script>
 
     <style>
-        [x-cloak] { display: none !important; }
+        [x-cloak] {
+            display: none !important;
+        }
+
         .glass {
             background: rgba(11, 18, 33, 0.7);
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
+
         .glass-light {
             background: rgba(255, 255, 255, 0.8);
             backdrop-filter: blur(12px);
             border: 1px solid rgba(0, 0, 0, 0.1);
         }
-        .text-glow { text-shadow: 0 0 10px rgba(0, 243, 255, 0.3); }
+
+        .text-glow {
+            text-shadow: 0 0 10px rgba(0, 243, 255, 0.3);
+        }
+
         .scan-line {
             width: 100%;
             height: 2px;
@@ -72,25 +82,34 @@
     </style>
 </head>
 
-<body class="bg-gray-50 dark:bg-cyber-black text-slate-900 dark:text-cyber-text transition-colors duration-300 min-h-screen font-sans overflow-x-hidden"
-      x-data="app()" x-init="initApp()">
+<body
+    class="bg-gray-50 dark:bg-cyber-black text-slate-900 dark:text-cyber-text transition-colors duration-300 min-h-screen font-sans overflow-x-hidden"
+    x-data="app()" x-init="initApp()">
 
     <!-- AUTHENTICATION & LANDING PAGE -->
     <template x-if="!isAuthenticated">
-        <div class="fixed inset-0 z-50 flex flex-col md:flex-row h-screen w-full bg-cyber-black overflow-hidden relative">
+        <div
+            class="fixed inset-0 z-50 flex flex-col md:flex-row h-screen w-full bg-cyber-black overflow-hidden relative">
             <!-- Background Elements -->
-            <div class="absolute inset-0 bg-[url('https://res.cloudinary.com/practicaldev/image/fetch/s--_MFOcsk1--/c_limit%2Cf_auto%2Cfl_progressive%2Cq_auto%2Cw_880/https://dev-to-uploads.s3.amazonaws.com/uploads/articles/zjvcvp3y03029202512.png')] bg-cover opacity-10 blur-sm pointer-events-none"></div>
-            <div class="absolute inset-0 bg-gradient-to-b from-transparent via-cyber-black/80 to-cyber-black pointer-events-none"></div>
+            <div
+                class="absolute inset-0 bg-[url('https://res.cloudinary.com/practicaldev/image/fetch/s--_MFOcsk1--/c_limit%2Cf_auto%2Cfl_progressive%2Cq_auto%2Cw_880/https://dev-to-uploads.s3.amazonaws.com/uploads/articles/zjvcvp3y03029202512.png')] bg-cover opacity-10 blur-sm pointer-events-none">
+            </div>
+            <div
+                class="absolute inset-0 bg-gradient-to-b from-transparent via-cyber-black/80 to-cyber-black pointer-events-none">
+            </div>
 
             <!-- LEFT: Authentication Form -->
             <div class="w-full md:w-1/2 flex items-center justify-center p-8 md:p-16 relative z-10">
-                <div class="w-full max-w-md bg-cyber-dark/80 backdrop-blur-xl border border-slate-700/50 p-10 rounded-2xl shadow-2xl relative overflow-hidden group">
+                <div
+                    class="w-full max-w-md bg-cyber-dark/80 backdrop-blur-xl border border-slate-700/50 p-10 rounded-2xl shadow-2xl relative overflow-hidden group">
                     <!-- Scan Line -->
-                    <div class="absolute top-0 left-0 w-full h-1 bg-radium-500 shadow-[0_0_15px_#00f3ff] opacity-50"></div>
-                    
+                    <div class="absolute top-0 left-0 w-full h-1 bg-radium-500 shadow-[0_0_15px_#00f3ff] opacity-50">
+                    </div>
+
                     <div class="mb-8 text-center">
                         <h1 class="font-display font-bold text-5xl text-white mb-2 tracking-tighter">NETRA</h1>
-                        <p class="text-radium-500 font-mono text-xs uppercase tracking-[0.3em]">Surveillance & Intelligence Grid</p>
+                        <p class="text-radium-500 font-mono text-xs uppercase tracking-[0.3em]">Surveillance &
+                            Intelligence Grid</p>
                     </div>
 
                     <form @submit.prevent="handleAuth" class="space-y-6">
@@ -98,79 +117,93 @@
                             <label class="block text-xs font-bold uppercase text-slate-500 mb-2">Agent Identity</label>
                             <div class="relative">
                                 <i data-lucide="user" class="absolute left-3 top-3 w-5 h-5 text-slate-500"></i>
-                                <input type="text" x-model="authForm.username" required 
-                                       class="w-full bg-black/50 border border-slate-700 rounded pl-10 pr-4 py-3 text-white font-mono placeholder-slate-600 focus:border-radium-500 focus:ring-1 focus:ring-radium-500 transition-all outline-none"
-                                       placeholder="Enter user ID">
+                                <input type="text" x-model="authForm.username" required
+                                    class="w-full bg-black/50 border border-slate-700 rounded pl-10 pr-4 py-3 text-white font-mono placeholder-slate-600 focus:border-radium-500 focus:ring-1 focus:ring-radium-500 transition-all outline-none"
+                                    placeholder="Enter user ID">
                             </div>
                         </div>
                         <div>
                             <label class="block text-xs font-bold uppercase text-slate-500 mb-2">Access Key</label>
                             <div class="relative">
                                 <i data-lucide="lock" class="absolute left-3 top-3 w-5 h-5 text-slate-500"></i>
-                                <input type="password" x-model="authForm.password" required 
-                                       class="w-full bg-black/50 border border-slate-700 rounded pl-10 pr-4 py-3 text-white font-mono placeholder-slate-600 focus:border-radium-500 focus:ring-1 focus:ring-radium-500 transition-all outline-none"
-                                       placeholder="••••••••">
+                                <input type="password" x-model="authForm.password" required
+                                    class="w-full bg-black/50 border border-slate-700 rounded pl-10 pr-4 py-3 text-white font-mono placeholder-slate-600 focus:border-radium-500 focus:ring-1 focus:ring-radium-500 transition-all outline-none"
+                                    placeholder="••••••••">
                             </div>
                         </div>
 
-                        <button type="submit" 
-                                class="w-full bg-radium-600 hover:bg-radium-500 text-black font-display font-bold uppercase tracking-widest py-4 rounded transition-all transform hover:scale-[1.02] shadow-[0_0_20px_rgba(0,243,255,0.3)] flex items-center justify-center gap-2">
+                        <button type="submit"
+                            class="w-full bg-radium-600 hover:bg-radium-500 text-black font-display font-bold uppercase tracking-widest py-4 rounded transition-all transform hover:scale-[1.02] shadow-[0_0_20px_rgba(0,243,255,0.3)] flex items-center justify-center gap-2">
                             <span x-text="authMode === 'login' ? 'Establish Link' : 'Register Identity'"></span>
                             <i data-lucide="arrow-right" class="w-5 h-5"></i>
                         </button>
                     </form>
 
                     <div class="mt-6 text-center border-t border-slate-800 pt-4">
-                        <button @click="authMode = authMode === 'login' ? 'register' : 'login'" 
-                                class="text-xs text-slate-400 hover:text-white transition-colors">
-                            <span x-text="authMode === 'login' ? 'Request New Clearance (Register)' : 'Return to Login'"></span>
+                        <button @click="authMode = authMode === 'login' ? 'register' : 'login'"
+                            class="text-xs text-slate-400 hover:text-white transition-colors">
+                            <span
+                                x-text="authMode === 'login' ? 'Request New Clearance (Register)' : 'Return to Login'"></span>
                         </button>
                     </div>
-                     <div x-show="authError" class="mt-4 p-3 bg-red-900/30 border border-red-500 rounded text-red-400 text-xs text-center font-mono" x-text="authError"></div>
+                    <div x-show="authError"
+                        class="mt-4 p-3 bg-red-900/30 border border-red-500 rounded text-red-400 text-xs text-center font-mono"
+                        x-text="authError"></div>
                 </div>
             </div>
 
             <!-- RIGHT: Instructions & Safety -->
-            <div class="hidden md:flex w-1/2 bg-slate-900/50 backdrop-blur-md border-l border-slate-800 p-16 flex-col justify-center relative">
+            <div
+                class="hidden md:flex w-1/2 bg-slate-900/50 backdrop-blur-md border-l border-slate-800 p-16 flex-col justify-center relative">
                 <div class="max-w-lg mx-auto space-y-12">
-                    
+
                     <!-- Safety Warning -->
                     <div class="border-l-4 border-red-500 pl-6 py-2">
                         <h3 class="text-red-500 font-display font-bold text-2xl mb-2 flex items-center gap-2">
                             <i data-lucide="shield-alert" class="w-6 h-6"></i> Authorized Use Only
                         </h3>
                         <p class="text-slate-400 text-sm leading-relaxed text-justify">
-                            This system allows for active reconnaissance and simulated engagement. 
-                            Unauthorized use against targets without explicit written consent is a violation of federal and international law (CFAA, GDPR). 
-                            All actions are logged and auditable. Proceed only for authorized security testing or educational research.
+                            This system allows for active reconnaissance and simulated engagement.
+                            Unauthorized use against targets without explicit written consent is a violation of federal
+                            and international law (CFAA, GDPR).
+                            All actions are logged and auditable. Proceed only for authorized security testing or
+                            educational research.
                         </p>
                     </div>
 
                     <!-- App Overview -->
                     <div class="space-y-6">
-                        <h3 class="text-white font-display font-bold text-xl uppercase tracking-widest border-b border-slate-700 pb-2">System Capabilities</h3>
-                        
+                        <h3
+                            class="text-white font-display font-bold text-xl uppercase tracking-widest border-b border-slate-700 pb-2">
+                            System Capabilities</h3>
+
                         <div class="flex gap-4 items-start">
-                            <div class="p-2 rounded bg-blue-900/20 text-blue-400 mt-1"><i data-lucide="scan" class="w-5 h-5"></i></div>
+                            <div class="p-2 rounded bg-blue-900/20 text-blue-400 mt-1"><i data-lucide="scan"
+                                    class="w-5 h-5"></i></div>
                             <div>
                                 <h4 class="text-white font-bold text-sm">Deep Reconnaissance</h4>
-                                <p class="text-slate-500 text-xs mt-1">Automated asset discovery, port scanning, and banner grabbing via distributed drones.</p>
+                                <p class="text-slate-500 text-xs mt-1">Automated asset discovery, port scanning, and
+                                    banner grabbing via distributed drones.</p>
                             </div>
                         </div>
 
-                         <div class="flex gap-4 items-start">
-                            <div class="p-2 rounded bg-purple-900/20 text-purple-400 mt-1"><i data-lucide="network" class="w-5 h-5"></i></div>
+                        <div class="flex gap-4 items-start">
+                            <div class="p-2 rounded bg-purple-900/20 text-purple-400 mt-1"><i data-lucide="network"
+                                    class="w-5 h-5"></i></div>
                             <div>
                                 <h4 class="text-white font-bold text-sm">Graph Visualization</h4>
-                                <p class="text-slate-500 text-xs mt-1">Real-time Neo4j mapping of infrastructure relationships and potential attack vectors.</p>
+                                <p class="text-slate-500 text-xs mt-1">Real-time Neo4j mapping of infrastructure
+                                    relationships and potential attack vectors.</p>
                             </div>
                         </div>
 
-                         <div class="flex gap-4 items-start">
-                            <div class="p-2 rounded bg-red-900/20 text-red-400 mt-1"><i data-lucide="zap" class="w-5 h-5"></i></div>
+                        <div class="flex gap-4 items-start">
+                            <div class="p-2 rounded bg-red-900/20 text-red-400 mt-1"><i data-lucide="zap"
+                                    class="w-5 h-5"></i></div>
                             <div>
                                 <h4 class="text-white font-bold text-sm">Polyglot Scanning</h4>
-                                <p class="text-slate-500 text-xs mt-1">Hybrid Python/Ruby engine capable of running legacy exploit scripts (Metasploit/WPScan simulation).</p>
+                                <p class="text-slate-500 text-xs mt-1">Hybrid Python/Ruby engine capable of running
+                                    legacy exploit scripts (Metasploit/WPScan simulation).</p>
                             </div>
                         </div>
                     </div>
@@ -186,16 +219,19 @@
 
     <!-- MAIN DASHBOARD CONTENT (Authenticated) -->
     <main x-show="isAuthenticated" x-cloak class="min-h-screen flex flex-col">
-        
+
         <!-- Header / Masthead -->
-        <header class="border-b-4 border-double border-slate-900 dark:border-slate-700 bg-white dark:bg-cyber-black relative z-40">
+        <header
+            class="border-b-4 border-double border-slate-900 dark:border-slate-700 bg-white dark:bg-cyber-black relative z-40">
             <!-- Top Utility Bar -->
-            <div class="flex items-center justify-between px-4 md:px-8 py-2 border-b border-slate-300 dark:border-slate-800 text-xs font-serif italic text-slate-600 dark:text-slate-400">
+            <div
+                class="flex items-center justify-between px-4 md:px-8 py-2 border-b border-slate-300 dark:border-slate-800 text-xs font-serif italic text-slate-600 dark:text-slate-400">
                 <div class="flex items-center gap-4">
-                    <span x-text="new Date().toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })"></span>
+                    <span
+                        x-text="new Date().toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })"></span>
                     <span class="hidden md:inline">|</span>
                     <span class="hidden md:inline">Vol. 2, No. 42</span>
-                     <span class="hidden md:inline">|</span>
+                    <span class="hidden md:inline">|</span>
                     <span class="hidden md:inline">Data Isolation: ACTIVE</span>
                 </div>
                 <div class="flex items-center gap-4">
@@ -204,16 +240,18 @@
                         <i data-lucide="moon" x-show="darkMode" class="w-4 h-4"></i>
                     </button>
                     <div class="flex items-center gap-2 group cursor-pointer relative" @click="logout()">
-                         <i data-lucide="user" class="w-3 h-3"></i>
+                        <i data-lucide="user" class="w-3 h-3"></i>
                         <span class="font-bold uppercase" x-text="currentUser?.username || 'AGENT'"></span>
-                        <span class="text-[10px] opacity-0 group-hover:opacity-100 transition-opacity text-red-500 ml-1">(LOGOUT)</span>
+                        <span
+                            class="text-[10px] opacity-0 group-hover:opacity-100 transition-opacity text-red-500 ml-1">(LOGOUT)</span>
                     </div>
                 </div>
             </div>
 
             <!-- Title -->
             <div class="py-6 text-center relative overflow-hidden group">
-                <h1 class="text-4xl md:text-7xl font-serif font-black tracking-tighter text-slate-900 dark:text-slate-100 mb-2 relative z-10 selection:bg-radium-500 selection:text-black">
+                <h1
+                    class="text-4xl md:text-7xl font-serif font-black tracking-tighter text-slate-900 dark:text-slate-100 mb-2 relative z-10 selection:bg-radium-500 selection:text-black">
                     The Netra Times
                 </h1>
                 <div class="h-1 w-24 bg-slate-900 dark:bg-slate-100 mx-auto mb-1"></div>
@@ -221,20 +259,24 @@
                 <p class="mt-2 font-display text-xs tracking-[0.3em] text-slate-500 dark:text-radium-500 uppercase">
                     Advanced Security Monitoring & Intelligence
                 </p>
-                 <!-- BG Decor -->
-                <i data-lucide="shield" class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-48 h-48 text-slate-200/50 dark:text-slate-800/20 -z-0 opacity-20 rotate-12"></i>
+                <!-- BG Decor -->
+                <i data-lucide="shield"
+                    class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-48 h-48 text-slate-200/50 dark:text-slate-800/20 -z-0 opacity-20 rotate-12"></i>
             </div>
 
             <!-- NavBar -->
-            <nav class="flex justify-center border-t border-b border-slate-300 dark:border-slate-700 py-3 sticky top-0 bg-white/95 dark:bg-cyber-black/95 backdrop-blur z-50">
+            <nav
+                class="flex justify-center border-t border-b border-slate-300 dark:border-slate-700 py-3 sticky top-0 bg-white/95 dark:bg-cyber-black/95 backdrop-blur z-50">
                 <ul class="flex flex-wrap justify-center gap-4 md:gap-8 px-4">
                     <template x-for="item in menuItems" :key="item.id">
                         <li>
-                            <button @click="activeTab = item.id" 
-                                    :class="activeTab === item.id ? 'text-radium-600 dark:text-radium-500 scale-105' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'"
-                                    class="relative px-2 py-1 font-serif text-sm md:text-base font-bold tracking-wider transition-all duration-300">
+                            <button @click="activeTab = item.id"
+                                :class="activeTab === item.id ? 'text-radium-600 dark:text-radium-500 scale-105' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'"
+                                class="relative px-2 py-1 font-serif text-sm md:text-base font-bold tracking-wider transition-all duration-300">
                                 <span x-text="item.label"></span>
-                                <div x-show="activeTab === item.id" class="absolute -bottom-2 left-0 right-0 h-0.5 bg-radium-600 dark:bg-radium-500"></div>
+                                <div x-show="activeTab === item.id"
+                                    class="absolute -bottom-2 left-0 right-0 h-0.5 bg-radium-600 dark:bg-radium-500">
+                                </div>
                             </button>
                         </li>
                     </template>
@@ -242,20 +284,24 @@
             </nav>
         </header>
 
-         <!-- DASHBOARD CONTENT -->
-         <div class="flex-grow max-w-7xl mx-auto w-full p-4 md:p-8">
-            
+        <!-- DASHBOARD CONTENT -->
+        <div class="flex-grow max-w-7xl mx-auto w-full p-4 md:p-8">
+
             <!-- VIEW: FRONT PAGE -->
             <div x-show="activeTab === 'dashboard'" x-transition.opacity.duration.300ms>
                 <!-- Existing Dashboard Layout -->
-                 <div class="mb-6 border-b-2 border-slate-900 dark:border-slate-100 pb-2">
+                <div class="mb-6 border-b-2 border-slate-900 dark:border-slate-100 pb-2">
                     <div class="flex flex-wrap gap-4 justify-between items-end">
                         <div class="flex items-center gap-2">
-                            <span class="bg-red-600 text-white px-2 py-0.5 font-bold text-[10px] uppercase tracking-widest animate-pulse">LIVE FEED</span>
-                            <span class="font-serif italic text-sm text-slate-700 dark:text-slate-300">System functionality restored. Agent login confirmed.</span>
+                            <span
+                                class="bg-red-600 text-white px-2 py-0.5 font-bold text-[10px] uppercase tracking-widest animate-pulse">LIVE
+                                FEED</span>
+                            <span class="font-serif italic text-sm text-slate-700 dark:text-slate-300">System
+                                functionality restored. Agent login confirmed.</span>
                         </div>
-                         <div class="font-mono text-[10px] text-slate-500">
-                            SCANS {<span x-text="stats.scans"></span>} | VULNS {<span x-text="stats.vulns"></span>} | ASSETS {<span x-text="stats.assets"></span>}
+                        <div class="font-mono text-[10px] text-slate-500">
+                            SCANS {<span x-text="stats.scans"></span>} | VULNS {<span x-text="stats.vulns"></span>} |
+                            ASSETS {<span x-text="stats.assets"></span>}
                         </div>
                     </div>
                 </div>
@@ -263,37 +309,55 @@
                 <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
                     <!-- Left: Controls -->
                     <div class="lg:col-span-5 space-y-6">
-                        <div class="bg-white dark:bg-cyber-dark p-6 shadow-xl border border-slate-200 dark:border-slate-800 relative">
-                             <div class="border-b-4 border-double border-slate-800 dark:border-slate-600 mb-4 pb-2">
-                                <h2 class="font-serif font-black text-2xl text-slate-900 dark:text-slate-100 leading-none">TARGET ACQUISITION</h2>
-                            </div>
-                            
-                            <div class="mb-4">
-                                <label class="block font-sans text-xs font-bold uppercase tracking-widest mb-1 text-slate-500">Target URI</label>
-                                <input type="text" x-model="target" placeholder="example.com" 
-                                       class="w-full bg-slate-100 dark:bg-black border-b-2 border-slate-800 dark:border-slate-200 px-4 py-2 text-xl font-serif text-slate-900 dark:text-white focus:outline-none focus:bg-yellow-50 dark:focus:bg-gray-900 transition-colors">
+                        <div
+                            class="bg-white dark:bg-cyber-dark p-6 shadow-xl border border-slate-200 dark:border-slate-800 relative">
+                            <div class="border-b-4 border-double border-slate-800 dark:border-slate-600 mb-4 pb-2">
+                                <h2
+                                    class="font-serif font-black text-2xl text-slate-900 dark:text-slate-100 leading-none">
+                                    TARGET ACQUISITION</h2>
                             </div>
 
-                            <div class="bg-slate-100 dark:bg-black p-4 border border-slate-300 dark:border-slate-700 mb-6">
-                                <h3 class="font-sans font-bold text-xs uppercase text-slate-500 mb-2 border-b border-slate-300 pb-1">Scan Profiles</h3>
+                            <div class="mb-4">
+                                <label
+                                    class="block font-sans text-xs font-bold uppercase tracking-widest mb-1 text-slate-500">Target
+                                    URI</label>
+                                <div class="flex gap-2">
+                                    <input type="text" x-model="target" placeholder="example.com"
+                                        class="w-full bg-slate-100 dark:bg-black border-b-2 border-slate-800 dark:border-slate-200 px-4 py-2 text-xl font-serif text-slate-900 dark:text-white focus:outline-none focus:bg-yellow-50 dark:focus:bg-gray-900 transition-colors">
+                                    <button @click="loadDashboardData()" title="Refresh Data"
+                                        class="hover:bg-slate-200 dark:hover:bg-slate-800 p-2 rounded"><i
+                                            data-lucide="refresh-cw" class="w-5 h-5"></i></button>
+                                </div>
+                            </div>
+
+                            <div
+                                class="bg-slate-100 dark:bg-black p-4 border border-slate-300 dark:border-slate-700 mb-6">
+                                <h3
+                                    class="font-sans font-bold text-xs uppercase text-slate-500 mb-2 border-b border-slate-300 pb-1">
+                                    Scan Profiles</h3>
                                 <div class="grid grid-cols-2 gap-y-2">
                                     <template x-for="(val, key) in options" :key="key">
-                                        <label class="flex items-center space-x-2 cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-800 p-1 rounded">
-                                            <input type="checkbox" x-model="options[key]" class="text-slate-900 rounded-none w-4 h-4">
-                                            <span x-text="key" class="font-serif text-sm text-slate-700 dark:text-slate-300 italic"></span>
+                                        <label
+                                            class="flex items-center space-x-2 cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-800 p-1 rounded">
+                                            <input type="checkbox" x-model="options[key]"
+                                                class="text-slate-900 rounded-none w-4 h-4">
+                                            <span x-text="key"
+                                                class="font-serif text-sm text-slate-700 dark:text-slate-300 italic"></span>
                                         </label>
                                     </template>
                                 </div>
                             </div>
 
-                             <button @click="startScan()" :disabled="scanning" 
-                                    class="w-full py-4 border-2 border-slate-900 dark:border-white font-bold font-sans tracking-widest uppercase transition-all hover:bg-slate-900 hover:text-white dark:hover:bg-white dark:hover:text-black disabled:opacity-50 disabled:cursor-not-allowed mb-2">
+                            <button @click="startScan()" :disabled="scanning"
+                                class="w-full py-4 border-2 border-slate-900 dark:border-white font-bold font-sans tracking-widest uppercase transition-all hover:bg-slate-900 hover:text-white dark:hover:bg-white dark:hover:text-black disabled:opacity-50 disabled:cursor-not-allowed mb-2">
                                 <span x-text="scanning ? 'TRANSMITTING...' : 'LAUNCH OPERATION'"></span>
                             </button>
-                             <div x-show="scanning" class="text-center font-mono text-xs text-radium-600 animate-pulse">STATUS: <span x-text="scanStatus"></span></div>
+                            <div x-show="scanning" class="text-center font-mono text-xs text-radium-600 animate-pulse">
+                                STATUS: <span x-text="scanStatus"></span></div>
 
-                             <!-- Logs -->
-                             <div x-show="logs.length > 0" class="mt-4 p-2 bg-black text-green-400 font-mono text-[10px] h-32 overflow-y-auto border border-slate-700">
+                            <!-- Logs -->
+                            <div x-show="logs.length > 0"
+                                class="mt-4 p-2 bg-black text-green-400 font-mono text-[10px] h-32 overflow-y-auto border border-slate-700">
                                 <template x-for="log in logs">
                                     <div x-text="log"></div>
                                 </template>
@@ -303,19 +367,19 @@
 
                     <!-- Right: Results -->
                     <div class="lg:col-span-7">
-                        <div class="bg-white dark:bg-cyber-dark shadow-2xl p-8 min-h-[500px] border border-slate-200 dark:border-slate-800 relative">
-                             <div class="text-center mb-6">
-                                <h2 class="font-serif font-bold text-3xl mb-1 text-slate-900 dark:text-white">Analysis Report</h2>
-                                <div class="flex justify-center items-center gap-4 text-[10px] font-sans font-bold text-slate-400 uppercase tracking-widest">
-                                    <span>Intelligence Division</span>
-                                    <span>&bull;</span>
-                                    <span x-text="new Date().toLocaleDateString()"></span>
-                                </div>
+                        <div
+                            class="bg-white dark:bg-cyber-dark shadow-2xl p-8 min-h-[500px] border border-slate-200 dark:border-slate-800 relative">
+                            <div class="text-center mb-6">
+                                <h2 class="font-serif font-bold text-3xl mb-1 text-slate-900 dark:text-white">Analysis
+                                    Report</h2>
                             </div>
 
-                            <div x-show="!results" class="flex flex-col items-center justify-center h-48 border-4 border-double border-slate-200 dark:border-slate-700 p-8 text-center text-slate-400 italic font-serif">
-                                <i data-lucide="shield" class="w-12 h-12 mb-4" :class="scanning ? 'animate-pulse text-slate-800 dark:text-white' : ''"></i>
-                                <span x-text="scanning ? 'Receiving transmission...' : 'Awaiting Mission Directives.'"></span>
+                            <div x-show="!results"
+                                class="flex flex-col items-center justify-center h-48 border-4 border-double border-slate-200 dark:border-slate-700 p-8 text-center text-slate-400 italic font-serif">
+                                <i data-lucide="shield" class="w-12 h-12 mb-4"
+                                    :class="scanning ? 'animate-pulse text-slate-800 dark:text-white' : ''"></i>
+                                <span
+                                    x-text="scanning ? 'Receiving transmission...' : 'Awaiting Mission Directives.'"></span>
                             </div>
 
                             <div x-show="results" class="space-y-6 text-sm">
@@ -323,11 +387,13 @@
                                 <div class="grid grid-cols-3 gap-4 border-b border-slate-700 pb-4 mb-4">
                                     <div class="text-center">
                                         <div class="text-xs text-slate-500 uppercase">Ports</div>
-                                        <div class="text-2xl font-mono" x-text="results?.PortScanner?.open_ports?.length || 0"></div>
+                                        <div class="text-2xl font-mono"
+                                            x-text="results?.PortScanner?.open_ports?.length || 0"></div>
                                     </div>
                                     <div class="text-center">
                                         <div class="text-xs text-slate-500 uppercase">Threats</div>
-                                        <div class="text-2xl font-mono text-red-500" x-text="results?.ThreatScanner?.vulnerabilities?.length || 0"></div>
+                                        <div class="text-2xl font-mono text-red-500"
+                                            x-text="results?.ThreatScanner?.vulnerabilities?.length || 0"></div>
                                     </div>
                                     <div class="text-center">
                                         <div class="text-xs text-slate-500 uppercase">Latency</div>
@@ -338,15 +404,16 @@
                                 <!-- Vuln List -->
                                 <template x-for="v in results?.ThreatScanner?.vulnerabilities || []">
                                     <div class="border-l-4 border-red-500 pl-4 py-1">
-                                         <h4 class="font-bold text-red-500" x-text="v.type"></h4>
-                                         <p class="text-slate-400 text-xs" x-text="v.details"></p>
+                                        <h4 class="font-bold text-red-500" x-text="v.type"></h4>
+                                        <p class="text-slate-400 text-xs" x-text="v.details"></p>
                                     </div>
                                 </template>
-                                
+
                                 <div x-show="results" class="mt-4 pt-4 border-t border-slate-700 flex justify-end">
-                                     <button @click="downloadResults()" class="text-xs font-bold uppercase hover:text-radium-500 flex items-center gap-2">
+                                    <button @click="downloadResults()"
+                                        class="text-xs font-bold uppercase hover:text-radium-500 flex items-center gap-2">
                                         <i data-lucide="download" class="w-4 h-4"></i> Export JSON
-                                     </button>
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -354,25 +421,104 @@
                 </div>
             </div>
 
-             <!-- VIEW: INVESTIGATIONS (Graph) -->
-            <div x-show="activeTab === 'graph'" x-transition.opacity.duration.300ms>
-                 <div class="h-[600px] w-full bg-cyber-black overflow-hidden rounded-xl border border-cyber-border relative">
-                     <canvas id="graphCanvas" class="w-full h-full opacity-80"></canvas>
-                      <div class="absolute top-4 left-4 pointer-events-none">
-                        <h2 class="text-2xl font-display font-bold text-white">Asset Graph</h2>
-                         <p class="text-slate-400 text-xs">Knowledge Graph Visualization</p>
+            <!-- VIEW: CLASSIFIEDS (Scan History) -->
+            <div x-show="activeTab === 'classifieds'" x-transition.opacity.duration.300ms>
+                <div class="bg-white dark:bg-cyber-dark p-8 border border-slate-200 dark:border-slate-800 shadow-xl">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-3xl font-serif font-bold dark:text-white">Classified Archives</h2>
+                        <button @click="loadScanHistory()" class="bg-slate-200 dark:bg-slate-800 p-2 rounded"><i
+                                data-lucide="refresh-cw" class="w-4 h-4"></i></button>
                     </div>
-                 </div>
+
+                    <table class="w-full text-left font-serif text-sm">
+                        <thead class="border-b-2 border-slate-900 dark:border-slate-100">
+                            <tr>
+                                <th class="py-2">Operation ID</th>
+                                <th class="py-2">Target</th>
+                                <th class="py-2">Status</th>
+                                <th class="py-2">Date</th>
+                                <th class="py-2 text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-700">
+                            <template x-for="s in scanHistory" :key="s.id">
+                                <tr class="hover:bg-slate-100 dark:hover:bg-slate-800/50">
+                                    <td class="py-3 font-mono text-xs text-slate-500" x-text="s.id"></td>
+                                    <td class="py-3 font-bold text-lg" x-text="s.target"></td>
+                                    <td class="py-3">
+                                        <span x-text="s.status.toUpperCase()"
+                                            :class="{'text-green-500': s.status==='completed', 'text-yellow-500': s.status==='running', 'text-red-500': s.status==='failed'}"
+                                            class="text-xs font-bold tracking-widest"></span>
+                                    </td>
+                                    <td class="py-3 text-xs text-slate-500"
+                                        x-text="new Date(s.timestamp).toLocaleDateString()"></td>
+                                    <td class="py-3 text-right space-x-2">
+                                        <button @click="loadScanForInvestigation(s)"
+                                            class="text-blue-400 hover:text-blue-300 font-bold text-xs uppercase underline">View
+                                            Intel</button>
+                                        <button @click="deleteScan(s.id)" class="text-red-400 hover:text-red-300"><i
+                                                data-lucide="trash-2" class="w-4 h-4"></i></button>
+                                    </td>
+                                </tr>
+                            </template>
+                            <tr x-show="scanHistory.length === 0">
+                                <td colspan="5" class="py-8 text-center italic text-slate-500">No records found.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
 
-            <!-- VIEW: ARCHIVES -->
-            <div x-show="activeTab === 'settings'" class="max-w-2xl mx-auto bg-white dark:bg-cyber-dark p-8 shadow-xl">
-                 <h2 class="text-2xl font-serif font-bold mb-4 dark:text-white">Archives & Settings</h2>
-                 <p class="mb-4 text-slate-500">Manage user specific configurations and historic data.</p>
-                 <button @click="logout()" class="bg-red-600 text-white px-4 py-2 uppercase font-bold text-xs tracking-widest hover:bg-red-700"> Terminate Session (Logout) </button>
+            <!-- VIEW: INVESTIGATIONS (Visuals) -->
+            <div x-show="activeTab === 'investigations'" x-transition.opacity.duration.300ms>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                    <!-- Sidebar Selection -->
+                    <div class="md:col-span-1 bg-white dark:bg-cyber-dark p-4 border border-slate-700">
+                        <h3 class="font-bold text-slate-400 uppercase text-xs mb-4">Select Operation</h3>
+                        <div class="space-y-2 max-h-[500px] overflow-y-auto">
+                            <template x-for="s in scanHistory" :key="s.id">
+                                <button @click="loadScanForInvestigation(s)"
+                                    :class="selectedScan?.id === s.id ? 'bg-radium-600 text-black' : 'bg-slate-800 text-slate-400 hover:bg-slate-700'"
+                                    class="w-full text-left p-3 text-xs font-mono rounded transition-colors truncate">
+                                    <div class="font-bold" x-text="s.target"></div>
+                                    <div class="opacity-70" x-text="new Date(s.timestamp).toLocaleDateString()"></div>
+                                </button>
+                            </template>
+                        </div>
+                    </div>
+
+                    <!-- Main Visuals -->
+                    <div class="md:col-span-3 space-y-6">
+                        <!-- Charts Row -->
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div class="bg-black border border-slate-800 p-4 h-64">
+                                <h4 class="text-xs font-bold uppercase text-slate-500 mb-2">Vuln Distribution</h4>
+                                <canvas id="pieChart"></canvas>
+                            </div>
+                            <div class="bg-black border border-slate-800 p-4 h-64">
+                                <h4 class="text-xs font-bold uppercase text-slate-500 mb-2">Open Ports</h4>
+                                <canvas id="barChart"></canvas>
+                            </div>
+                            <div class="bg-black border border-slate-800 p-4 h-64">
+                                <h4 class="text-xs font-bold uppercase text-slate-500 mb-2">Risk Timeline</h4>
+                                <canvas id="lineChart"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- Graph -->
+                        <div
+                            class="h-[400px] w-full bg-cyber-black overflow-hidden rounded-xl border border-cyber-border relative">
+                            <canvas id="graphCanvas" class="w-full h-full opacity-80"></canvas>
+                            <div class="absolute top-4 left-4 pointer-events-none">
+                                <h2 class="text-2xl font-display font-bold text-white">Asset Map</h2>
+                                <p class="text-slate-400 text-xs">Global Knowledge Graph</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
-         </div>
+        </div>
 
     </main>
 
@@ -385,7 +531,7 @@
                 authForm: { username: '', password: '' },
                 authError: null,
                 currentUser: null,
-                
+
                 activeTab: 'dashboard',
                 darkMode: true,
                 target: '',
@@ -395,23 +541,36 @@
                 results: null,
                 stats: { scans: 0, vulns: 0, assets: 0 },
                 options: { Cloud: false, IoT: false, GraphQL: false, Acquisitions: false, AutoExploit: false },
-                
+
+                scanHistory: [],
+                selectedScan: null,
+
+                // Chart Instances
+                charts: { pie: null, bar: null, line: null },
+
                 menuItems: [
                     { id: 'dashboard', label: 'FRONT PAGE' },
-                    { id: 'graph', label: 'INVESTIGATIONS' },
-                    { id: 'settings', label: 'ARCHIVES' },
+                    { id: 'classifieds', label: 'CLASSIFIEDS (HISTORY)' },
+                    { id: 'investigations', label: 'INVESTIGATIONS' },
                 ],
-                
+
                 initApp() {
                     const savedTheme = localStorage.getItem('netra-theme');
                     this.darkMode = savedTheme ? JSON.parse(savedTheme) : true;
                     this.applyTheme();
                     this.checkAuth();
                     this.$nextTick(() => lucide.createIcons());
-                    
+
                     this.$watch('activeTab', (val) => {
-                         this.$nextTick(() => lucide.createIcons());
-                         if(val === 'graph') setTimeout(() => this.initGraph(), 100);
+                        this.$nextTick(() => lucide.createIcons());
+                        if (val === 'classifieds') this.loadScanHistory();
+                        if (val === 'investigations') {
+                            setTimeout(() => {
+                                this.initGraph();
+                                this.initCharts();
+                                if (!this.selectedScan && this.scanHistory.length > 0) this.loadScanForInvestigation(this.scanHistory[0]);
+                            }, 200);
+                        }
                     });
                 },
 
@@ -421,6 +580,7 @@
                         this.isAuthenticated = true;
                         this.fetchUserProfile();
                         this.loadDashboardData();
+                        this.loadScanHistory(); // Preload history
                     }
                 },
 
@@ -437,7 +597,7 @@
                             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                             body: formData
                         });
-                        
+
                         if (!res.ok) {
                             const err = await res.json();
                             throw new Error(err.detail || 'Access Denied');
@@ -449,6 +609,7 @@
                         this.authForm = { username: '', password: '' }; // Clear
                         this.loadDashboardData();
                         this.fetchUserProfile();
+                        this.loadScanHistory();
 
                     } catch (e) {
                         this.authError = e.message;
@@ -461,14 +622,95 @@
                     this.results = null;
                 },
 
-                 async fetchUserProfile() {
+                async fetchUserProfile() {
                     const token = localStorage.getItem('netra_token');
                     if (!token) return;
                     try {
                         const res = await fetch('/users/me', { headers: { 'Authorization': `Bearer ${token}` } });
                         if (res.ok) this.currentUser = await res.json();
                         else this.logout();
-                    } catch (e) {}
+                    } catch (e) { }
+                },
+
+                async loadScanHistory() {
+                    const token = localStorage.getItem('netra_token');
+                    if (!token) return;
+                    try {
+                        const res = await fetch('/scans', { headers: { 'Authorization': `Bearer ${token}` } });
+                        if (res.ok) this.scanHistory = await res.json();
+                    } catch (e) { }
+                },
+
+                async deleteScan(id) {
+                    if (!confirm("Delete this classified record?")) return;
+                    const token = localStorage.getItem('netra_token');
+                    try {
+                        await fetch(`/scans/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
+                        this.scanHistory = this.scanHistory.filter(s => s.id !== id);
+                    } catch (e) { }
+                },
+
+                async loadScanForInvestigation(scanStub) {
+                    this.selectedScan = scanStub;
+                    this.activeTab = 'investigations';
+
+                    // Fetch full details
+                    const token = localStorage.getItem('netra_token');
+                    try {
+                        const res = await fetch(`/scans/${scanStub.id}`, { headers: { 'Authorization': `Bearer ${token}` } });
+                        const fullData = await res.json();
+                        this.updateCharts(fullData);
+                    } catch (e) { }
+                },
+
+                initCharts() {
+                    if (this.charts.pie) return; // already init
+
+                    const commonOpt = { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { display: false } } };
+
+                    // Pie
+                    this.charts.pie = new Chart(document.getElementById('pieChart'), {
+                        type: 'doughnut',
+                        data: { labels: ['High', 'Med', 'Low'], datasets: [{ data: [1, 1, 1], backgroundColor: ['#ef4444', '#f59e0b', '#3b82f6'] }] },
+                        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { color: '#888' } } } }
+                    });
+
+                    // Bar
+                    this.charts.bar = new Chart(document.getElementById('barChart'), {
+                        type: 'bar',
+                        data: { labels: ['80', '443', '8080'], datasets: [{ label: 'Ports', data: [0, 0, 0], backgroundColor: '#00f3ff' }] },
+                        options: { ...commonOpt, scales: { y: { ticks: { color: '#666' } }, x: { ticks: { color: '#666' } } } }
+                    });
+
+                    // Line
+                    this.charts.line = new Chart(document.getElementById('lineChart'), {
+                        type: 'line',
+                        data: { labels: ['T-4', 'T-3', 'T-2', 'T-1', 'Now'], datasets: [{ label: 'Risk Score', data: [20, 35, 40, 30, 60], borderColor: '#ff00ff', tension: 0.4 }] },
+                        options: commonOpt
+                    });
+                },
+
+                updateCharts(scanData) {
+                    if (!scanData.results) return;
+
+                    // Update Pie (Vulns)
+                    const vulns = scanData.results.ThreatScanner?.vulnerabilities || [];
+                    const high = vulns.filter(v => ['High', 'Critical'].includes(v.severity)).length;
+                    const med = vulns.filter(v => v.severity === 'Medium').length;
+                    const low = vulns.filter(v => ['Low', 'Info'].includes(v.severity)).length;
+
+                    this.charts.pie.data.datasets[0].data = [high || 1, med || 1, low || 1];
+                    this.charts.pie.update();
+
+                    // Update Bar (Ports)
+                    const ports = scanData.results.PortScanner?.open_ports || [];
+                    this.charts.bar.data.labels = ports.map(p => String(p));
+                    this.charts.bar.data.datasets[0].data = ports.map(() => 1);
+                    this.charts.bar.update();
+
+                    // Line (Simulation of trend for this scan target over time - hard to do with single scan, so random for demo)
+                    this.charts.line.data.datasets[0].data = Array(5).fill(0).map(() => Math.floor(Math.random() * 100));
+                    this.charts.line.update();
                 },
 
                 loadDashboardData() {
@@ -477,8 +719,8 @@
 
                 fetchStats() {
                     const token = localStorage.getItem('netra_token');
-                    if(!token) return;
-                     fetch('/api/stats', { headers: { 'Authorization': `Bearer ${token}` } })
+                    if (!token) return;
+                    fetch('/api/stats', { headers: { 'Authorization': `Bearer ${token}` } })
                         .then(res => res.json())
                         .then(data => this.stats = data)
                         .catch(e => console.error(e));
@@ -496,7 +738,7 @@
                     try {
                         const res = await fetch('/scans', {
                             method: 'POST',
-                            headers: { 
+                            headers: {
                                 'Content-Type': 'application/json',
                                 'Authorization': `Bearer ${token}`
                             },
@@ -511,24 +753,25 @@
                         const scan = await res.json();
                         this.addLog(`Scan ID ${scan.id} confirmed.`);
                         this.scanStatus = 'IN PROGRESS';
-                        
+
                         // Poll
                         const interval = setInterval(async () => {
-                             const r = await fetch(`/scans/${scan.id}`, { headers: { 'Authorization': `Bearer ${token}` } });
-                             if(r.ok) {
-                                 const d = await r.json();
-                                 if(d.status === 'completed') {
-                                     clearInterval(interval);
-                                     this.results = d.results;
-                                     this.scanning = false;
-                                     this.scanStatus = 'COMPLETED';
-                                     this.fetchStats();
-                                 } else if (d.status === 'failed') {
-                                     clearInterval(interval);
-                                     this.scanning = false;
-                                     this.scanStatus = 'FAILED';
-                                 }
-                             }
+                            const r = await fetch(`/scans/${scan.id}`, { headers: { 'Authorization': `Bearer ${token}` } });
+                            if (r.ok) {
+                                const d = await r.json();
+                                if (d.status === 'completed') {
+                                    clearInterval(interval);
+                                    this.results = d.results;
+                                    this.scanning = false;
+                                    this.scanStatus = 'COMPLETED';
+                                    this.fetchStats();
+                                    this.loadScanHistory();
+                                } else if (d.status === 'failed') {
+                                    clearInterval(interval);
+                                    this.scanning = false;
+                                    this.scanStatus = 'FAILED';
+                                }
+                            }
                         }, 2000);
 
                     } catch (e) {
@@ -540,16 +783,16 @@
                 addLog(msg) {
                     this.logs.unshift(`[${new Date().toLocaleTimeString()}] ${msg}`);
                 },
-                
+
                 toggleTheme() {
                     this.darkMode = !this.darkMode;
                     this.applyTheme();
                     localStorage.setItem('netra-theme', JSON.stringify(this.darkMode));
                 },
-                
+
                 applyTheme() {
-                     if (this.darkMode) document.documentElement.classList.add('dark');
-                     else document.documentElement.classList.remove('dark');
+                    if (this.darkMode) document.documentElement.classList.add('dark');
+                    else document.documentElement.classList.remove('dark');
                 },
 
                 downloadResults() {
@@ -564,56 +807,57 @@
 
                 monitorGraph: false,
                 initGraph() {
-                     const canvas = document.getElementById('graphCanvas');
-                     if(!canvas) return;
-                     // Simple particle simulation
-                     const ctx = canvas.getContext('2d');
-                     canvas.width = canvas.parentElement.offsetWidth;
-                     canvas.height = canvas.parentElement.offsetHeight;
-                     
-                     let nodes = [];
-                     for(let i=0; i<30; i++) {
-                         nodes.push({
-                             x: Math.random() * canvas.width,
-                             y: Math.random() * canvas.height,
-                             vx: (Math.random()-0.5)*0.5,
-                             vy: (Math.random()-0.5)*0.5,
-                             color: Math.random() > 0.5 ? '#00f3ff' : '#ff00ff'
-                         })
-                     }
+                    const canvas = document.getElementById('graphCanvas');
+                    if (!canvas) return;
+                    // Simple particle simulation
+                    const ctx = canvas.getContext('2d');
+                    canvas.width = canvas.parentElement.offsetWidth;
+                    canvas.height = canvas.parentElement.offsetHeight;
 
-                     const animate = () => {
-                         if(this.activeTab !== 'graph') return; 
-                         ctx.clearRect(0,0,canvas.width, canvas.height);
-                         nodes.forEach(p => {
-                             p.x += p.vx; p.y += p.vy;
-                             if(p.x < 0 || p.x > canvas.width) p.vx *= -1;
-                             if(p.y < 0 || p.y > canvas.height) p.vy *= -1;
-                             ctx.beginPath();
-                             ctx.arc(p.x, p.y, 2, 0, Math.PI*2);
-                             ctx.fillStyle = p.color;
-                             ctx.fill();
-                         });
-                         // Links
-                         ctx.strokeStyle = 'rgba(255,255,255,0.1)';
-                         ctx.beginPath();
-                         for(let i=0; i<nodes.length; i++) {
-                             for(let j=i+1; j<nodes.length; j++) {
-                                 const dx = nodes[i].x - nodes[j].x;
-                                 const dy = nodes[i].y - nodes[j].y;
-                                 if(Math.sqrt(dx*dx + dy*dy) < 100) {
-                                     ctx.moveTo(nodes[i].x, nodes[i].y);
-                                     ctx.lineTo(nodes[j].x, nodes[j].y);
-                                 }
-                             }
-                         }
-                         ctx.stroke();
-                         requestAnimationFrame(animate);
-                     }
-                     animate();
+                    let nodes = [];
+                    for (let i = 0; i < 30; i++) {
+                        nodes.push({
+                            x: Math.random() * canvas.width,
+                            y: Math.random() * canvas.height,
+                            vx: (Math.random() - 0.5) * 0.5,
+                            vy: (Math.random() - 0.5) * 0.5,
+                            color: Math.random() > 0.5 ? '#00f3ff' : '#ff00ff'
+                        })
+                    }
+
+                    const animate = () => {
+                        if (this.activeTab !== 'investigations') return;
+                        ctx.clearRect(0, 0, canvas.width, canvas.height);
+                        nodes.forEach(p => {
+                            p.x += p.vx; p.y += p.vy;
+                            if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
+                            if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
+                            ctx.beginPath();
+                            ctx.arc(p.x, p.y, 2, 0, Math.PI * 2);
+                            ctx.fillStyle = p.color;
+                            ctx.fill();
+                        });
+                        // Links
+                        ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+                        ctx.beginPath();
+                        for (let i = 0; i < nodes.length; i++) {
+                            for (let j = i + 1; j < nodes.length; j++) {
+                                const dx = nodes[i].x - nodes[j].x;
+                                const dy = nodes[i].y - nodes[j].y;
+                                if (Math.sqrt(dx * dx + dy * dy) < 100) {
+                                    ctx.moveTo(nodes[i].x, nodes[i].y);
+                                    ctx.lineTo(nodes[j].x, nodes[j].y);
+                                }
+                            }
+                        }
+                        ctx.stroke();
+                        requestAnimationFrame(animate);
+                    }
+                    animate();
                 }
             }
         }
     </script>
 </body>
+
 </html>
