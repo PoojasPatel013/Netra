@@ -63,6 +63,66 @@ if os.path.exists(STATIC_DIR):
     app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 from fastapi.responses import FileResponse
+from jose import jwt, JWTError
+from netra.core.auth import SECRET_KEY, ALGORITHM
+
+# Auth Dependency
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+
+async def get_current_user(token: str = Depends(oauth2_scheme), session: AsyncSession = Depends(get_session)):
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        username: str = payload.get("sub")
+        if username is None:
+            raise HTTPException(status_code=401, detail="Invalid credentials")
+    except JWTError:
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+    
+    # Check DB
+    result = await session.execute(select(User).where(User.username == username))
+    user = result.scalars().first()
+    if user is None:
+        raise HTTPException(status_code=401, detail="User not found")
+    return user
+
+@app.post("/auth/register", response_model=Token)
+async def register(form_data: OAuth2PasswordRequestForm = Depends(), session: AsyncSession = Depends(get_session)):
+    # Check existing
+    result = await session.execute(select(User).where(User.username == form_data.username))
+    if result.scalars().first():
+        raise HTTPException(status_code=400, detail="Username already registered")
+    
+    hashed_pw = get_password_hash(form_data.password)
+    user = User(username=form_data.username, hashed_password=hashed_pw)
+    session.add(user)
+    await session.commit()
+    
+    # Auto-login
+    access_token = create_access_token(data={"sub": user.username})
+    return {"access_token": access_token, "token_type": "bearer"}
+
+@app.post("/token", response_model=Token)
+async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), session: AsyncSession = Depends(get_session)):
+    # Fetch User
+    result = await session.execute(select(User).where(User.username == form_data.username))
+    user = result.scalars().first()
+    
+    if not user or not verify_password(form_data.password, user.hashed_password):
+        raise HTTPException(
+            status_code=401,
+            detail="Incorrect username or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    access_token_expires = timedelta(minutes=60)
+    access_token = create_access_token(
+        data={"sub": user.username}, expires_delta=access_token_expires
+    )
+    return {"access_token": access_token, "token_type": "bearer"}
+
+@app.get("/users/me")
+async def read_users_me(current_user: User = Depends(get_current_user)):
+    return {"username": current_user.username, "id": current_user.id}
 
 # Catch-all for SPA (must be last)
 
