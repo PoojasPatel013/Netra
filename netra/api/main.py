@@ -240,16 +240,34 @@ async def sync_graph_results(scan_results: dict, target: str):
                     """
                     db.cypher_query(query_v, {"domain": target, "name": v.get("type", "Unknown"), "severity": v.get("severity", "Info")})
         
-        # 4. Process Acquisitions
-        if "AcquisitionScanner" in scan_results:
-            acqs = scan_results["AcquisitionScanner"].get("acquisitions", [])
-            for acq in acqs:
-                query_acq = """
-                MATCH (d:Domain {name: $domain})
-                MERGE (sub:Domain {name: $sub_name})
-                MERGE (d)-[:ACQUIRED]->(sub)
-                """
                 db.cypher_query(query_acq, {"domain": target, "sub_name": acq["domain"]})
+
+        # 5. ML Insight: Calculate Risk Score (Heuristic Algo)
+        # Score = (Critical * 10) + (High * 5) + (Medium * 2) + (Low * 0.5) + (OpenPorts * 1)
+        risk_score = 0
+        
+        # Count Vulns
+        if "ThreatScanner" in scan_results:
+             vulns = scan_results["ThreatScanner"].get("vulnerabilities", [])
+             for v in vulns:
+                 sev = v.get("severity", "Info")
+                 if sev == "Critical": risk_score += 10
+                 elif sev == "High": risk_score += 5
+                 elif sev == "Medium": risk_score += 2
+                 elif sev == "Low": risk_score += 0.5
+        
+        # Count Ports
+        if "PortScanner" in scan_results:
+             ports = scan_results["PortScanner"].get("open_ports", [])
+             risk_score += len(ports)
+             
+        # Normalize to 0-100 (Cap)
+        risk_score = min(risk_score, 100)
+        
+        # Update Domain Node with ML Score
+        query_score = "MATCH (d:Domain {name: $name}) SET d.risk_score = $score RETURN d"
+        db.cypher_query(query_score, {"name": target, "score": risk_score})
+
 
     except Exception as e:
         print(f"Graph Sync Error: {e}")

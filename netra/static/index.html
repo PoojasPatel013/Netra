@@ -18,6 +18,7 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
 
     <!-- Tailwind Config -->
     <script>
@@ -807,53 +808,135 @@
 
                 monitorGraph: false,
                 initGraph() {
+                    const container = document.getElementById('graphCanvas').parentElement;
+                    // Clear previous canvas if any (we will use SVG for D3 or overlay)
+                    // Actually let's just use the container and append SVG
+                    const existingSvg = container.querySelector('svg');
+                    if (existingSvg) existingSvg.remove();
+
+                    // Hide canvas if it exists (we are replacing it with SVG)
                     const canvas = document.getElementById('graphCanvas');
-                    if (!canvas) return;
-                    // Simple particle simulation
-                    const ctx = canvas.getContext('2d');
-                    canvas.width = canvas.parentElement.offsetWidth;
-                    canvas.height = canvas.parentElement.offsetHeight;
+                    if (canvas) canvas.style.display = 'none';
 
-                    let nodes = [];
-                    for (let i = 0; i < 30; i++) {
-                        nodes.push({
-                            x: Math.random() * canvas.width,
-                            y: Math.random() * canvas.height,
-                            vx: (Math.random() - 0.5) * 0.5,
-                            vy: (Math.random() - 0.5) * 0.5,
-                            color: Math.random() > 0.5 ? '#00f3ff' : '#ff00ff'
-                        })
-                    }
+                    const width = container.offsetWidth;
+                    const height = container.offsetHeight;
 
-                    const animate = () => {
-                        if (this.activeTab !== 'investigations') return;
-                        ctx.clearRect(0, 0, canvas.width, canvas.height);
-                        nodes.forEach(p => {
-                            p.x += p.vx; p.y += p.vy;
-                            if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
-                            if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
-                            ctx.beginPath();
-                            ctx.arc(p.x, p.y, 2, 0, Math.PI * 2);
-                            ctx.fillStyle = p.color;
-                            ctx.fill();
-                        });
-                        // Links
-                        ctx.strokeStyle = 'rgba(255,255,255,0.1)';
-                        ctx.beginPath();
-                        for (let i = 0; i < nodes.length; i++) {
-                            for (let j = i + 1; j < nodes.length; j++) {
-                                const dx = nodes[i].x - nodes[j].x;
-                                const dy = nodes[i].y - nodes[j].y;
-                                if (Math.sqrt(dx * dx + dy * dy) < 100) {
-                                    ctx.moveTo(nodes[i].x, nodes[i].y);
-                                    ctx.lineTo(nodes[j].x, nodes[j].y);
-                                }
+                    const svg = d3.select(container).append("svg")
+                        .attr("width", width)
+                        .attr("height", height)
+                        .attr("viewBox", [0, 0, width, height])
+                        .attr("style", "max-width: 100%; height: auto;");
+
+                    // Simulation setup
+                    const simulation = d3.forceSimulation()
+                        .force("link", d3.forceLink().id(d => d.id).distance(100))
+                        .force("charge", d3.forceManyBody().strength(-300))
+                        .force("center", d3.forceCenter(width / 2, height / 2))
+                        .force("collide", d3.forceCollide().radius(30));
+
+                    // Fetch Data
+                    const token = localStorage.getItem('netra_token');
+                    fetch('/api/graph', { headers: { 'Authorization': `Bearer ${token}` } })
+                        .then(res => res.json())
+                        .then(data => {
+                            if (!data.nodes || data.nodes.length === 0) {
+                                svg.append("text")
+                                    .attr("x", width / 2)
+                                    .attr("y", height / 2)
+                                    .attr("text-anchor", "middle")
+                                    .attr("fill", "#666")
+                                    .text("No Graph Data Available - Run a Scan");
+                                return;
                             }
-                        }
-                        ctx.stroke();
-                        requestAnimationFrame(animate);
-                    }
-                    animate();
+
+                            // Render Links
+                            const link = svg.append("g")
+                                .attr("stroke", "#999")
+                                .attr("stroke-opacity", 0.6)
+                                .selectAll("line")
+                                .data(data.links)
+                                .join("line")
+                                .attr("stroke-width", d => Math.sqrt(d.value || 1));
+
+                            // Render Nodes
+                            const node = svg.append("g")
+                                .attr("stroke", "#fff")
+                                .attr("stroke-width", 1.5)
+                                .selectAll("circle")
+                                .data(data.nodes)
+                                .join("circle")
+                                .attr("r", d => {
+                                    if (d.group === 'Domain') return 15;
+                                    if (d.group === 'IPAddress') return 10;
+                                    return 5;
+                                })
+                                .attr("fill", d => {
+                                    // Risk Score coloring
+                                    if (d.group === 'Domain' && d.properties.risk_score > 50) return "#ef4444"; // Red
+                                    if (d.group === 'Domain') return "#3b82f6"; // Blue
+                                    if (d.group === 'Vulnerability') return "#f59e0b"; // Orange
+                                    if (d.group === 'IPAddress') return "#10b981"; // Green
+                                    return "#64748b";
+                                })
+                                .call(d3.drag()
+                                    .on("start", dragstarted)
+                                    .on("drag", dragged)
+                                    .on("end", dragended));
+
+                            node.append("title")
+                                .text(d => d.label + (d.properties.risk_score ? ` (Risk: ${d.properties.risk_score})` : ""));
+
+                            // Labels
+                            const text = svg.append("g")
+                                .selectAll("text")
+                                .data(data.nodes)
+                                .join("text")
+                                .text(d => d.label)
+                                .attr("font-size", "10px")
+                                .attr("fill", "#ccc")
+                                .attr("x", 8)
+                                .attr("y", 3);
+
+                            simulation
+                                .nodes(data.nodes)
+                                .on("tick", ticked);
+
+                            simulation.force("link")
+                                .links(data.links);
+
+                            function ticked() {
+                                link
+                                    .attr("x1", d => d.source.x)
+                                    .attr("y1", d => d.source.y)
+                                    .attr("x2", d => d.target.x)
+                                    .attr("y2", d => d.target.y);
+
+                                node
+                                    .attr("cx", d => d.x)
+                                    .attr("cy", d => d.y);
+
+                                text
+                                    .attr("x", d => d.x + 10)
+                                    .attr("y", d => d.y + 4);
+                            }
+
+                            function dragstarted(event) {
+                                if (!event.active) simulation.alphaTarget(0.3).restart();
+                                event.subject.fx = event.subject.x;
+                                event.subject.fy = event.subject.y;
+                            }
+
+                            function dragged(event) {
+                                event.subject.fx = event.x;
+                                event.subject.fy = event.y;
+                            }
+
+                            function dragended(event) {
+                                if (!event.active) simulation.alphaTarget(0);
+                                event.subject.fx = null;
+                                event.subject.fy = null;
+                            }
+                        });
                 }
             }
         }
