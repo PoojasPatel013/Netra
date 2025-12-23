@@ -509,7 +509,7 @@
                         <!-- Graph -->
                         <div
                             class="h-[400px] w-full bg-cyber-black overflow-hidden rounded-xl border border-cyber-border relative">
-                            <canvas id="graphCanvas" class="w-full h-full opacity-80"></canvas>
+                            <canvas id="knowledgeGraph" class="w-full h-full opacity-80"></canvas>
                             <div class="absolute top-4 left-4 pointer-events-none">
                                 <h2 class="text-2xl font-display font-bold text-white">Asset Map</h2>
                                 <p class="text-slate-400 text-xs">Global Knowledge Graph</p>
@@ -808,14 +808,14 @@
 
                 monitorGraph: false,
                 initGraph() {
-                    const container = document.getElementById('graphCanvas').parentElement;
+                    const container = document.getElementById('knowledgeGraph').parentElement;
                     // Clear previous canvas if any (we will use SVG for D3 or overlay)
                     // Actually let's just use the container and append SVG
                     const existingSvg = container.querySelector('svg');
                     if (existingSvg) existingSvg.remove();
 
                     // Hide canvas if it exists (we are replacing it with SVG)
-                    const canvas = document.getElementById('graphCanvas');
+                    const canvas = document.getElementById('knowledgeGraph');
                     if (canvas) canvas.style.display = 'none';
 
                     const width = container.offsetWidth;
