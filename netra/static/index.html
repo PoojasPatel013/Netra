@@ -512,7 +512,11 @@
                             <canvas id="knowledgeGraph" class="w-full h-full opacity-80"></canvas>
                             <div class="absolute top-4 left-4 pointer-events-none">
                                 <h2 class="text-2xl font-display font-bold text-white">Asset Map</h2>
-                                <p class="text-slate-400 text-xs">Global Knowledge Graph</p>
+                                <p class="text-slate-400 text-xs flex items-center gap-2">
+                                    Global Knowledge Graph
+                                    <span id="graphStatus"
+                                        class="text-radium-500 font-mono text-[10px] uppercase animate-pulse">Initializing...</span>
+                                </p>
                             </div>
                         </div>
                     </div>
@@ -672,7 +676,7 @@
                     // Pie
                     this.charts.pie = new Chart(document.getElementById('pieChart'), {
                         type: 'doughnut',
-                        data: { labels: ['High', 'Med', 'Low'], datasets: [{ data: [1, 1, 1], backgroundColor: ['#ef4444', '#f59e0b', '#3b82f6'] }] },
+                        data: { labels: ['High', 'Med', 'Low'], datasets: [{ data: [0, 0, 0], backgroundColor: ['#ef4444', '#f59e0b', '#3b82f6'] }] },
                         options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { color: '#888' } } } }
                     });
 
@@ -686,7 +690,7 @@
                     // Line
                     this.charts.line = new Chart(document.getElementById('lineChart'), {
                         type: 'line',
-                        data: { labels: ['T-4', 'T-3', 'T-2', 'T-1', 'Now'], datasets: [{ label: 'Risk Score', data: [20, 35, 40, 30, 60], borderColor: '#ff00ff', tension: 0.4 }] },
+                        data: { labels: ['Start', 'End'], datasets: [{ label: 'Risk Score', data: [0, 0], borderColor: '#ff00ff', tension: 0.4 }] },
                         options: commonOpt
                     });
                 },
@@ -836,10 +840,14 @@
 
                     // Fetch Data
                     const token = localStorage.getItem('netra_token');
+                    const statusEl = document.getElementById('graphStatus');
+                    if (statusEl) statusEl.innerText = "Connecting to Neural Grid...";
+
                     fetch('/api/graph', { headers: { 'Authorization': `Bearer ${token}` } })
                         .then(res => res.json())
                         .then(data => {
                             if (!data.nodes || data.nodes.length === 0) {
+                                if (statusEl) statusEl.innerText = "No Active Assets Found";
                                 svg.append("text")
                                     .attr("x", width / 2)
                                     .attr("y", height / 2)
@@ -848,6 +856,7 @@
                                     .text("No Graph Data Available - Run a Scan");
                                 return;
                             }
+                            if (statusEl) statusEl.innerText = `Live: ${data.nodes.length} Nodes tracked`;
 
                             // Render Links
                             const link = svg.append("g")
