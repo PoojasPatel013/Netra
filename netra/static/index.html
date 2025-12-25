@@ -488,6 +488,36 @@
                         </div>
                     </div>
 
+                    <!-- Neural Engine Status -->
+                    <div
+                        class="mt-6 md:col-span-1 bg-black p-4 border border-radium-900 border-l-4 border-l-radium-500 shadow-[0_0_15px_rgba(0,255,100,0.15)]">
+                        <h3 class="font-bold text-white uppercase text-xs mb-3 flex items-center gap-2">
+                            <i data-lucide="cpu" class="w-4 h-4 text-radium-500"></i> Neural Engine
+                        </h3>
+                        <div class="space-y-3 text-[10px] font-mono">
+                            <div class="flex justify-between items-center">
+                                <span class="text-slate-400">Core Engine</span>
+                                <span class="text-green-400 font-bold">[ASYNCIO_EVENT_LOOP]</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-slate-400">Rate Control</span>
+                                <span class="text-green-400 font-bold">[SMART_LIMITER_V2]</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-slate-400">Zombie API</span>
+                                <span class="text-yellow-400 font-bold">[REGEX_HEURISTIC]</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-slate-400">Risk Model</span>
+                                <span class="text-blue-400 font-bold">[HYBRID_ML_V1]</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-slate-400">Data Lake</span>
+                                <span class="text-green-400 font-bold">[MINIO_ARCHIVAL]</span>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Main Visuals -->
                     <div class="md:col-span-3 space-y-6">
                         <!-- Charts Row -->
