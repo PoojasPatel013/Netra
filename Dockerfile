@@ -16,7 +16,7 @@ COPY pyproject.toml ./
 RUN pip install poetry \
     && poetry config virtualenvs.create false \
     && poetry install --only main --no-root \
-    && pip install "bcrypt==4.0.1" passlib[bcrypt] python-jose python-multipart
+    && pip install "bcrypt==4.0.1" passlib[bcrypt] python-jose python-multipart minio
 
 
 COPY netra ./netra

@@ -858,6 +858,54 @@
                             }
                             if (statusEl) statusEl.innerText = `Live: ${data.nodes.length} Nodes tracked`;
 
+                            // --- Update Dashboard Charts with Real Data ---
+                            try {
+                                let high = 0, med = 0, low = 0;
+                                let ports = {};
+                                let riskScore = 0;
+
+                                data.nodes.forEach(n => {
+                                    // Vuln Counts
+                                    if (n.group === 'Vulnerability') {
+                                        if (n.properties.severity === 'Critical' || n.properties.severity === 'High') high++;
+                                        else if (n.properties.severity === 'Medium') med++;
+                                        else low++;
+                                    }
+                                    // Domain Risk
+                                    if (n.group === 'Domain' && n.properties.risk_score) {
+                                        riskScore = Math.max(riskScore, n.properties.risk_score);
+                                    }
+                                    // Port Counts
+                                    if (n.group === 'Service' && n.label) { // label is port num
+                                        ports[n.label] = (ports[n.label] || 0) + 1;
+                                    }
+                                });
+
+                                // Update Pie (Vulns)
+                                if (this.charts.pie) {
+                                    this.charts.pie.data.datasets[0].data = [high, med, low];
+                                    this.charts.pie.update();
+                                }
+
+                                // Update Line (Risk Score - Simulation for now)
+                                if (this.charts.line) {
+                                    // We only have 1 point (current), so let's flatline it or show transition
+                                    this.charts.line.data.datasets[0].data = [riskScore, riskScore];
+                                    this.charts.line.update();
+                                }
+
+                                // Update Bar (Top Ports)
+                                if (this.charts.bar) {
+                                    const topPorts = Object.entries(ports).sort((a, b) => b[1] - a[1]).slice(0, 3);
+                                    if (topPorts.length > 0) {
+                                        this.charts.bar.data.labels = topPorts.map(p => p[0]);
+                                        this.charts.bar.data.datasets[0].data = topPorts.map(p => p[1]);
+                                        this.charts.bar.update();
+                                    }
+                                }
+                            } catch (e) { console.error("Chart Sync Error", e); }
+                            // ----------------------------------------------
+
                             // Render Links
                             const link = svg.append("g")
                                 .attr("stroke", "#999")
@@ -877,6 +925,7 @@
                                 .attr("r", d => {
                                     if (d.group === 'Domain') return 15;
                                     if (d.group === 'IPAddress') return 10;
+                                    if (d.group === 'Service') return 8;
                                     return 5;
                                 })
                                 .attr("fill", d => {
@@ -885,6 +934,7 @@
                                     if (d.group === 'Domain') return "#3b82f6"; // Blue
                                     if (d.group === 'Vulnerability') return "#f59e0b"; // Orange
                                     if (d.group === 'IPAddress') return "#10b981"; // Green
+                                    if (d.group === 'Service') return "#a855f7"; // Purple
                                     return "#64748b";
                                 })
                                 .call(d3.drag()
@@ -893,7 +943,14 @@
                                     .on("end", dragended));
 
                             node.append("title")
-                                .text(d => d.label + (d.properties.risk_score ? ` (Risk: ${d.properties.risk_score})` : ""));
+                                .text(d => {
+                                    let t = d.label;
+                                    if (d.properties.risk_score !== undefined) {
+                                        t += `\nRisk Score: ${d.properties.risk_score}`;
+                                        if (d.properties.risk_source) t += `\nSource: ${d.properties.risk_source}`;
+                                    }
+                                    return t;
+                                });
 
                             // Labels
                             const text = svg.append("g")

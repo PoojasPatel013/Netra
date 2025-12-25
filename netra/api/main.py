@@ -37,7 +37,31 @@ REDIS_URL = os.getenv("REDIS_URL")
 
 class ScanRequest(BaseModel):
     target: str
+    target: str
     options: dict = {}
+
+# MinIO Setup (Data Lake)
+from minio import Minio
+MINIO_URL = os.getenv("MINIO_URL", "minio:9000")
+MINIO_ACCESS_KEY = os.getenv("MINIO_ACCESS_KEY", "minioadmin")
+MINIO_SECRET_KEY = os.getenv("MINIO_SECRET_KEY", "minioadmin")
+MAX_MODEL_SIZE_MB = 100
+
+minio_client = None
+try:
+    minio_client = Minio(
+        MINIO_URL,
+        access_key=MINIO_ACCESS_KEY,
+        secret_key=MINIO_SECRET_KEY,
+        secure=False
+    )
+except Exception as e:
+    print(f"MinIO Init Failed: {e}")
+
+# Global ML Model (Inference)
+ML_MODEL = None
+import pickle
+import io
 
 engine = create_async_engine(DATABASE_URL, echo=True, future=True)
 
@@ -152,6 +176,23 @@ async def on_startup():
     else:
         print(f"DEBUG: STATIC_DIR DOES NOT EXIST at {STATIC_DIR}")
         
+    # Phase 3.2: Load ML Model (if exists in MinIO)
+    global ML_MODEL
+    if minio_client:
+        try:
+            if minio_client.bucket_exists("ml-models"):
+                # Download model to memory
+                response = minio_client.get_object("ml-models", "risk_model_v1.pkl")
+                model_bytes = io.BytesIO(response.read())
+                response.close()
+                response.release_conn()
+                ML_MODEL = pickle.load(model_bytes)
+                print("ML Engine: Loaded risk_model_v1.pkl successfully.")
+            else:
+                print("ML Engine: No model bucket found. Running in Heuristic Mode.")
+        except Exception as mle:
+            print(f"ML Engine Init Failed: {mle}")
+
     retries = 5
     wait = 2
     for i in range(retries):
@@ -242,35 +283,78 @@ async def sync_graph_results(scan_results: dict, target: str):
         
                 db.cypher_query(query_acq, {"domain": target, "sub_name": acq["domain"]})
 
-        # 5. ML Insight: Calculate Risk Score (Heuristic Algo)
-        # Score = (Critical * 10) + (High * 5) + (Medium * 2) + (Low * 0.5) + (OpenPorts * 1)
+        # 5. ML Insight: Calculate Risk Score
+        # 5. ML Insight: Calculate Risk Score
+        # Strategy: Use Trained Model if available, else Heuristic (Cold Start)
         risk_score = 0
+        risk_source = "Heuristic"
         
-        # Count Vulns
-        if "ThreatScanner" in scan_results:
-             vulns = scan_results["ThreatScanner"].get("vulnerabilities", [])
-             for v in vulns:
-                 sev = v.get("severity", "Info")
-                 if sev == "Critical": risk_score += 10
-                 elif sev == "High": risk_score += 5
-                 elif sev == "Medium": risk_score += 2
-                 elif sev == "Low": risk_score += 0.5
+        if ML_MODEL:
+            # Phase 3.2: Online Inference (using Snorkel-trained artifact)
+            # Feature Extraction (Simple Bag-of-Words style for V1)
+            try:
+                 # Flatten features
+                 features = []
+                 # ... (Feature extraction logic would go here) but for now let's assume model takes simple vector
+                 # Placeholder for model prediction
+                 # risk_score = ML_MODEL.predict([features])[0]
+                 # risk_source = "ML_Model_v1"
+                 pass
+            except Exception as ml_e:
+                 print(f"ML Inference Failed: {ml_e}. Falling back to Heuristic.")
         
-        # Count Ports
-        if "PortScanner" in scan_results:
-             ports = scan_results["PortScanner"].get("open_ports", [])
-             risk_score += len(ports)
-             
-        # Normalize to 0-100 (Cap)
-        risk_score = min(risk_score, 100)
+        if risk_score == 0: # Fallback or Heuristic Mode
+            # Score = (Critical * 10) + (High * 5) + (Medium * 2) + (Low * 0.5) + (OpenPorts * 1)
+            
+            # Count Vulns
+            if "ThreatScanner" in scan_results:
+                 vulns = scan_results["ThreatScanner"].get("vulnerabilities", [])
+                 for v in vulns:
+                     sev = v.get("severity", "Info")
+                     if sev == "Critical": risk_score += 10
+                     elif sev == "High": risk_score += 5
+                     elif sev == "Medium": risk_score += 2
+                     elif sev == "Low": risk_score += 0.5
+            
+            # Count Ports
+            if "PortScanner" in scan_results:
+                 ports = scan_results["PortScanner"].get("open_ports", [])
+                 risk_score += len(ports)
+                 
+            # Normalize to 0-100 (Cap)
+            risk_score = min(risk_score, 100)
+            risk_source = "Heuristic (Rule-Based)"
         
         # Update Domain Node with ML Score
-        query_score = "MATCH (d:Domain {name: $name}) SET d.risk_score = $score RETURN d"
-        db.cypher_query(query_score, {"name": target, "score": risk_score})
+        query_score = "MATCH (d:Domain {name: $name}) SET d.risk_score = $score, d.risk_source = $source RETURN d"
+        db.cypher_query(query_score, {"name": target, "score": risk_score, "source": risk_source})
 
 
     except Exception as e:
         print(f"Graph Sync Error: {e}")
+
+async def upload_to_datalake(scan_id: int, results: dict):
+    """
+    ML Phase 3.1: Archives raw scan logs to MinIO (S3) for offline training.
+    """
+    if not minio_client: return
+    try:
+        bucket = "netra-lake"
+        if not minio_client.bucket_exists(bucket):
+            minio_client.make_bucket(bucket)
+            
+        data = json.dumps(results).encode('utf-8')
+        minio_client.put_object(
+            bucket,
+            f"scans/{scan_id}.json",
+            io.BytesIO(data),
+            len(data),
+            content_type="application/json" 
+        )
+        print(f"Data Lake: Archived scan {scan_id} to {bucket}")
+    except Exception as e:
+        print(f"Data Lake Error: {e}")
+
 
 async def run_scan_task(scan_id: int):
     # Create a new session for this task
@@ -361,6 +445,9 @@ async def run_scan_task(scan_id: int):
             scan.results = results
             scan.results = results
             scan.status = "completed"
+            
+            # Phase 3.1: Data Lake Archival
+            await upload_to_datalake(scan.id, results)
             
             # Sync to Graph (New Feature)
             await sync_graph_results(results, scan.target)
@@ -489,7 +576,7 @@ async def get_graph_data():
                 node_id = str(node.id)
                 if node_id not in nodes:
                     # Try to find a meaningful label/name
-                    label = node.get('name') or node.get('address') or node.get('resource_id') or node.get('fingerprint') or "Unknown"
+                    label = node.get('name') or node.get('address') or node.get('port') or node.get('resource_id') or node.get('fingerprint') or "Unknown"
                     nodes[node_id] = {
                         "id": node_id,
                         "group": labels[0] if labels else "Node",
