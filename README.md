@@ -72,17 +72,10 @@ Netra v2 is designed to run locally with a single command.
     | **Neo4j** | [http://localhost:7474](http://localhost:7474) |
     | **MinIO** | [http://localhost:9001](http://localhost:9001) |
 
----
 
 ## Platform Screenshots
+Yet to be added...
 
-### Netra UI Dashboard
-![Netra UI Dashboard](assets/NETRA_UI_Dashboard.png)
-
-### Neo4j Knowledge Graph Visualization
-![Neo4j Graph Visualization](assets/Neo4j_Graph_visualisation.png)
-
----
 
 ## Development Workflow
 
@@ -159,3 +152,4 @@ The Core Engine is free to use and modify under the Apache 2.0 License. See [LIC
 *Proprietary Boundaries will be licensed separately.*
 
 Copyright © 2025 Netra.
+
