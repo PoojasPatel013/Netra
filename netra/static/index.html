@@ -489,17 +489,20 @@
                     </div>
 
                     <!-- Neural Engine Status -->
-                    <div class="mt-6 md:col-span-1 bg-gradient-to-br from-slate-900 to-slate-950 p-6 rounded-xl border border-slate-800 shadow-xl relative overflow-hidden group">
+                    <div
+                        class="mt-6 md:col-span-1 bg-gradient-to-br from-slate-900 to-slate-950 p-6 rounded-xl border border-slate-800 shadow-xl relative overflow-hidden group">
                         <!-- Glow Effect -->
-                        <div class="absolute top-0 right-0 w-32 h-32 bg-radium-500/10 blur-[50px] rounded-full transition-all group-hover:bg-radium-500/20"></div>
-                        
+                        <div
+                            class="absolute top-0 right-0 w-32 h-32 bg-radium-500/10 blur-[50px] rounded-full transition-all group-hover:bg-radium-500/20">
+                        </div>
+
                         <h3 class="font-sans font-bold text-white text-sm tracking-wide mb-6 flex items-center gap-2">
-                             <div class="p-1.5 bg-radium-500/10 rounded-lg">
+                            <div class="p-1.5 bg-radium-500/10 rounded-lg">
                                 <i data-lucide="brain-circuit" class="w-4 h-4 text-radium-400"></i>
-                             </div>
-                             NEURAL INTELLIGENCE
+                            </div>
+                            NEURAL INTELLIGENCE
                         </h3>
-                        
+
                         <div class="space-y-4">
                             <!-- Core -->
                             <div class="flex items-center justify-between">
@@ -510,7 +513,8 @@
                                         <div class="text-[10px] text-slate-500">Async Non-Blocking</div>
                                     </div>
                                 </div>
-                                <span class="flex items-center gap-1.5 px-2 py-1 rounded-full bg-green-500/10 border border-green-500/20 text-[10px] font-bold text-green-400">
+                                <span
+                                    class="flex items-center gap-1.5 px-2 py-1 rounded-full bg-green-500/10 border border-green-500/20 text-[10px] font-bold text-green-400">
                                     <span class="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse"></span>
                                     ACTIVE
                                 </span>
@@ -525,7 +529,8 @@
                                         <div class="text-[10px] text-slate-500">Smart Rate Limiting</div>
                                     </div>
                                 </div>
-                                <span class="flex items-center gap-1.5 px-2 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-[10px] font-bold text-blue-400">
+                                <span
+                                    class="flex items-center gap-1.5 px-2 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-[10px] font-bold text-blue-400">
                                     OPTIMIZED
                                 </span>
                             </div>
@@ -539,7 +544,8 @@
                                         <div class="text-[10px] text-slate-500">v1.2 Random Forest</div>
                                     </div>
                                 </div>
-                                <span class="flex items-center gap-1.5 px-2 py-1 rounded-full bg-purple-500/10 border border-purple-500/20 text-[10px] font-bold text-purple-400">
+                                <span
+                                    class="flex items-center gap-1.5 px-2 py-1 rounded-full bg-purple-500/10 border border-purple-500/20 text-[10px] font-bold text-purple-400">
                                     <span class="w-1.5 h-1.5 rounded-full bg-purple-400 animate-pulse"></span>
                                     ONLINE
                                 </span>
@@ -554,7 +560,8 @@
                                         <div class="text-[10px] text-slate-500">Regex Heuristic</div>
                                     </div>
                                 </div>
-                                <span class="px-2 py-1 rounded-full bg-yellow-500/10 border border-yellow-500/20 text-[10px] font-bold text-yellow-400">
+                                <span
+                                    class="px-2 py-1 rounded-full bg-yellow-500/10 border border-yellow-500/20 text-[10px] font-bold text-yellow-400">
                                     PARTIAL
                                 </span>
                             </div>
@@ -562,35 +569,78 @@
                     </div>
 
                     <!-- Main Visuals -->
-                    <div class="md:col-span-3 space-y-6">
-                        <!-- Charts Row -->
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div class="bg-black border border-slate-800 p-4 h-64">
-                                <h4 class="text-xs font-bold uppercase text-slate-500 mb-2">Vuln Distribution</h4>
-                                <canvas id="pieChart"></canvas>
+                    <!-- Main Visuals (Newspaper Layout) -->
+                    <div class="md:col-span-3 grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+                        <!-- Col 1 (Wide): Knowledge Graph (Hero) -->
+                        <div
+                            class="lg:col-span-2 flex flex-col h-[650px] bg-cyber-black rounded-xl border border-slate-800 shadow-2xl relative overflow-hidden group">
+
+                            <!-- Glass Header -->
+                            <div
+                                class="absolute top-0 w-full p-6 bg-gradient-to-b from-black/80 to-transparent z-10 flex justify-between items-start pointer-events-none">
+                                <div>
+                                    <h2
+                                        class="text-2xl font-sans font-bold text-white tracking-tight flex items-center gap-2">
+                                        <i data-lucide="network" class="w-6 h-6 text-radium-500"></i> Asset Map
+                                    </h2>
+                                    <p class="text-slate-400 text-xs mt-1 flex items-center gap-2">
+                                        <span class="w-1.5 h-1.5 bg-radium-500 rounded-full animate-pulse"></span>
+                                        LIVE NEURAL TOPOLOGY
+                                    </p>
+                                </div>
+                                <span id="graphStatus"
+                                    class="font-mono text-[10px] text-radium-400 bg-radium-500/10 px-2 py-1 rounded border border-radium-500/20">
+                                    CONNECTING...
+                                </span>
                             </div>
-                            <div class="bg-black border border-slate-800 p-4 h-64">
-                                <h4 class="text-xs font-bold uppercase text-slate-500 mb-2">Open Ports</h4>
-                                <canvas id="barChart"></canvas>
-                            </div>
-                            <div class="bg-black border border-slate-800 p-4 h-64">
-                                <h4 class="text-xs font-bold uppercase text-slate-500 mb-2">Risk Timeline</h4>
-                                <canvas id="lineChart"></canvas>
+
+                            <!-- D3 Canvas -->
+                            <div id="graph" class="flex-1 w-full h-full relative z-0"></div>
+
+                            <!-- Footer Scanline -->
+                            <div
+                                class="h-1 w-full bg-gradient-to-r from-transparent via-radium-500/50 to-transparent absolute bottom-0 opacity-50">
                             </div>
                         </div>
 
-                        <!-- Graph -->
-                        <div
-                            class="h-[400px] w-full bg-cyber-black overflow-hidden rounded-xl border border-cyber-border relative">
-                            <canvas id="knowledgeGraph" class="w-full h-full opacity-80"></canvas>
-                            <div class="absolute top-4 left-4 pointer-events-none">
-                                <h2 class="text-2xl font-display font-bold text-white">Asset Map</h2>
-                                <p class="text-slate-400 text-xs flex items-center gap-2">
-                                    Global Knowledge Graph
-                                    <span id="graphStatus"
-                                        class="text-radium-500 font-mono text-[10px] uppercase animate-pulse">Initializing...</span>
-                                </p>
+                        <!-- Col 2 (Right Sidebar): High Frequency Data -->
+                        <div class="lg:col-span-1 space-y-4 h-[650px] overflow-y-auto no-scrollbar">
+
+                            <!-- Risk Card -->
+                            <div class="bg-black/80 p-5 rounded-xl border border-slate-800 backdrop-blur-sm">
+                                <h4
+                                    class="text-[10px] font-bold uppercase text-slate-500 mb-4 tracking-widest border-b border-slate-800 pb-2">
+                                    Risk Trajectory</h4>
+                                <div class="h-32">
+                                    <canvas id="lineChart"></canvas>
+                                </div>
                             </div>
+
+                            <!-- Vuln Card -->
+                            <div class="bg-black/80 p-5 rounded-xl border border-slate-800 backdrop-blur-sm">
+                                <h4
+                                    class="text-[10px] font-bold uppercase text-slate-500 mb-4 tracking-widest border-b border-slate-800 pb-2">
+                                    Threat Spectrum</h4>
+                                <div class="h-40 relative">
+                                    <canvas id="pieChart"></canvas>
+                                    <!-- Center Count -->
+                                    <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+                                        <span class="text-2xl font-bold text-white opacity-20">0</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Ports Card -->
+                            <div class="bg-black/80 p-5 rounded-xl border border-slate-800 backdrop-blur-sm flex-1">
+                                <h4
+                                    class="text-[10px] font-bold uppercase text-slate-500 mb-4 tracking-widest border-b border-slate-800 pb-2">
+                                    Surface Exposure</h4>
+                                <div class="h-40">
+                                    <canvas id="barChart"></canvas>
+                                </div>
+                            </div>
+
                         </div>
                     </div>
                 </div>
@@ -888,17 +938,10 @@
                     const container = document.getElementById('knowledgeGraph').parentElement;
                     // Clear previous canvas if any (we will use SVG for D3 or overlay)
                     // Actually let's just use the container and append SVG
-                    const existingSvg = container.querySelector('svg');
-                    if (existingSvg) existingSvg.remove();
+                    const width = document.getElementById('graph').clientWidth;
+                    const height = document.getElementById('graph').clientHeight;
 
-                    // Hide canvas if it exists (we are replacing it with SVG)
-                    const canvas = document.getElementById('knowledgeGraph');
-                    if (canvas) canvas.style.display = 'none';
-
-                    const width = container.offsetWidth;
-                    const height = container.offsetHeight;
-
-                    const svg = d3.select(container).append("svg")
+                    const svg = d3.select("#graph").append("svg")
                         .attr("width", width)
                         .attr("height", height)
                         .attr("viewBox", [0, 0, width, height])
