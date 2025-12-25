@@ -46,6 +46,22 @@ services:
     networks:
       - netra-net
 
+  # 4. Data Lake (MinIO)
+  minio:
+    image: minio/minio
+    container_name: netra-datalake
+    command: server /data --console-address ":9001"
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      - MINIO_ROOT_USER=minioadmin
+      - MINIO_ROOT_PASSWORD=minioadmin
+    volumes:
+      - minio_data:/data
+    networks:
+      - netra-net
+
 networks:
   netra-net:
     driver: bridge
@@ -53,3 +69,4 @@ networks:
 volumes:
   redis_data:
   neo4j_data:
+  minio_data:

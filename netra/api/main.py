@@ -41,7 +41,7 @@ class ScanRequest(BaseModel):
     options: dict = {}
 
 # MinIO Setup (Data Lake)
-from minio import Minio
+# MinIO Setup (Data Lake)
 MINIO_URL = os.getenv("MINIO_URL", "minio:9000")
 MINIO_ACCESS_KEY = os.getenv("MINIO_ACCESS_KEY", "minioadmin")
 MINIO_SECRET_KEY = os.getenv("MINIO_SECRET_KEY", "minioadmin")
@@ -49,12 +49,15 @@ MAX_MODEL_SIZE_MB = 100
 
 minio_client = None
 try:
+    from minio import Minio
     minio_client = Minio(
         MINIO_URL,
         access_key=MINIO_ACCESS_KEY,
         secret_key=MINIO_SECRET_KEY,
         secure=False
     )
+except ImportError:
+    print("WARNING: 'minio' library not found. Data Lake disabled. Run 'docker compose up --build'.")
 except Exception as e:
     print(f"MinIO Init Failed: {e}")
 
@@ -165,6 +168,24 @@ async def trigger_v2_scan(request: ScanRequest):
         return {"status": "queued", "target": request.target, "message": "Dispatched to Ingestion Worker"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/debug/ml-status")
+async def debug_ml_status():
+    global ML_MODEL
+    buckets = []
+    if minio_client:
+        try:
+            buckets = [b.name for b in minio_client.list_buckets()]
+        except Exception as e:
+            buckets = [f"Error: {e}"]
+            
+    return {
+        "ml_model_loaded": ML_MODEL is not None,
+        "ml_model_type": str(type(ML_MODEL)) if ML_MODEL else "None",
+        "minio_connected": minio_client is not None,
+        "minio_buckets": buckets,
+        "env_minio_url": MINIO_URL
+    }
 
 @app.on_event("startup")
 async def on_startup():
@@ -291,16 +312,35 @@ async def sync_graph_results(scan_results: dict, target: str):
         
         if ML_MODEL:
             # Phase 3.2: Online Inference (using Snorkel-trained artifact)
-            # Feature Extraction (Simple Bag-of-Words style for V1)
             try:
-                 # Flatten features
-                 features = []
-                 # ... (Feature extraction logic would go here) but for now let's assume model takes simple vector
-                 # Placeholder for model prediction
-                 # risk_score = ML_MODEL.predict([features])[0]
-                 # risk_source = "ML_Model_v1"
-                 pass
+                 # 1. Feature Extraction
+                 n_crit = 0
+                 n_high = 0
+                 n_med = 0
+                 n_low = 0
+                 
+                 if "ThreatScanner" in scan_results:
+                     for v in scan_results["ThreatScanner"].get("vulnerabilities", []):
+                         sev = v.get("severity", "Info")
+                         if sev == "Critical": n_crit += 1
+                         elif sev == "High": n_high += 1
+                         elif sev == "Medium": n_med += 1
+                         elif sev == "Low": n_low += 1
+
+                 n_ports = len(scan_results.get("PortScanner", {}).get("open_ports", []))
+                 
+                 # 2. Vectorize: [crit, high, med, low, ports] (Must match train.py order)
+                 features = [[n_crit, n_high, n_med, n_low, n_ports]]
+                 
+                 # 3. Predict
+                 if hasattr(ML_MODEL, "predict"):
+                     prediction = ML_MODEL.predict(features)[0]
+                     risk_score = float(prediction)
+                     risk_source = "ML_Model_v1"
+                     print(f"ML Inference Success: Predicted Risk {risk_score}")
+                 
             except Exception as ml_e:
+                 print(f"ML Inference Failed: {ml_e}. Falling back to Heuristic.")
                  print(f"ML Inference Failed: {ml_e}. Falling back to Heuristic.")
         
         if risk_score == 0: # Fallback or Heuristic Mode
