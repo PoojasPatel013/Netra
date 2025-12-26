@@ -936,10 +936,9 @@
 
                 monitorGraph: false,
                 initGraph() {
-                    const container = document.getElementById('knowledgeGraph').parentElement;
-                    // Clear previous canvas if any (we will use SVG for D3 or overlay)
-                    // Actually let's just use the container and append SVG
-                    const width = document.getElementById('graph').clientWidth;
+                    const container = document.getElementById('graph');
+                    const width = container.clientWidth;
+                    const height = container.clientHeight;
                     const height = document.getElementById('graph').clientHeight;
 
                     const svg = d3.select("#graph").append("svg")

@@ -62,11 +62,15 @@ except Exception as e:
     print(f"MinIO Init Failed: {e}")
 
 # Global ML Model (Inference)
+from netra.core.neograph import NeoGraph
+
+# Global ML Model (Inference)
 ML_MODEL = None
 import pickle
 import io
 
 engine = create_async_engine(DATABASE_URL, echo=True, future=True)
+db = None # Global Neo4j Connection
 
 async def init_db():
     print(f"DEBUG: init_db called. Tables in metadata: {list(SQLModel.metadata.tables.keys())}")
@@ -191,6 +195,8 @@ async def debug_ml_status():
 @app.on_event("startup")
 async def on_startup():
     await init_db()
+    global db
+    db = NeoGraph()
     print(f"DEBUG: BASE_DIR={BASE_DIR}")
     print(f"DEBUG: STATIC_DIR={STATIC_DIR}")
     print(f"DEBUG: STATIC_DIR={STATIC_DIR}")
