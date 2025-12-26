@@ -69,6 +69,7 @@ import io
 engine = create_async_engine(DATABASE_URL, echo=True, future=True)
 
 async def init_db():
+    print(f"DEBUG: init_db called. Tables in metadata: {list(SQLModel.metadata.tables.keys())}")
     async with engine.begin() as conn:
         await conn.run_sync(SQLModel.metadata.create_all)
 
@@ -79,7 +80,7 @@ async def get_session():
     async with async_session() as session:
         yield session
 
-app = FastAPI(title="Netra API", version="0.1.0")
+app = FastAPI(title="Netra API", version="0.1.0", debug=True)
 
 # Setup Static Files
 # Serve from 'netra/static' directly
@@ -189,6 +190,7 @@ async def debug_ml_status():
 
 @app.on_event("startup")
 async def on_startup():
+    await init_db()
     print(f"DEBUG: BASE_DIR={BASE_DIR}")
     print(f"DEBUG: STATIC_DIR={STATIC_DIR}")
     print(f"DEBUG: STATIC_DIR={STATIC_DIR}")
