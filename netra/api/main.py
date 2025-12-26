@@ -214,6 +214,27 @@ async def on_startup():
         except Exception as mle:
             print(f"ML Engine Init Failed: {mle}")
 
+    # Phase 4: Load Zombie API (NLP) Model
+    from netra.ml.zombie_hunter import ZombieHunter
+    print ("ML Engine: Loading Zombie Hunter...")
+    ZombieHunter.load_model(minio_client)
+
+@app.post("/internal/ml/predict-zombie")
+async def predict_zombie(request: Request):
+    """
+    Internal Endpoint: Used by Ruby Scanners to access Python ML Models.
+    """
+    from netra.ml.zombie_hunter import ZombieHunter
+    data = await request.json()
+    candidates = data.get("candidates", [])
+    
+    results = []
+    for c in candidates:
+        if ZombieHunter.predict_is_api(c):
+            results.append(c)
+            
+    return {"positives": results}
+
     retries = 5
     wait = 2
     for i in range(retries):
@@ -459,7 +480,8 @@ async def run_scan_task(scan_id: int):
                 v_engine.register_scanner(SecretScanner())
                 
             if opts.get("api_fuzz", False) or opts.get("zombie", False):
-                v_engine.register_scanner(ZombieScanner())
+                # v_engine.register_scanner(ZombieScanner()) # Deprecated in favor of Ruby Hybrid
+                v_engine.register_scanner(RubyScanner("zombie_scan.rb", name="ZombieScanner"))
                 v_engine.register_scanner(RubyBridge(script_name="rce_scan.rb", name="RCEScanner"))
             
             if opts.get("cloud", False):

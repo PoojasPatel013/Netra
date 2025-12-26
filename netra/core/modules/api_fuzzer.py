@@ -95,6 +95,8 @@ class ZombieScanner(BaseScanner):
 
     async def _find_shadow_apis(self, base_url: str, client: SafeHTTPClient, results: Dict, schema: Dict = None):
         import re
+        from netra.ml.zombie_hunter import ZombieHunter
+        
         known_paths = set()
         if schema:
             known_paths = set(schema.get("paths", {}).keys())
@@ -117,21 +119,27 @@ class ZombieScanner(BaseScanner):
                     js_resp = await client.get(link, timeout=5)
                     if js_resp.status == 200:
                         js_code = await js_resp.text()
-                        # Regex for API-like paths
-                        # Matches /api/v1/users, /v2/admin/delete, etc.
-                        api_matches = re.findall(r'["\'](/api/v[0-9]/[a-zA-Z0-9_/-]+)["\']', js_code)
-                        api_matches += re.findall(r'["\'](/v[0-9]/[a-zA-Z0-9_/-]+)["\']', js_code)
                         
-                        for api_path in api_matches:
-                            # Normalize
-                            if api_path not in known_paths:
-                                results["vulnerabilities"].append({
-                                    "type": "Shadow API (Zombie Endpoint)",
-                                    "severity": "High",
-                                    "endpoint": f"{link} -> {api_path}",
-                                    "details": f"Found API endpoint '{api_path}' in JS source that is not documented in Swagger.",
-                                    "evidence": api_path
-                                })
+                        # 1. Broad String Extraction (Capture everything that looks like a string)
+                        # We use the ML model to filter "noise" from "signals"
+                        candidates = re.findall(r'["\'](/[^"\'\s]+)["\']', js_code)
+                        
+                        unique_candidates = set(candidates)
+                        
+                        for candidate in unique_candidates:
+                             # 2. ASK THE NEURAL ENGINE (TinyLLM)
+                             is_api = ZombieHunter.predict_is_api(candidate)
+                             
+                             if is_api:
+                                 # Normalize
+                                 if candidate not in known_paths:
+                                     results["vulnerabilities"].append({
+                                         "type": "Shadow API (Zombie Endpoint)",
+                                         "severity": "High",
+                                         "endpoint": f"{link} -> {candidate}",
+                                         "details": f"ML Model identified '{candidate}' as a hidden API endpoint (Score > 0.8)",
+                                         "evidence": f"Candidate: {candidate}"
+                                     })
                 except Exception:
                     pass
         except Exception:

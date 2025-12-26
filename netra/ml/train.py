@@ -7,7 +7,9 @@ import pickle
 import numpy as np
 import pandas as pd
 from minio import Minio
-from sklearn.ensemble import RandomForestRegressor
+from sklearn.ensemble import RandomForestRegressor, RandomForestClassifier
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.pipeline import make_pipeline
 
 # Config
 MINIO_URL = os.getenv("MINIO_URL", "minio:9000")
@@ -100,5 +102,98 @@ def train_and_upload():
     except Exception as e:
         print(f"ML Trainer Error: {e}")
 
+def train_zombie_hunter():
+    """
+    Trains a Character-Level N-Gram model to distinguish API Paths from Random Code.
+    "TinyLLM" approach for local execution.
+    """
+    print("Generating Synthetic NLP Dataset...")
+    
+    # Positive Samples (API Paths)
+    # We want the model to learn structure like /word/word, /v1/, camelCase in paths
+    positives = [
+        "/api/v1/users", "/api/v2/auth/login", "/internal/admin/dashboard",
+        "/graphql", "/rest/api/payments", "/hidden/debug/console",
+        "/v1/orders/create", "/api/user/profile_data", "/sso/saml/callback",
+        "/health/readiness", "/metrics", "/oauth/token",
+        "/api/private/feature_flags", "/test/unit/runner",
+        # Common heuristics we want to catch
+        "/admin", "/login", "/setup", "/config", "/backup"
+    ]
+    # Augment positives
+    for i in range(500):
+        v = np.random.choice(["v1", "v2", "v3", "beta", "internal"])
+        noun = np.random.choice(["user", "admin", "settings", "data", "conf", "job", "task"])
+        action = np.random.choice(["get", "post", "delete", "list", "create"])
+        positives.append(f"/api/{v}/{noun}/{action}")
+        positives.append(f"/{noun}/{action}")
+
+    # Negative Samples (Random Code / Assets)
+    negatives = [
+        "var x = 1;", "console.log('test')", "function() { return true; }",
+        "jquery.min.js", "bootstrap.css", "background-image: url('img.png')",
+        "Lorem ipsum dolor sit amet", "1234567890", "btn-primary",
+        "margin-top: 10px;", "<div class='container'>", "import React from 'react'",
+        "node_modules", "webpack_chunk", "e.target.value",
+        "user_id", "password", "email" # Single words are usually variables, not paths
+    ]
+    # Augment negatives
+    for i in range(500):
+        # Random noise
+        negatives.append(''.join(np.random.choice(list(string.ascii_letters), size=10)))
+        # Code-like constructs
+        negatives.append(f"var {np.random.choice(list(string.ascii_lowercase))} = {np.random.randint(100)};")
+    
+    # Create Labels
+    X = positives + negatives
+    y = [1] * len(positives) + [0] * len(negatives)
+    
+    # Shuffle
+    X, y = shuffle(X, y, random_state=42)
+    
+    # Pipeline: Char N-Grams -> Random Forest
+    # Analyzer='char_wb' looks at characters inside word boundaries (good for /path/structure)
+    print("Training NLP Pipeline (CountVectorizer + RandomForest)...")
+    model = make_pipeline(
+        CountVectorizer(analyzer='char_wb', ngram_range=(2, 5), max_features=1000),
+        RandomForestClassifier(n_estimators=50, random_state=42)
+    )
+    
+    model.fit(X, y)
+    print(f"Model Score: {model.score(X, y):.4f}")
+    
+    # Upload
+    model_data = pickle.dumps(model)
+    model_name = "zombie_model_v1.pkl"
+    
+    client = get_minio_client()
+    if client:
+        try:
+            if not client.bucket_exists("ml-models"):
+                client.make_bucket("ml-models")
+            
+            client.put_object(
+                "ml-models",
+                model_name,
+                io.BytesIO(model_data),
+                len(model_data)
+            )
+            print(f"SAVED: {model_name} uploaded to MinIO.")
+        except Exception as e:
+            print(f"MinIO Upload Error: {e}")
+    else:
+        print("MinIO Client not active. Skipping upload.")
+
+def main():
+    print("ML Cold Start: Training Risk Model...")
+    train_risk_model()
+    
+    print("\nML Cold Start: Training ZOMBIE HUNTER (NLP) Model...")
+    train_zombie_hunter()
+    
+    print("\nTraining Complete.")
+
 if __name__ == "__main__":
-    train_and_upload()
+    main()
+
+
