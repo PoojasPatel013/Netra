@@ -133,7 +133,7 @@ We want to build a robust security platform, and we welcome your input!
 **Netra is Open Source!**
 
 We follow an **Open Core** model:
-*   **Netra Core (This Repo)**: Apache 2.0 License. Free for everyone forever.
+*   **Netra Core**: Apache 2.0 License.
 *   **Netra Boundaries**: Proprietary modules (Advanced ML, SSO, Reporting) will be closed-source extensions.
 
 We actively encourage contributions to the Core engine!
@@ -152,4 +152,5 @@ The Core Engine is free to use and modify under the Apache 2.0 License. See [LIC
 *Proprietary Boundaries will be licensed separately.*
 
 Copyright © 2025 Netra.
+
 
