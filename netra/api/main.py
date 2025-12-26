@@ -238,8 +238,10 @@ async def predict_zombie(request: Request):
     
     results = []
     for c in candidates:
-        if ZombieHunter.predict_is_api(c):
-            results.append(c)
+        is_hit = ZombieHunter.predict_is_api(c)
+        if is_hit:
+            comment = ZombieHunter.consult_oracle(c, True)
+            results.append({"path": c, "commentary": comment, "confidence": 0.95}) # Mock confidence for now
             
     return {"positives": results}
 

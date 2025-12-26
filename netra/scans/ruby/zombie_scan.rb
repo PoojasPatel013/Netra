@@ -54,12 +54,16 @@ begin
                   ml_data = JSON.parse(ml_res.body)
                   positives = ml_data["positives"] || []
                   
-                  positives.each do |zombie_api|
+                  positives.each do |item|
+                      # item is now a hash: { "path": "...", "commentary": "..." }
+                      path = item["path"]
+                      comment = item["commentary"]
+                      
                       vulnerabilities << {
                         type: "Shadow API (Zombie Endpoint)",
                         severity: "High",
-                        details: "Ruby Scanner found '#{zombie_api}' in #{link}. Verified by Python ML NLP.",
-                        evidence: zombie_api,
+                        details: "Found '#{path}'. Neural Engine Analysis: \"#{comment}\"",
+                        evidence: path,
                         source: "RubyScanner+TinyLLM"
                       }
                   end

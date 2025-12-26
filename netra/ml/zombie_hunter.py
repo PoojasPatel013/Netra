@@ -65,6 +65,46 @@ class ZombieHunter:
         return False
 
     @staticmethod
+    def consult_oracle(text: str, is_hit: bool) -> str:
+        """
+        Generates sarcastic AI commentary based on the finding.
+        """
+        import random
+        
+        if not is_hit:
+            safe_quips = [
+                "Boring. Just a normal string.",
+                "Nothing to see here. Move along.",
+                "Clean. Disappointingly clean.",
+                "Not an API. Just random noise.",
+                "Yawn. 0% threat detected."
+            ]
+            return random.choice(safe_quips)
+            
+        common_api = re.search(r"(/api/|/v[0-9]/|/graphql|/internal/)", text, re.IGNORECASE)
+        if common_api:
+            standard_quips = [
+                "Classic API pattern. Detecting... incompetency.",
+                "Standard endpoint found. Too easy.",
+                "I see /api/, I eat /api/.",
+                "Boringly predictable API structure.",
+                "Found it. It wasn't even hiding."
+            ]
+            return random.choice(standard_quips)
+            
+        # If it's a hit but not standard -> Shadow API!
+        shadow_quips = [
+            f"Ooh, '{text}'? That looks sneaky.",
+            "Trying to hide this endpoint? Cute.",
+            "Shadow API detected. Deploying sarcasm.",
+            "This doesn't look like a public route. I like it.",
+            "High entropy, weird path... definitely suspicious.",
+            "Who names an endpoint like that? A hacker, that's who.",
+            "I smell a hidden admin route. Delicious."
+        ]
+        return random.choice(shadow_quips)
+
+    @staticmethod
     def _heuristic_check(text: str) -> bool:
         """
         Classic Heuristics (Regex/Keyword)
