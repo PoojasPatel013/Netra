@@ -8,6 +8,8 @@ import numpy as np
 import pandas as pd
 from minio import Minio
 from sklearn.ensemble import RandomForestRegressor, RandomForestClassifier
+import string
+from sklearn.utils import shuffle
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.pipeline import make_pipeline
 
@@ -60,7 +62,7 @@ def generate_synthetic_data(n_samples=1000):
         
     return pd.DataFrame(data)
 
-def train_and_upload():
+def train_risk_model():
     print("ML Trainer: Starting Cold Start Routine...")
     
     # 1. Load Data (Synthetic for now, later fetch from MinIO netra-lake)

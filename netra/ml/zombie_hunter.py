@@ -1,6 +1,9 @@
 import pickle
 import io
 import re
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.pipeline import Pipeline
 
 class ZombieHunter:
     _model = None

@@ -482,7 +482,7 @@ async def run_scan_task(scan_id: int):
             if opts.get("api_fuzz", False) or opts.get("zombie", False):
                 # v_engine.register_scanner(ZombieScanner()) # Deprecated in favor of Ruby Hybrid
                 v_engine.register_scanner(RubyScanner("zombie_scan.rb", name="ZombieScanner"))
-                v_engine.register_scanner(RubyBridge(script_name="rce_scan.rb", name="RCEScanner"))
+                v_engine.register_scanner(RubyScanner("rce_scan.rb", name="RCEScanner"))
             
             if opts.get("cloud", False):
                 v_engine.register_scanner(CloudScanner())
