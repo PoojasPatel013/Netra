@@ -5,6 +5,7 @@ from netra.core.scanner import BaseScanner
 
 logger = logging.getLogger("netra.core")
 
+
 class NetraEngine:
     def __init__(self):
         self.scanners: List[BaseScanner] = []
@@ -20,14 +21,14 @@ class NetraEngine:
         """
         logger.info(f"Starting scan for target: {target}")
         self.results[target] = {}
-        
+
         tasks = []
         for scanner in self.scanners:
             tasks.append(scanner.scan(target))
-        
+
         # Run all scanners concurrently
         scan_results = await asyncio.gather(*tasks, return_exceptions=True)
-        
+
         for scanner, result in zip(self.scanners, scan_results):
             scanner_name = getattr(scanner, "name", scanner.__class__.__name__)
             if isinstance(result, Exception):
@@ -35,9 +36,10 @@ class NetraEngine:
                 self.results[target][scanner_name] = {"error": str(result)}
             else:
                 self.results[target][scanner_name] = result
-                
+
         # Integrate Compliance Engine
         from netra.core.compliance import ComplianceEngine
+
         try:
             comp_engine = ComplianceEngine()
             # This mutates the results dictionary in place

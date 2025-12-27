@@ -9,16 +9,18 @@ sqlite_url = f"sqlite:///{sqlite_file_name}"
 
 engine = create_engine(sqlite_url)
 
+
 class Scan(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     target: str
-    status: str # "pending", "completed", "failed"
+    status: str  # "pending", "completed", "failed"
     timestamp: datetime = Field(default_factory=datetime.utcnow)
     risk_score: int = Field(default=0)
-    
+
     # Relationships could be added here if we separate Vulnerabilities into their own table
     # For simplicity in this MVP, we'll store results as a JSON blob or just link them loosely
     # But a proper relational model is better. Let's do a proper one.
+
 
 class Vulnerability(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
@@ -28,8 +30,10 @@ class Vulnerability(SQLModel, table=True):
     description: str
     evidence: Optional[str] = None
 
+
 def create_db_and_tables():
     SQLModel.metadata.create_all(engine)
+
 
 def get_session():
     with Session(engine) as session:

@@ -3,6 +3,7 @@ import json
 import os
 from typing import Dict, Any, List
 
+
 class RubyBridge:
     def __init__(self, scripts_dir: str = None):
         if scripts_dir:
@@ -11,7 +12,9 @@ class RubyBridge:
             # Default to netra/scans/ruby
             # Current file is in netra/core/analysis/ruby_bridge.py
             # We need to go up 3 levels to netra, then down to scans/ruby
-            base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+            base_dir = os.path.dirname(
+                os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            )
             self.scripts_dir = os.path.join(base_dir, "scans", "ruby")
 
     def execute_script(self, script_name: str, target: str) -> Dict[str, Any]:
@@ -26,14 +29,14 @@ class RubyBridge:
             # Ruby scripts should accept target as ARGV[0] and print JSON to stdout
             cmd = ["ruby", script_path, target]
             result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
-            
+
             if result.returncode != 0:
                 return {
                     "error": "Execution failed",
                     "stderr": result.stderr,
-                    "script": script_name
+                    "script": script_name,
                 }
-                
+
             try:
                 data = json.loads(result.stdout)
                 return data
@@ -41,9 +44,9 @@ class RubyBridge:
                 return {
                     "error": "Invalid JSON output",
                     "stdout": result.stdout,
-                    "script": script_name
+                    "script": script_name,
                 }
-                
+
         except subprocess.TimeoutExpired:
             return {"error": "Timeout", "script": script_name}
         except Exception as e:
@@ -52,4 +55,4 @@ class RubyBridge:
     def list_scripts(self) -> List[str]:
         if not os.path.exists(self.scripts_dir):
             return []
-        return [f for f in os.listdir(self.scripts_dir) if f.endswith('.rb')]
+        return [f for f in os.listdir(self.scripts_dir) if f.endswith(".rb")]

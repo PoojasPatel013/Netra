@@ -8,6 +8,7 @@ from redis.asyncio import Redis
 NEO4J_URL = "bolt://neo4j:netra-secret@localhost:7687"
 REDIS_URL = "redis://localhost:6379"
 
+
 async def check_redis():
     print(f"⏳ Connecting to Redis at {REDIS_URL}...")
     try:
@@ -19,6 +20,7 @@ async def check_redis():
     except Exception as e:
         print(f"❌ Redis Connection Failed: {e}")
         return False
+
 
 def check_neo4j():
     print(f"⏳ Connecting to Neo4j at {NEO4J_URL}...")
@@ -32,18 +34,22 @@ def check_neo4j():
         print(f"❌ Neo4j Connection Failed: {e}")
         return False
 
+
 async def main():
     print("🚀 Verifying Netra v2 Infrastructure Connectivity...")
-    
+
     redis_ok = await check_redis()
     neo_ok = check_neo4j()
-    
+
     if redis_ok and neo_ok:
         print("\n✨ All Systems Operational. You are ready to develop.")
         sys.exit(0)
     else:
-        print("\n⚠️  Some systems failed checks. Ensure containers are running (docker compose ps).")
+        print(
+            "\n⚠️  Some systems failed checks. Ensure containers are running (docker compose ps)."
+        )
         sys.exit(1)
+
 
 if __name__ == "__main__":
     asyncio.run(main())

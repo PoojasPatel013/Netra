@@ -4,6 +4,7 @@ import redis.asyncio as redis
 
 REDIS_URL = os.getenv("NETRA_REDIS_URL", "redis://localhost:6379")
 
+
 class NetraStream:
     def __init__(self, stream_key: str = "netra:events"):
         self.redis = None
@@ -18,7 +19,9 @@ class NetraStream:
         await self.connect()
         message = {
             "type": "target_added",
-            "payload": json.dumps({"target": target, "source": source, "options": options})
+            "payload": json.dumps(
+                {"target": target, "source": source, "options": options}
+            ),
         }
         await self.redis.xadd(self.stream_key, message)
 
@@ -27,10 +30,7 @@ class NetraStream:
         await self.connect()
         # Publish to a different key for ML worker
         stream_key = "netra:data:raw"
-        message = {
-            "type": "raw_scan_result",
-            "payload": json.dumps(data)
-        }
+        message = {"type": "raw_scan_result", "payload": json.dumps(data)}
         await self.redis.xadd(stream_key, message)
 
     async def consume_events(self, group: str, consumer: str):
@@ -45,7 +45,9 @@ class NetraStream:
 
         while True:
             # Read new messages
-            streams = await self.redis.xreadgroup(group, consumer, {self.stream_key: ">"}, count=1, block=5000)
+            streams = await self.redis.xreadgroup(
+                group, consumer, {self.stream_key: ">"}, count=1, block=5000
+            )
             if not streams:
                 continue
 

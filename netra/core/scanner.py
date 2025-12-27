@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Any, Dict
 
+
 class BaseScanner(ABC):
     @abstractmethod
     async def scan(self, target: str) -> Dict[str, Any]:

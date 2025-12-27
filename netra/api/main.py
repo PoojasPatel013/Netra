@@ -27,7 +27,13 @@ from netra.core.orchestration.messaging import NetraStream
 from redis import asyncio as aioredis
 from pydantic import BaseModel
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-from netra.core.auth import verify_password, get_password_hash, create_access_token, Token, UserInDB
+from netra.core.auth import (
+    verify_password,
+    get_password_hash,
+    create_access_token,
+    Token,
+    UserInDB,
+)
 from datetime import timedelta
 
 # Database Setup
@@ -35,10 +41,12 @@ from datetime import timedelta
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite+aiosqlite:///netra.db")
 REDIS_URL = os.getenv("REDIS_URL")
 
+
 class ScanRequest(BaseModel):
     target: str
     target: str
     options: dict = {}
+
 
 # MinIO Setup (Data Lake)
 # MinIO Setup (Data Lake)
@@ -50,14 +58,17 @@ MAX_MODEL_SIZE_MB = 100
 minio_client = None
 try:
     from minio import Minio
+
     minio_client = Minio(
         MINIO_URL,
         access_key=MINIO_ACCESS_KEY,
         secret_key=MINIO_SECRET_KEY,
-        secure=False
+        secure=False,
     )
 except ImportError:
-    print("WARNING: 'minio' library not found. Data Lake disabled. Run 'docker compose up --build'.")
+    print(
+        "WARNING: 'minio' library not found. Data Lake disabled. Run 'docker compose up --build'."
+    )
 except Exception as e:
     print(f"MinIO Init Failed: {e}")
 
@@ -70,19 +81,22 @@ import pickle
 import io
 
 engine = create_async_engine(DATABASE_URL, echo=True, future=True)
-db = None # Global Neo4j Connection
+db = None  # Global Neo4j Connection
+
 
 async def init_db():
-    print(f"DEBUG: init_db called. Tables in metadata: {list(SQLModel.metadata.tables.keys())}")
+    print(
+        f"DEBUG: init_db called. Tables in metadata: {list(SQLModel.metadata.tables.keys())}"
+    )
     async with engine.begin() as conn:
         await conn.run_sync(SQLModel.metadata.create_all)
 
+
 async def get_session():
-    async_session = sessionmaker(
-        engine, class_=AsyncSession, expire_on_commit=False
-    )
+    async_session = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
     async with async_session() as session:
         yield session
+
 
 app = FastAPI(title="Netra API", version="0.1.0", debug=True)
 
@@ -101,7 +115,10 @@ from netra.core.auth import SECRET_KEY, ALGORITHM
 # Auth Dependency
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
-async def get_current_user(token: str = Depends(oauth2_scheme), session: AsyncSession = Depends(get_session)):
+
+async def get_current_user(
+    token: str = Depends(oauth2_scheme), session: AsyncSession = Depends(get_session)
+):
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         username: str = payload.get("sub")
@@ -109,7 +126,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme), session: AsyncSe
             raise HTTPException(status_code=401, detail="Invalid credentials")
     except JWTError:
         raise HTTPException(status_code=401, detail="Invalid credentials")
-    
+
     # Check DB
     result = await session.execute(select(User).where(User.username == username))
     user = result.scalars().first()
@@ -117,48 +134,60 @@ async def get_current_user(token: str = Depends(oauth2_scheme), session: AsyncSe
         raise HTTPException(status_code=401, detail="User not found")
     return user
 
+
 @app.post("/auth/register", response_model=Token)
-async def register(form_data: OAuth2PasswordRequestForm = Depends(), session: AsyncSession = Depends(get_session)):
+async def register(
+    form_data: OAuth2PasswordRequestForm = Depends(),
+    session: AsyncSession = Depends(get_session),
+):
     # Check existing
-    result = await session.execute(select(User).where(User.username == form_data.username))
+    result = await session.execute(
+        select(User).where(User.username == form_data.username)
+    )
     if result.scalars().first():
         raise HTTPException(status_code=400, detail="Username already registered")
-    
+
     hashed_pw = get_password_hash(form_data.password)
     user = User(username=form_data.username, hashed_password=hashed_pw)
     session.add(user)
     await session.commit()
-    
+
     # Auto-login
     access_token = create_access_token(data={"sub": user.username})
     return {"access_token": access_token, "token_type": "bearer"}
 
+
 @app.post("/token", response_model=Token)
-async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), session: AsyncSession = Depends(get_session)):
+async def login_for_access_token(
+    form_data: OAuth2PasswordRequestForm = Depends(),
+    session: AsyncSession = Depends(get_session),
+):
     # Fetch User
-    result = await session.execute(select(User).where(User.username == form_data.username))
+    result = await session.execute(
+        select(User).where(User.username == form_data.username)
+    )
     user = result.scalars().first()
-    
+
     if not user or not verify_password(form_data.password, user.hashed_password):
         raise HTTPException(
             status_code=401,
             detail="Incorrect username or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    
+
     access_token_expires = timedelta(minutes=60)
     access_token = create_access_token(
         data={"sub": user.username}, expires_delta=access_token_expires
     )
     return {"access_token": access_token, "token_type": "bearer"}
 
+
 @app.get("/users/me")
 async def read_users_me(current_user: User = Depends(get_current_user)):
     return {"username": current_user.username, "id": current_user.id}
 
+
 # Catch-all for SPA (must be last)
-
-
 
 
 @app.post("/api/scan")
@@ -169,10 +198,17 @@ async def trigger_v2_scan(request: ScanRequest):
     try:
         # Connect to the Ingestion Stream
         stream = NetraStream(stream_key="netra:events:ingest")
-        await stream.publish_target(request.target, source="api", options=request.options)
-        return {"status": "queued", "target": request.target, "message": "Dispatched to Ingestion Worker"}
+        await stream.publish_target(
+            request.target, source="api", options=request.options
+        )
+        return {
+            "status": "queued",
+            "target": request.target,
+            "message": "Dispatched to Ingestion Worker",
+        }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
 
 @app.get("/debug/ml-status")
 async def debug_ml_status():
@@ -183,14 +219,15 @@ async def debug_ml_status():
             buckets = [b.name for b in minio_client.list_buckets()]
         except Exception as e:
             buckets = [f"Error: {e}"]
-            
+
     return {
         "ml_model_loaded": ML_MODEL is not None,
         "ml_model_type": str(type(ML_MODEL)) if ML_MODEL else "None",
         "minio_connected": minio_client is not None,
         "minio_buckets": buckets,
-        "env_minio_url": MINIO_URL
+        "env_minio_url": MINIO_URL,
     }
+
 
 @app.on_event("startup")
 async def on_startup():
@@ -204,7 +241,7 @@ async def on_startup():
         print(f"DEBUG: STATIC_DIR exists. Contents: {os.listdir(STATIC_DIR)}")
     else:
         print(f"DEBUG: STATIC_DIR DOES NOT EXIST at {STATIC_DIR}")
-        
+
     # Phase 3.2: Load ML Model (if exists in MinIO)
     global ML_MODEL
     if minio_client:
@@ -224,8 +261,10 @@ async def on_startup():
 
     # Phase 4: Load Zombie API (NLP) Model
     from netra.ml.zombie_hunter import ZombieHunter
-    print ("ML Engine: Loading Zombie Hunter...")
+
+    print("ML Engine: Loading Zombie Hunter...")
     ZombieHunter.load_model(minio_client)
+
 
 @app.post("/internal/ml/predict-zombie")
 async def predict_zombie(request: Request):
@@ -233,16 +272,19 @@ async def predict_zombie(request: Request):
     Internal Endpoint: Used by Ruby Scanners to access Python ML Models.
     """
     from netra.ml.zombie_hunter import ZombieHunter
+
     data = await request.json()
     candidates = data.get("candidates", [])
-    
+
     results = []
     for c in candidates:
         is_hit = ZombieHunter.predict_is_api(c)
         if is_hit:
             comment = ZombieHunter.consult_oracle(c, True)
-            results.append({"path": c, "commentary": comment, "confidence": 0.95}) # Mock confidence for now
-            
+            results.append(
+                {"path": c, "commentary": comment, "confidence": 0.95}
+            )  # Mock confidence for now
+
     return {"positives": results}
 
     retries = 5
@@ -260,6 +302,7 @@ async def predict_zombie(request: Request):
             else:
                 raise e
 
+
 @app.get("/debug/fs")
 async def debug_fs():
     """Temporary debug endpoint to inspect container filesystem"""
@@ -271,12 +314,17 @@ async def debug_fs():
             "dist_dir": DIST_DIR,
             "dist_exists": os.path.exists(DIST_DIR),
             "dist_contents": os.listdir(DIST_DIR) if os.path.exists(DIST_DIR) else [],
-            "static_contents": os.listdir(STATIC_DIR) if os.path.exists(STATIC_DIR) else [],
-            "app_netra_contents": os.listdir("/app/netra") if os.path.exists("/app/netra") else "Not found",
+            "static_contents": os.listdir(STATIC_DIR)
+            if os.path.exists(STATIC_DIR)
+            else [],
+            "app_netra_contents": os.listdir("/app/netra")
+            if os.path.exists("/app/netra")
+            else "Not found",
         }
         return debug_info
     except Exception as e:
         return {"error": str(e)}
+
 
 async def sync_graph_results(scan_results: dict, target: str):
     """
@@ -284,31 +332,33 @@ async def sync_graph_results(scan_results: dict, target: str):
     """
     try:
         # 1. Create/Merge Target Domain Node
-        query_target = "MERGE (d:Domain {name: $name}) SET d.last_seen = timestamp() RETURN d"
+        query_target = (
+            "MERGE (d:Domain {name: $name}) SET d.last_seen = timestamp() RETURN d"
+        )
         db.cypher_query(query_target, {"name": target})
-        
+
         # 2. Process Ports -> IP Address Nodes
         if "PortScanner" in scan_results:
-             ports = scan_results["PortScanner"].get("open_ports", [])
-             ip_addr = scan_results["PortScanner"].get("ip", "unknown")
-             
-             if ip_addr and ip_addr != "unknown":
-                 # Create IP Node
-                 query_ip = """
+            ports = scan_results["PortScanner"].get("open_ports", [])
+            ip_addr = scan_results["PortScanner"].get("ip", "unknown")
+
+            if ip_addr and ip_addr != "unknown":
+                # Create IP Node
+                query_ip = """
                  MATCH (d:Domain {name: $domain})
                  MERGE (i:IPAddress {address: $ip})
                  MERGE (d)-[:RESOLVES_TO]->(i)
                  """
-                 db.cypher_query(query_ip, {"domain": target, "ip": ip_addr})
-                 
-                 # Create Service Nodes for Ports
-                 for p in ports:
-                     query_port = """
+                db.cypher_query(query_ip, {"domain": target, "ip": ip_addr})
+
+                # Create Service Nodes for Ports
+                for p in ports:
+                    query_port = """
                      MATCH (i:IPAddress {address: $ip})
                      MERGE (s:Service {port: $port, protocol: 'tcp'})
                      MERGE (i)-[:EXPOSES]->(s)
                      """
-                     db.cypher_query(query_port, {"ip": ip_addr, "port": p})
+                    db.cypher_query(query_port, {"ip": ip_addr, "port": p})
 
         # 3. Process Vulnerabilities -> Threat Nodes
         if "ThreatScanner" in scan_results:
@@ -319,11 +369,22 @@ async def sync_graph_results(scan_results: dict, target: str):
                 MERGE (v:Vulnerability {name: $name, severity: $severity})
                 MERGE (d)-[:HAS_VULNERABILITY]->(v)
                 """
-                db.cypher_query(query_vuln, {"domain": target, "name": v.get("type", "Unknown"), "severity": v.get("severity", "Medium")})
-        
+                db.cypher_query(
+                    query_vuln,
+                    {
+                        "domain": target,
+                        "name": v.get("type", "Unknown"),
+                        "severity": v.get("severity", "Medium"),
+                    },
+                )
+
         # Merge other vulnerabilities (IAMScanner, RubyScanner generic)
         for scanner_key in scan_results:
-            if scanner_key in ["IAMScanner", "ResilienceScanner", "RubyScanner_banner_grabber"]:
+            if scanner_key in [
+                "IAMScanner",
+                "ResilienceScanner",
+                "RubyScanner_banner_grabber",
+            ]:
                 s_vulns = scan_results[scanner_key].get("vulnerabilities", [])
                 for v in s_vulns:
                     query_v = """
@@ -331,97 +392,118 @@ async def sync_graph_results(scan_results: dict, target: str):
                     MERGE (v:Vulnerability {name: $name, severity: $severity})
                     MERGE (d)-[:HAS_VULNERABILITY]->(v)
                     """
-                    db.cypher_query(query_v, {"domain": target, "name": v.get("type", "Unknown"), "severity": v.get("severity", "Info")})
-        
-                db.cypher_query(query_acq, {"domain": target, "sub_name": acq["domain"]})
+                    db.cypher_query(
+                        query_v,
+                        {
+                            "domain": target,
+                            "name": v.get("type", "Unknown"),
+                            "severity": v.get("severity", "Info"),
+                        },
+                    )
+
+                db.cypher_query(
+                    query_acq, {"domain": target, "sub_name": acq["domain"]}
+                )
 
         # 5. ML Insight: Calculate Risk Score
         # 5. ML Insight: Calculate Risk Score
         # Strategy: Use Trained Model if available, else Heuristic (Cold Start)
         risk_score = 0
         risk_source = "Heuristic"
-        
+
         if ML_MODEL:
             # Phase 3.2: Online Inference (using Snorkel-trained artifact)
             try:
-                 # 1. Feature Extraction
-                 n_crit = 0
-                 n_high = 0
-                 n_med = 0
-                 n_low = 0
-                 
-                 if "ThreatScanner" in scan_results:
-                     for v in scan_results["ThreatScanner"].get("vulnerabilities", []):
-                         sev = v.get("severity", "Info")
-                         if sev == "Critical": n_crit += 1
-                         elif sev == "High": n_high += 1
-                         elif sev == "Medium": n_med += 1
-                         elif sev == "Low": n_low += 1
+                # 1. Feature Extraction
+                n_crit = 0
+                n_high = 0
+                n_med = 0
+                n_low = 0
 
-                 n_ports = len(scan_results.get("PortScanner", {}).get("open_ports", []))
-                 
-                 # 2. Vectorize: [crit, high, med, low, ports] (Must match train.py order)
-                 features = [[n_crit, n_high, n_med, n_low, n_ports]]
-                 
-                 # 3. Predict
-                 if hasattr(ML_MODEL, "predict"):
-                     prediction = ML_MODEL.predict(features)[0]
-                     risk_score = float(prediction)
-                     risk_source = "ML_Model_v1"
-                     print(f"ML Inference Success: Predicted Risk {risk_score}")
-                 
+                if "ThreatScanner" in scan_results:
+                    for v in scan_results["ThreatScanner"].get("vulnerabilities", []):
+                        sev = v.get("severity", "Info")
+                        if sev == "Critical":
+                            n_crit += 1
+                        elif sev == "High":
+                            n_high += 1
+                        elif sev == "Medium":
+                            n_med += 1
+                        elif sev == "Low":
+                            n_low += 1
+
+                n_ports = len(scan_results.get("PortScanner", {}).get("open_ports", []))
+
+                # 2. Vectorize: [crit, high, med, low, ports] (Must match train.py order)
+                features = [[n_crit, n_high, n_med, n_low, n_ports]]
+
+                # 3. Predict
+                if hasattr(ML_MODEL, "predict"):
+                    prediction = ML_MODEL.predict(features)[0]
+                    risk_score = float(prediction)
+                    risk_source = "ML_Model_v1"
+                    print(f"ML Inference Success: Predicted Risk {risk_score}")
+
             except Exception as ml_e:
-                 print(f"ML Inference Failed: {ml_e}. Falling back to Heuristic.")
-                 print(f"ML Inference Failed: {ml_e}. Falling back to Heuristic.")
-        
-        if risk_score == 0: # Fallback or Heuristic Mode
+                print(f"ML Inference Failed: {ml_e}. Falling back to Heuristic.")
+                print(f"ML Inference Failed: {ml_e}. Falling back to Heuristic.")
+
+        if risk_score == 0:  # Fallback or Heuristic Mode
             # Score = (Critical * 10) + (High * 5) + (Medium * 2) + (Low * 0.5) + (OpenPorts * 1)
-            
+
             # Count Vulns
             if "ThreatScanner" in scan_results:
-                 vulns = scan_results["ThreatScanner"].get("vulnerabilities", [])
-                 for v in vulns:
-                     sev = v.get("severity", "Info")
-                     if sev == "Critical": risk_score += 10
-                     elif sev == "High": risk_score += 5
-                     elif sev == "Medium": risk_score += 2
-                     elif sev == "Low": risk_score += 0.5
-            
+                vulns = scan_results["ThreatScanner"].get("vulnerabilities", [])
+                for v in vulns:
+                    sev = v.get("severity", "Info")
+                    if sev == "Critical":
+                        risk_score += 10
+                    elif sev == "High":
+                        risk_score += 5
+                    elif sev == "Medium":
+                        risk_score += 2
+                    elif sev == "Low":
+                        risk_score += 0.5
+
             # Count Ports
             if "PortScanner" in scan_results:
-                 ports = scan_results["PortScanner"].get("open_ports", [])
-                 risk_score += len(ports)
-                 
+                ports = scan_results["PortScanner"].get("open_ports", [])
+                risk_score += len(ports)
+
             # Normalize to 0-100 (Cap)
             risk_score = min(risk_score, 100)
             risk_source = "Heuristic (Rule-Based)"
-        
+
         # Update Domain Node with ML Score
         query_score = "MATCH (d:Domain {name: $name}) SET d.risk_score = $score, d.risk_source = $source RETURN d"
-        db.cypher_query(query_score, {"name": target, "score": risk_score, "source": risk_source})
+        db.cypher_query(
+            query_score, {"name": target, "score": risk_score, "source": risk_source}
+        )
         return risk_score
 
     except Exception as e:
         print(f"Graph Sync Error: {e}")
         return 0
 
+
 async def upload_to_datalake(scan_id: int, results: dict):
     """
     ML Phase 3.1: Archives raw scan logs to MinIO (S3) for offline training.
     """
-    if not minio_client: return
+    if not minio_client:
+        return
     try:
         bucket = "netra-lake"
         if not minio_client.bucket_exists(bucket):
             minio_client.make_bucket(bucket)
-            
-        data = json.dumps(results).encode('utf-8')
+
+        data = json.dumps(results).encode("utf-8")
         minio_client.put_object(
             bucket,
             f"scans/{scan_id}.json",
             io.BytesIO(data),
             len(data),
-            content_type="application/json" 
+            content_type="application/json",
         )
         print(f"Data Lake: Archived scan {scan_id} to {bucket}")
     except Exception as e:
@@ -435,110 +517,133 @@ async def run_scan_task(scan_id: int):
         scan = await session.get(Scan, scan_id)
         if not scan:
             return
-            
+
         scan.status = "running"
         session.add(scan)
         await session.commit()
-        
+
         try:
             # Run Netra Engine
             v_engine = NetraEngine()
-            
+
             # Configure Scanners (Based on Options)
             opts = scan.options or {}
-            
+
             # 1. CT Recon (Always good to have if enabled, or default)
             # Check if toggled or just run it
-            if opts.get("recon", True): # Default to true
-                 v_engine.register_scanner(CTScanner())
-            
+            if opts.get("recon", True):  # Default to true
+                v_engine.register_scanner(CTScanner())
+
             # Default Scanners (Ruby Bridge)
             # Port Scanning + Banner Grabbing
-            v_engine.register_scanner(RubyScanner("banner_grabber.rb", name="PortScanner"))
-            
+            v_engine.register_scanner(
+                RubyScanner("banner_grabber.rb", name="PortScanner")
+            )
+
             # Threat Intel (SPF/DMARC/Robots)
-            v_engine.register_scanner(RubyScanner("threat_scan.rb", name="ThreatScanner"))
+            v_engine.register_scanner(
+                RubyScanner("threat_scan.rb", name="ThreatScanner")
+            )
 
             # IAM & Session Analysis
             v_engine.register_scanner(RubyScanner("iam_scan.rb", name="IAMScanner"))
 
             # Resilience / Rate Limit
-            if opts.get("resilience", False): # Only if resilience is toggled (assuming we use this option)
-                v_engine.register_scanner(RubyScanner("resilience_scan.rb", name="ResilienceScanner"))
-                v_engine.register_scanner(RubyBridge(script_name="dos_check.rb", name="DoSScanner"))
+            if opts.get(
+                "resilience", False
+            ):  # Only if resilience is toggled (assuming we use this option)
+                v_engine.register_scanner(
+                    RubyScanner("resilience_scan.rb", name="ResilienceScanner")
+                )
+                v_engine.register_scanner(
+                    RubyBridge(script_name="dos_check.rb", name="DoSScanner")
+                )
             else:
                 # Default behavior if we want robust base scans? No, keep it opt-in for aggressive checks
                 # Actually, main.py currently registers ResilienceScanner unconditionally in previous code.
                 # Let's clean that logic up.
                 pass
-            
+
             # Re-inserting ResilienceScanner logic but conditional or default?
             # Original code lines 228-229 were unconditional.
             # I will modify them to be conditional or just add DoS next to it.
             # Given `dos_check` is aggressive, let's wrap BOTH in a check or just leave ResilienceScanner as is and add DoS.
-            
+
             # CURRENT STATE: Line 229: v_engine.register_scanner(RubyScanner("resilience_scan.rb", name="ResilienceScanner"))
             # I will change it to:
-            
+
             # Resilience / Rate Limit (Always on base check)
-            v_engine.register_scanner(RubyScanner("resilience_scan.rb", name="ResilienceScanner"))
-             
+            v_engine.register_scanner(
+                RubyScanner("resilience_scan.rb", name="ResilienceScanner")
+            )
+
             # Aggressive DoS Checks (if requested)
             if opts.get("resilience", False) or opts.get("dos", False):
-                 v_engine.register_scanner(RubyBridge(script_name="dos_check.rb", name="DoSScanner"))
-            
+                v_engine.register_scanner(
+                    RubyBridge(script_name="dos_check.rb", name="DoSScanner")
+                )
+
             if opts.get("secrets", False):
                 v_engine.register_scanner(SecretScanner())
-                
+
             if opts.get("api_fuzz", False) or opts.get("zombie", False):
                 # v_engine.register_scanner(ZombieScanner()) # Deprecated in favor of Ruby Hybrid
-                v_engine.register_scanner(RubyScanner("zombie_scan.rb", name="ZombieScanner"))
+                v_engine.register_scanner(
+                    RubyScanner("zombie_scan.rb", name="ZombieScanner")
+                )
                 v_engine.register_scanner(RubyScanner("rce_scan.rb", name="RCEScanner"))
-            
+
             if opts.get("cloud", False):
                 v_engine.register_scanner(CloudScanner())
-                
+
             if opts.get("iot", False):
                 v_engine.register_scanner(IoTScanner())
-                
+
             if opts.get("graphql", False):
                 v_engine.register_scanner(GraphQLScanner())
-                
-                
+
             if opts.get("acquisitions", False):
                 v_engine.register_scanner(AcquisitionScanner())
-            
+
             # Auto Exploit (Polyglot)
             if opts.get("auto_exploit", False):
-                 v_engine.register_scanner(PentestEngine())
+                v_engine.register_scanner(PentestEngine())
 
             # Run with timeout to prevent zombies
-            results = await asyncio.wait_for(v_engine.scan_target(scan.target), timeout=600)
-            
+            results = await asyncio.wait_for(
+                v_engine.scan_target(scan.target), timeout=600
+            )
+
             scan.results = results
             scan.results = results
             scan.status = "completed"
-            
+
             # Phase 3.1: Data Lake Archival
             await upload_to_datalake(scan.id, results)
-            
+
             # Sync to Graph (New Feature) & Get Score
             risk_score = await sync_graph_results(results, scan.target)
             scan.risk_score = int(risk_score)
-            
+
             # Post-Scan Actions: DefectDojo Import
-            if opts.get("defect_dojo_url") and opts.get("defect_dojo_key") and opts.get("engagement_id"):
+            if (
+                opts.get("defect_dojo_url")
+                and opts.get("defect_dojo_key")
+                and opts.get("engagement_id")
+            ):
                 try:
                     logger.info("Triggering DefectDojo Import...")
-                    dd_client = DefectDojoClient(opts.get("defect_dojo_url"), opts.get("defect_dojo_key"))
+                    dd_client = DefectDojoClient(
+                        opts.get("defect_dojo_url"), opts.get("defect_dojo_key")
+                    )
                     await dd_client.import_scan(results, int(opts.get("engagement_id")))
                 except Exception as dd_e:
                     logger.error(f"DefectDojo Integration Failed: {dd_e}")
                     # Don't fail the scan status, just log
-            
+
         except asyncio.TimeoutError:
-             scan.status = "failed"
-             scan.results = {"error": "Scan timed out (300s limit)"}
+            scan.status = "failed"
+            scan.results = {"error": "Scan timed out (300s limit)"}
         except Exception as e:
             print(f"Scan Task Error: {e}")
             scan.status = "failed"
@@ -547,25 +652,31 @@ async def run_scan_task(scan_id: int):
             session.add(scan)
             await session.commit()
 
+
 @app.post("/scans", response_model=ScanRead)
-async def create_scan(scan_in: ScanCreate, background_tasks: BackgroundTasks, 
-                      session: AsyncSession = Depends(get_session),
-                      current_user: User = Depends(get_current_user)):
+async def create_scan(
+    scan_in: ScanCreate,
+    background_tasks: BackgroundTasks,
+    session: AsyncSession = Depends(get_session),
+    current_user: User = Depends(get_current_user),
+):
     scan = Scan(
         target=scan_in.target,
         scan_type=scan_in.scan_type,
         options=scan_in.options,
         status="pending",
-        user_id=current_user.id
+        user_id=current_user.id,
     )
     session.add(scan)
     await session.commit()
     await session.refresh(scan)
-    
+
     # Distributed (Drone) Mode vs Local
     if REDIS_URL:
         try:
-            redis = aioredis.from_url(REDIS_URL, encoding="utf-8", decode_responses=True)
+            redis = aioredis.from_url(
+                REDIS_URL, encoding="utf-8", decode_responses=True
+            )
             await redis.rpush("netra_tasks", str(scan.id))
             print(f"Dispatched Scan {scan.id} to Drone Grid")
             await redis.close()
@@ -574,50 +685,68 @@ async def create_scan(scan_in: ScanCreate, background_tasks: BackgroundTasks,
             background_tasks.add_task(run_scan_task, scan.id)
     else:
         background_tasks.add_task(run_scan_task, scan.id)
-        
+
     return scan
 
+
 @app.get("/scans", response_model=List[ScanRead])
-async def list_scans(offset: int = 0, limit: int = 100, 
-                     session: AsyncSession = Depends(get_session),
-                     current_user: User = Depends(get_current_user)):
+async def list_scans(
+    offset: int = 0,
+    limit: int = 100,
+    session: AsyncSession = Depends(get_session),
+    current_user: User = Depends(get_current_user),
+):
     # Filter by user
-    query = select(Scan).where(Scan.user_id == current_user.id).offset(offset).limit(limit)
+    query = (
+        select(Scan).where(Scan.user_id == current_user.id).offset(offset).limit(limit)
+    )
     result = await session.execute(query)
     scans = result.scalars().all()
     return scans
 
+
 @app.get("/scans/{scan_id}", response_model=ScanRead)
-async def read_scan(scan_id: int, session: AsyncSession = Depends(get_session),
-                    current_user: User = Depends(get_current_user)):
+async def read_scan(
+    scan_id: int,
+    session: AsyncSession = Depends(get_session),
+    current_user: User = Depends(get_current_user),
+):
     scan = await session.get(Scan, scan_id)
     if not scan:
         raise HTTPException(status_code=404, detail="Scan not found")
     if scan.user_id != current_user.id:
-         raise HTTPException(status_code=403, detail="Not authorized to access this scan")
+        raise HTTPException(
+            status_code=403, detail="Not authorized to access this scan"
+        )
     return scan
 
+
 @app.delete("/scans/{scan_id}")
-async def delete_scan(scan_id: int, session: AsyncSession = Depends(get_session),
-                      current_user: User = Depends(get_current_user)):
+async def delete_scan(
+    scan_id: int,
+    session: AsyncSession = Depends(get_session),
+    current_user: User = Depends(get_current_user),
+):
     scan = await session.get(Scan, scan_id)
     if not scan:
         raise HTTPException(status_code=404, detail="Scan not found")
     if scan.user_id != current_user.id:
-         raise HTTPException(status_code=403, detail="Not authorized to delete this scan")
-    
+        raise HTTPException(
+            status_code=403, detail="Not authorized to delete this scan"
+        )
+
     session.delete(scan)
     await session.commit()
     return {"ok": True}
 
-    
     if not scan.results:
         return {"error": "Scan has no results yet"}
 
     reporter = SARIFReporter()
     sarif_data = reporter.convert_scan_results(scan.results, scan.target)
-    
+
     return sarif_data
+
 
 # Graph & Asset Endpoints (Real Data Wiring)
 from neomodel import config, db
@@ -625,6 +754,7 @@ from neomodel import config, db
 # Initialize Neo4j (Lazy connection)
 # Ensure NEO4J_URL is suitable for neomodel (bolt://user:pass@host:port)
 config.DATABASE_URL = os.getenv("NEO4J_URL", "bolt://neo4j:netra-secret@neo4j:7687")
+
 
 @app.get("/api/graph")
 async def get_graph_data():
@@ -635,47 +765,48 @@ async def get_graph_data():
         # Fetch generic graph data (Limit to avoid exploding the UI)
         query = "MATCH (n)-[r]->(m) RETURN n, r, m LIMIT 200"
         results, meta = db.cypher_query(query)
-        
+
         nodes = {}
         links = []
-        
+
         for row in results:
             source_node = row[0]
             rel = row[1]
             target_node = row[2]
-            
+
             # Helper to deduplicate nodes
             def process_node(node):
                 labels = list(node.labels)
                 node_id = str(node.id)
                 if node_id not in nodes:
                     # Try to find a meaningful label/name
-                    label = node.get('name') or node.get('address') or node.get('port') or node.get('resource_id') or node.get('fingerprint') or "Unknown"
+                    label = (
+                        node.get("name")
+                        or node.get("address")
+                        or node.get("port")
+                        or node.get("resource_id")
+                        or node.get("fingerprint")
+                        or "Unknown"
+                    )
                     nodes[node_id] = {
                         "id": node_id,
                         "group": labels[0] if labels else "Node",
                         "label": label,
-                        "properties": dict(node)
+                        "properties": dict(node),
                     }
                 return node_id
 
             s_id = process_node(source_node)
             t_id = process_node(target_node)
-            
-            links.append({
-                "source": s_id,
-                "target": t_id,
-                "type": rel.type
-            })
-            
-        return {
-            "nodes": list(nodes.values()),
-            "links": links
-        }
+
+            links.append({"source": s_id, "target": t_id, "type": rel.type})
+
+        return {"nodes": list(nodes.values()), "links": links}
     except Exception as e:
         print(f"Graph Query Error: {e}")
         # Return empty structure on failure to prevent UI crash
         return {"nodes": [], "links": []}
+
 
 @app.get("/api/assets")
 async def get_assets_inventory():
@@ -686,69 +817,85 @@ async def get_assets_inventory():
         # Fetch Domains
         query_domains = "MATCH (d:Domain) RETURN d"
         domains, _ = db.cypher_query(query_domains)
-        
+
         # Fetch IPs
         query_ips = "MATCH (i:IPAddress) RETURN i"
         ips, _ = db.cypher_query(query_ips)
-        
+
         assets = []
-        
+
         for row in domains:
             d = row[0]
-            assets.append({
-                "id": d.id,
-                "name": d['name'],
-                "type": "Domain",
-                "details": f"Registrar: {d.get('registrar', 'N/A')}",
-                "status": "active" # Placeholder
-            })
-            
+            assets.append(
+                {
+                    "id": d.id,
+                    "name": d["name"],
+                    "type": "Domain",
+                    "details": f"Registrar: {d.get('registrar', 'N/A')}",
+                    "status": "active",  # Placeholder
+                }
+            )
+
         for row in ips:
             i = row[0]
-            assets.append({
-                "id": i.id,
-                "name": i['address'],
-                "type": "IP Address",
-                "details": f"Version: {i.get('version', 'IPv4')}",
-                "status": "active"
-            })
-            
+            assets.append(
+                {
+                    "id": i.id,
+                    "name": i["address"],
+                    "type": "IP Address",
+                    "details": f"Version: {i.get('version', 'IPv4')}",
+                    "status": "active",
+                }
+            )
+
         return assets
     except Exception as e:
         print(f"Asset Query Error: {e}")
 
+
 @app.get("/api/vulnerabilities")
-async def get_all_vulnerabilities(limit: int = 100, session: AsyncSession = Depends(get_session)):
+async def get_all_vulnerabilities(
+    limit: int = 100, session: AsyncSession = Depends(get_session)
+):
     """
     Aggregates vulnerabilities from all recent scans.
     """
     # In a real system, we might query Neo4j for (v:Vulnerability), but since we store report JSON in PG:
-    result = await session.execute(select(Scan).order_by(Scan.timestamp.desc()).limit(50))
+    result = await session.execute(
+        select(Scan).order_by(Scan.timestamp.desc()).limit(50)
+    )
     scans = result.scalars().all()
-    
+
     vulns = []
     for scan in scans:
-        if not scan.results: continue
-        
+        if not scan.results:
+            continue
+
         # Helper to extract from scanner dicts
         for scanner_name, data in scan.results.items():
             # Check for standard 'vulnerabilities' list
             if isinstance(data, dict) and "vulnerabilities" in data:
                 for v in data["vulnerabilities"]:
                     # Normalize
-                    vulns.append({
-                        "id": str(uuid.uuid4())[:8],
-                        "scan_id": scan.id,
-                        "target": scan.target,
-                        "type": v.get("type", "Unknown"),
-                        "severity": v.get("severity", "Info"),
-                        "scanner": scanner_name,
-                        "details": v.get("details", "") or v.get("description", ""),
-                        "timestamp": scan.timestamp.isoformat() if scan.timestamp else ""
-                    })
-    
+                    vulns.append(
+                        {
+                            "id": str(uuid.uuid4())[:8],
+                            "scan_id": scan.id,
+                            "target": scan.target,
+                            "type": v.get("type", "Unknown"),
+                            "severity": v.get("severity", "Info"),
+                            "scanner": scanner_name,
+                            "details": v.get("details", "") or v.get("description", ""),
+                            "timestamp": scan.timestamp.isoformat()
+                            if scan.timestamp
+                            else "",
+                        }
+                    )
+
     # Return flattened list (client can filter)
     return vulns[:limit]
+
+
 async def delete_asset(asset_id: int):
     """
     Deletes an asset (Domain or IP) by its Neo4j ID.
@@ -761,6 +908,7 @@ async def delete_asset(asset_id: int):
         print(f"Asset Delete Error: {e}")
         raise HTTPException(status_code=500, detail="Failed to delete asset")
 
+
 @app.get("/api/stats")
 async def get_stats(session: AsyncSession = Depends(get_session)):
     """
@@ -771,48 +919,59 @@ async def get_stats(session: AsyncSession = Depends(get_session)):
         result = await session.execute(select(Scan))
         scans = result.scalars().all()
         scan_count = len(scans)
-        
+
         # 2. Count Assets (Neo4j)
         # Use a fast count query
         nodes_result, _ = db.cypher_query("MATCH (n) RETURN count(n)")
         asset_count = nodes_result[0][0]
-        
+
         # 3. Count Vulns (Approximate from Scans for now, or specific node label)
         # For now, let's sum vulns found in recent scans if stored, or just placeholder '0' until VulnModel is strict.
         # Simple approach: sum scan.results['ThreatScanner']['vulnerabilities'].length
         vuln_count = 0
         for s in scans:
             if s.results and isinstance(s.results, dict):
-                 threats = s.results.get('ThreatScanner', {}).get('vulnerabilities', [])
-                 vuln_count += len(threats)
+                threats = s.results.get("ThreatScanner", {}).get("vulnerabilities", [])
+                vuln_count += len(threats)
 
         # Recent Risk History (Refined)
-        history_query = select(Scan).where(Scan.user_id == current_user.id).order_by(Scan.timestamp.desc()).limit(5)
+        history_query = (
+            select(Scan)
+            .where(Scan.user_id == current_user.id)
+            .order_by(Scan.timestamp.desc())
+            .limit(5)
+        )
         history_res = await session.execute(history_query)
         history_scans = history_res.scalars().all()
         risk_trend = [s.risk_score for s in reversed(history_scans)]
-        if not risk_trend: risk_trend = [0] * 5
+        if not risk_trend:
+            risk_trend = [0] * 5
 
         return {
             "scans": scan_count,
             "assets": asset_count,
             "vulns": vuln_count,
-            "risk_trend": risk_trend
+            "risk_trend": risk_trend,
         }
     except Exception as e:
         print(f"Stats Error: {e}")
         return {"scans": 0, "assets": 0, "vulns": 0, "risk_trend": []}
 
+
 # Catch-all for SPA (must be last)
 @app.get("/{full_path:path}")
 async def catch_all(full_path: str):
     # Allow API routes to pass through (though they should be matched before this if defined above)
-    if full_path.startswith("api") or full_path.startswith("scans") or full_path.startswith("docs") or full_path.startswith("openapi.json"):
+    if (
+        full_path.startswith("api")
+        or full_path.startswith("scans")
+        or full_path.startswith("docs")
+        or full_path.startswith("openapi.json")
+    ):
         raise HTTPException(status_code=404, detail="Not Found")
-    
+
     # Serve index.html for everything else
     index_path = os.path.join(STATIC_DIR, "index.html")
     if os.path.exists(index_path):
         return FileResponse(index_path)
     return {"error": "Static UI not found. Ensure netra/static/index.html exists."}
-
