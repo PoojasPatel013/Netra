@@ -12,6 +12,7 @@ permissions:
 jobs:
   triage:
     runs-on: ubuntu-latest
+    if: github.actor == 'dependabot[bot]' || github.actor == 'PoojasPatel013'
     steps:
       # 1. Auto-Labeler based on paths
       - name: Label based on changed files
