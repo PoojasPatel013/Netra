@@ -1,28 +1,27 @@
-# Labeler Configuration
-# Maps files to labels
-
-# Area Labels
-area/ui:
+backend:
   - changed-files:
-      - any-glob-to-any-file: 'netra/ui/**'
+    - any-glob-to-any-file: 
+      - 'netra/**/*.py'
+      - 'poetry.lock'
+      - 'pyproject.toml'
 
-area/api:
+frontend:
   - changed-files:
-      - any-glob-to-any-file: 'netra/api/**'
+    - any-glob-to-any-file: 'netra/static/**'
 
-area/core:
+docker:
   - changed-files:
-      - any-glob-to-any-file: 'netra/core/**'
+    - any-glob-to-any-file: 
+      - 'Dockerfile'
+      - '**/*.Dockerfile'
+      - 'docker-compose.yml'
 
-area/docs:
+docs:
   - changed-files:
-      - any-glob-to-any-file: 
-          - '**/*.md'
-          - 'docs/**'
+    - any-glob-to-any-file:
+      - '*.md'
+      - '.github/**'
 
-area/ci:
+tests:
   - changed-files:
-      - any-glob-to-any-file: 
-          - '.github/**'
-          - 'docker-compose.yml'
-          - 'Dockerfile'
+    - any-glob-to-any-file: 'netra/tests/**'
