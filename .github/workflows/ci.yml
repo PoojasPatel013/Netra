@@ -17,18 +17,23 @@ jobs:
         with:
           python-version: "3.10"
       
-      - name: Install Quality Tools
-        run: pip install black bandit safety pytest-cov poetry
+      - name: Install Poetry
+        run: curl -sSL https://install.python-poetry.org | python3 -
+
+      - name: Install Dependencies
+        run: |
+          poetry config virtualenvs.create false
+          poetry install --no-interaction --no-root
       
       - name: Enforce Formatting (Black)
-        run: black --check .
+        run: poetry run black --check .
         
       - name: Security Scan (Bandit)
         # Recursive scan, skipping tests, low severity excluded
-        run: bandit -r netra/ -x netra/tests -ll
+        run: poetry run bandit -r netra/ -x netra/tests -ll
 
       - name: Dependency Vulnerability Check (Safety)
-        run: safety check --continue-on-error
+        run: poetry run safety check --continue-on-error
 
   test:
     name: Unit Tests & Coverage
