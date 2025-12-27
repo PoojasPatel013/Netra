@@ -146,6 +146,11 @@
                             <span
                                 x-text="authMode === 'login' ? 'Request New Clearance (Register)' : 'Return to Login'"></span>
                         </button>
+                        <a href="/neural.html"
+                            class="flex items-center gap-3 px-3 py-2 text-slate-400 hover:text-green-400 hover:bg-green-500/5 rounded-lg transition-colors group">
+                            <i data-lucide="brain" class="w-4 h-4 group-hover:scale-110 transition-transform"></i>
+                            <span>Neural Grid</span>
+                        </a>
                     </div>
                     <div x-show="authError"
                         class="mt-4 p-3 bg-red-900/30 border border-red-500 rounded text-red-400 text-xs text-center font-mono"
@@ -1169,7 +1174,7 @@
                 });
         }
         }
-            }
+    }))
     </script>
 </body>
 

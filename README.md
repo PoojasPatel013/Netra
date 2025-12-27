@@ -5,11 +5,19 @@
 
 NETRA is an **Applied ML Systems** research platform designed to demonstrate advanced concepts in distributed cybersecurity. It continuously discovers assets, maps them in a Knowledge Graph, and uses machine learning to predict risks.
 
+## Features
+- **Cyber-AI Neural Terminal**: Sarcastic, intelligent commentary on security findings using NLP.
+- **Zombie API Detection**: Hybrid Ruby/Python engine to detect Shadow APIs using TinyLLM.
+- **Dynamic Knowledge Graph**: Real-time asset visualization with Neo4j.
+- **Automated Recon**: Full-stack scanning (Ports, Subdomains, Cloud Buckets).
+- **Data Lake Architecture**: MinIO integration for long-term data storage.
+- **Modern UI**: "Newspaper" style dashboard with D3.js visualizations.
+*   **Distributed Architecture**: Fully event-driven pipeline using Redis Streams to decouple Ingestion (I/O) from Analysis (CPU).
+
 ---
 
 ## What's New in v2.1?
 *   **Newspaper UI**: A fully redesigned "Netra Times" dashboard featuring a centered masthead, columnar layout, and 3D page-flip animations.
-*   **Distributed Architecture**: Fully event-driven pipeline using Redis Streams to decouple Ingestion (I/O) from Analysis (CPU).
 
 ---
 
