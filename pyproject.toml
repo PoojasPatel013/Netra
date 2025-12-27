@@ -29,7 +29,7 @@ click = "<8.2"
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.0.0"
 pytest-asyncio = "^0.23.5"
-black = "^24.1.1"
+black = "^25.12.0"
 aioresponses = "^0.7.6"
 bandit = "^1.7.8"
 safety = "^3.1.0"
