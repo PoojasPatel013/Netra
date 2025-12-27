@@ -13,7 +13,7 @@ permissions:
 jobs:
   enforce-permissions:
     runs-on: ubuntu-latest
-    if: github.actor != 'PoojasPatel013'
+    if: github.actor != 'PoojasPatel013' || github.actor != 'dependabot[bot]'
     steps:
       - name: Revert Unauthorized Actions
         env:
