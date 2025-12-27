@@ -399,10 +399,11 @@ async def sync_graph_results(scan_results: dict, target: str):
         # Update Domain Node with ML Score
         query_score = "MATCH (d:Domain {name: $name}) SET d.risk_score = $score, d.risk_source = $source RETURN d"
         db.cypher_query(query_score, {"name": target, "score": risk_score, "source": risk_source})
-
+        return risk_score
 
     except Exception as e:
         print(f"Graph Sync Error: {e}")
+        return 0
 
 async def upload_to_datalake(scan_id: int, results: dict):
     """
@@ -521,8 +522,9 @@ async def run_scan_task(scan_id: int):
             # Phase 3.1: Data Lake Archival
             await upload_to_datalake(scan.id, results)
             
-            # Sync to Graph (New Feature)
-            await sync_graph_results(results, scan.target)
+            # Sync to Graph (New Feature) & Get Score
+            risk_score = await sync_graph_results(results, scan.target)
+            scan.risk_score = int(risk_score)
             
             # Post-Scan Actions: DefectDojo Import
             if opts.get("defect_dojo_url") and opts.get("defect_dojo_key") and opts.get("engagement_id"):
@@ -784,14 +786,22 @@ async def get_stats(session: AsyncSession = Depends(get_session)):
                  threats = s.results.get('ThreatScanner', {}).get('vulnerabilities', [])
                  vuln_count += len(threats)
 
+        # Recent Risk History (Refined)
+        history_query = select(Scan).where(Scan.user_id == current_user.id).order_by(Scan.timestamp.desc()).limit(5)
+        history_res = await session.execute(history_query)
+        history_scans = history_res.scalars().all()
+        risk_trend = [s.risk_score for s in reversed(history_scans)]
+        if not risk_trend: risk_trend = [0] * 5
+
         return {
             "scans": scan_count,
             "assets": asset_count,
-            "vulns": vuln_count
+            "vulns": vuln_count,
+            "risk_trend": risk_trend
         }
     except Exception as e:
         print(f"Stats Error: {e}")
-        return {"scans": 0, "assets": 0, "vulns": 0}
+        return {"scans": 0, "assets": 0, "vulns": 0, "risk_trend": []}
 
 # Catch-all for SPA (must be last)
 @app.get("/{full_path:path}")

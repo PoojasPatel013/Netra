@@ -14,6 +14,7 @@ class Scan(SQLModel, table=True):
     target: str
     status: str # "pending", "completed", "failed"
     timestamp: datetime = Field(default_factory=datetime.utcnow)
+    risk_score: int = Field(default=0)
     
     # Relationships could be added here if we separate Vulnerabilities into their own table
     # For simplicity in this MVP, we'll store results as a JSON blob or just link them loosely
