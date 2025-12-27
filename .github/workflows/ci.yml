@@ -1,0 +1,70 @@
+name: CI Status Checks
+
+on:
+  push:
+    branches: [ "main", "dev" ]
+  pull_request:
+    branches: [ "main", "dev" ]
+
+jobs:
+  quality:
+    name: Code Health (Lint & Security)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+      
+      - name: Install Quality Tools
+        run: pip install black bandit safety pytest-cov poetry
+      
+      - name: Enforce Formatting (Black)
+        run: black --check .
+        
+      - name: Security Scan (Bandit)
+        # Recursive scan, skipping tests, low severity excluded
+        run: bandit -r netra/ -x netra/tests -ll
+
+      - name: Dependency Vulnerability Check (Safety)
+        run: safety check --continue-on-error
+
+  test:
+    name: Unit Tests & Coverage
+    needs: quality
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+          
+      - name: Install Poetry
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -
+          
+      - name: Install Dependencies
+        run: |
+          poetry config virtualenvs.create false
+          poetry install --no-interaction --no-root
+          
+      - name: Run Tests with Coverage
+        run: |
+          export PYTHONPATH=$PYTHONPATH:.
+          poetry run pytest --cov=netra --cov-report=term-missing netra/tests/
+
+  docker-build:
+    name: Docker Build Check
+    needs: quality
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Build API Image
+        run: docker build -f netra/api.Dockerfile .
+        
+      - name: Build Worker Image
+        run: docker build -f netra/worker.Dockerfile .
