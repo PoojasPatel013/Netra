@@ -15,7 +15,7 @@ typer = ">=0.9.0,<0.12.0"
 rich = "<14"
 fastapi = "^0.109.0"
 uvicorn = {extras = ["standard"], version = "^0.27.0"}
-gmqtt = "^0.6.11"
+gmqtt = "^0.7.0"
 sqlmodel = "^0.0.14"
 asyncpg = "^0.29.0"
 aiosqlite = "^0.19.0"
