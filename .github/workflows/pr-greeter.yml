@@ -28,7 +28,7 @@ jobs:
       # 2. Logic: If CORE files are changed
       - name: Comment - Core Files Changed
         if: steps.changes.outputs.core == 'true'
-        uses: peter-evans/create-or-update-comment@v4
+        uses: peter-evans/create-or-update-comment@v5
         with:
           issue-number: ${{ github.event.pull_request.number }}
           body: |
@@ -44,7 +44,7 @@ jobs:
       # 3. Logic: If only standard files (and NOT core)
       - name: Comment - Standard PR
         if: steps.changes.outputs.core == 'false'
-        uses: peter-evans/create-or-update-comment@v4
+        uses: peter-evans/create-or-update-comment@v5
         with:
           issue-number: ${{ github.event.pull_request.number }}
           body: |
