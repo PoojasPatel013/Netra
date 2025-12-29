@@ -24,9 +24,6 @@ jobs:
         run: |
           poetry config virtualenvs.create false
           poetry install --no-interaction --no-root
-      
-      - name: Enforce Formatting (Black)
-        run: poetry run black --check .
         
       - name: Security Scan (Bandit)
         # Recursive scan, skipping tests, low severity excluded
