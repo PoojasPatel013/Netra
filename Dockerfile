@@ -1,24 +1,25 @@
-FROM python:3.14-slim
+FROM python:3.10-slim
 
 WORKDIR /app
 
+# Install system dependencies
 RUN apt-get update && apt-get install -y \
     gcc \
-    g++ \
-    build-essential \
     curl \
     ruby-full \
+    build-essential \
     && rm -rf /var/lib/apt/lists/*
 
+# Copy poetry config
+COPY pyproject.toml poetry.lock ./
 
-COPY pyproject.toml ./
+# Install Poetry
+RUN pip install poetry && poetry config virtualenvs.create false
 
-RUN pip install poetry \
-    && poetry config virtualenvs.create false \
-    && poetry install --only main --no-root \
-    && pip install "bcrypt==4.0.1" passlib[bcrypt] python-jose python-multipart minio scikit-learn pandas numpy neo4j
+# Install dependencies from lockfile
+RUN poetry install --without dev --no-root
 
-
+# Copy application code
 COPY netra ./netra
 COPY run.py .
 
