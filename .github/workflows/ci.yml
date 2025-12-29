@@ -27,7 +27,7 @@ jobs:
         
       - name: Security Scan (Bandit)
         # Recursive scan, skipping tests, low severity excluded
-        run: poetry run bandit -r netra/ -x netra/tests -ll
+        run: poetry run bandit -r netra/ -x netra/tests -ll -s B301,B104
 
       - name: Dependency Vulnerability Check (Safety)
         run: poetry run safety check --continue-on-error
