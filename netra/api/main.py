@@ -23,6 +23,7 @@ from netra.core.reporter import SARIFReporter
 from netra.core.modules.recon import CTScanner
 from netra.core.modules.secrets import SecretScanner
 from netra.core.modules.api_fuzzer import ZombieScanner
+from netra.ml.zombie_hunter import ZombieHunter
 from netra.core.orchestration.messaging import NetraStream
 from redis import asyncio as aioredis
 from pydantic import BaseModel

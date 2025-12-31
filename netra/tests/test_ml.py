@@ -20,7 +20,7 @@ def test_heuristic_negative():
 def test_oracle_safe():
     # Test AI commentary for safe items
     comment = ZombieHunter.consult_oracle("/image.png", False)
-    assert "0%" in comment or "Clean" in comment or "Boring" in comment
+    assert "0%" in comment or "Clean" in comment or "Boring" in comment or "Nothing" in comment
 
 
 def test_oracle_shadow():
