@@ -23,6 +23,9 @@ wheels/
 MANIFEST
 scan_version.json
 
+.temp_poetry_lock/
+pyvenv.cfg
+
 # Virtual Environment
 .env
 .venv
