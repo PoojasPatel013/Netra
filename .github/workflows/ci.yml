@@ -34,7 +34,6 @@ jobs:
 
   docker-build:
     name: Docker Build Check
-    needs: quality
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
