@@ -223,6 +223,7 @@ async def debug_ml_status():
     return {
         "ml_model_loaded": ML_MODEL is not None,
         "ml_model_type": str(type(ML_MODEL)) if ML_MODEL else "None",
+        "heuristic_mode": getattr(ZombieHunter, "_heuristic_mode", True), # Default to True (Heuristic) if not set
         "minio_connected": minio_client is not None,
         "minio_buckets": buckets,
         "env_minio_url": MINIO_URL,
