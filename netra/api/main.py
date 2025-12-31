@@ -909,6 +909,61 @@ async def delete_asset(asset_id: int):
         raise HTTPException(status_code=500, detail="Failed to delete asset")
 
 
+@app.get("/api/graph/predict")
+async def predict_shadow_it():
+    """
+    Predicts 'Shadow IT' links using Behavioral Similarity Analysis (Lightweight AI).
+    Finds assets that share similar open ports/services but aren't explicitly linked.
+    """
+    try:
+        driver = neograph.driver  # Use the initialized NeoGraph driver
+        if not driver:
+             return {"predicted_edges": [], "status": "Graph database not connected"}
+
+        query = """
+        MATCH (h1:Host)-[:OPEN_ON]->(p:Port)<-[:OPEN_ON]-(h2:Host)
+        WHERE id(h1) < id(h2)
+        WITH h1, h2, count(p) as shared_ports, collect(p.port) as common_ports
+        MATCH (h1)-[:OPEN_ON]->(p1:Port)
+        WITH h1, h2, shared_ports, common_ports, count(p1) as total_ports_h1
+        MATCH (h2)-[:OPEN_ON]->(p2:Port)
+        WITH h1, h2, shared_ports, common_ports, total_ports_h1, count(p2) as total_ports_h2
+        
+        // Calculate Jaccard Similarity for Ports: (Intersection / Union)
+        WITH h1, h2, shared_ports, common_ports, 
+             toFloat(shared_ports) / (total_ports_h1 + total_ports_h2 - shared_ports) as similarity
+        
+        WHERE similarity > 0.3  // Threshold: at least 30% overlap
+        
+        RETURN h1.ip as source, h2.ip as target, similarity, common_ports
+        ORDER BY similarity DESC
+        LIMIT 10
+        """
+        
+        records, _, _ = driver.execute_query(query)
+        
+        predictions = []
+        for record in records:
+            similarity_pct = round(record["similarity"] * 100, 1)
+            common = record["common_ports"]
+            
+            # Generate "Intelligent" Reason
+            reason = f"High structural similarity ({similarity_pct}%). Both hosts run {len(common)} identical services (Ports: {common[:3]}{'...' if len(common)>3 else ''})."
+            
+            predictions.append({
+                "source": record["source"], 
+                "target": record["target"], 
+                "confidence": similarity_pct,
+                "reason": reason,
+                "type": "Shadow Correlation"
+            })
+            
+        return {"predictions": predictions, "count": len(predictions)}
+
+    except Exception as e:
+        print(f"Prediction Error: {e}")
+        return {"predictions": [], "error": str(e)}
+
 @app.get("/api/stats")
 async def get_stats(session: AsyncSession = Depends(get_session)):
     """
