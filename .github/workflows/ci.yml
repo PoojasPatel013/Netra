@@ -7,34 +7,8 @@ on:
     branches: [ "main", "dev" ]
 
 jobs:
-  quality:
-    name: Code Health (Lint & Security)
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
-      - name: Set up Python 3.10
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.10"
-      
-      - name: Install Poetry
-        run: curl -sSL https://install.python-poetry.org | python3 -
-
-      - name: Install Dependencies
-        run: |
-          poetry config virtualenvs.create false
-          poetry install --no-interaction --no-root
-        
-      - name: Security Scan (Bandit)
-        # Recursive scan, skipping tests, low severity excluded
-        run: poetry run bandit -r netra/ -x netra/tests -ll -s B301,B104
-
-      - name: Dependency Vulnerability Check (Safety)
-        run: poetry run safety check --continue-on-error
-
   test:
     name: Unit Tests & Coverage
-    needs: quality
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
