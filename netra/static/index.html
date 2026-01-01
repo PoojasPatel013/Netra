@@ -899,354 +899,350 @@
                         terminal.innerText = "Target appears clean. No Shadow APIs detected.";
                     }
                 },
-            },
+
 
                 loadDashboardData() {
-                this.fetchStats();
-            },
+                    this.fetchStats();
+                },
 
                 fetchStats() {
                     const token = localStorage.getItem('netra_token');
-                    if(!token) return;
+                    if (!token) return;
                     fetch('/api/stats', { headers: { 'Authorization': `Bearer ${token}` } })
-                .then(res => res.json())
-                .then(data => {
-                    this.stats = data;
-                    // Update Risk Trend Chart
-                    if (this.charts.line && data.risk_trend) {
-                        this.charts.line.data.datasets[0].data = data.risk_trend;
-                        this.charts.line.update();
-                    }
-                })
-                .catch(e => console.error(e));
-        },
+                        .then(res => res.json())
+                        .then(data => {
+                            this.stats = data;
+                            // Update Risk Trend Chart
+                            if (this.charts.line && data.risk_trend) {
+                                this.charts.line.data.datasets[0].data = data.risk_trend;
+                                this.charts.line.update();
+                            }
+                        })
+                        .catch(e => console.error(e));
+                },
 
                 async startScan() {
-            if (!this.target) return;
-            const token = localStorage.getItem('netra_token');
-            this.scanning = true;
-            this.scanStatus = 'DISPATCHING';
-            this.results = null;
-            this.logs = [];
-            this.addLog(`Initializing scan for: ${ this.target } `);
+                    if (!this.target) return;
+                    const token = localStorage.getItem('netra_token');
+                    this.scanning = true;
+                    this.scanStatus = 'DISPATCHING';
+                    this.results = null;
+                    this.logs = [];
+                    this.addLog(`Initializing scan for: ${this.target} `);
 
-            try {
-                const res = await fetch('/scans', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${ token } `
-                    },
-                    body: JSON.stringify({
-                        target: this.target,
-                        scan_type: 'full',
-                        options: this.options
-                    })
-                });
-
-                if (!res.ok) throw new Error('Dispatch failed');
-                const scan = await res.json();
-                this.addLog(`Scan ID ${ scan.id } confirmed.`);
-                this.scanStatus = 'IN PROGRESS';
-
-                // Poll
-                const interval = setInterval(async () => {
-                    const r = await fetch(`/ scans / ${ scan.id } `, { headers: { 'Authorization': `Bearer ${ token } ` } });
-                    if (r.ok) {
-                        const d = await r.json();
-                        if (d.status === 'completed') {
-                            clearInterval(interval);
-                            this.results = d.results;
-                            this.scanning = false;
-                            this.scanStatus = 'COMPLETED';
-                            this.fetchStats();
-                            this.loadScanHistory();
-                        } else if (d.status === 'failed') {
-                            clearInterval(interval);
-                            this.scanning = false;
-                            this.scanStatus = 'FAILED';
-                        }
-                    }
-                }, 2000);
-
-            } catch (e) {
-                this.addLog(`Error: ${ e.message } `);
-                this.scanning = false;
-            }
-        },
-
-        addLog(msg) {
-            this.logs.unshift(`[${ new Date().toLocaleTimeString() }] ${ msg } `);
-        },
-
-        toggleTheme() {
-            this.darkMode = !this.darkMode;
-            this.applyTheme();
-            localStorage.setItem('netra-theme', JSON.stringify(this.darkMode));
-        },
-
-        applyTheme() {
-            if (this.darkMode) document.documentElement.classList.add('dark');
-            else document.documentElement.classList.remove('dark');
-        },
-
-        downloadResults() {
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(this.results, null, 2));
-            const a = document.createElement('a');
-            a.setAttribute("href", dataStr);
-            a.setAttribute("download", "report.json");
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
-        },
-
-        monitorGraph: false,
-            initGraph() {
-            const container = document.getElementById('graph');
-            const width = container.clientWidth;
-            const height = container.clientHeight;
-
-
-            const svg = d3.select("#graph").append("svg")
-                .attr("width", width)
-                .attr("height", height)
-                .attr("viewBox", [0, 0, width, height])
-            const svg = d3.select("#graph").append("svg")
-                .attr("width", width)
-                .attr("height", height)
-                .attr("viewBox", [0, 0, width, height])
-                .attr("style", "max-width: 100%; height: auto;");
-            
-            window.netraGraph.svg = svg; // Capture for external access
-
-            // Simulation setup
-            const simulation = d3.forceSimulation()
-                .force("link", d3.forceLink().id(d => d.id).distance(100))
-                .force("charge", d3.forceManyBody().strength(-300))
-                .force("center", d3.forceCenter(width / 2, height / 2))
-                .force("collide", d3.forceCollide().radius(30));
-
-            // Fetch Data
-            const token = localStorage.getItem('netra_token');
-            const statusEl = document.getElementById('graphStatus');
-            if (statusEl) statusEl.innerText = "Connecting to Neural Grid...";
-
-            fetch('/api/graph', { headers: { 'Authorization': `Bearer ${ token } ` } })
-                .then(res => res.json())
-                .then(data => {
-                    if (!data.nodes || data.nodes.length === 0) {
-                        if (statusEl) statusEl.innerText = "No Active Assets Found";
-                        svg.append("text")
-                            .attr("x", width / 2)
-                            .attr("y", height / 2)
-                            .attr("text-anchor", "middle")
-                            .attr("fill", "#666")
-                            .text("No Graph Data Available - Run a Scan");
-                        return;
-                    }
-                    if (statusEl) statusEl.innerText = `Live: ${ data.nodes.length } Nodes tracked`;
-
-                    // --- Update Dashboard Charts with Real Data ---
                     try {
-                        let high = 0, med = 0, low = 0;
-                        let ports = {};
-                        let riskScore = 0;
-
-                        data.nodes.forEach(n => {
-                            // Vuln Counts
-                            if (n.group === 'Vulnerability') {
-                                if (n.properties.severity === 'Critical' || n.properties.severity === 'High') high++;
-                                else if (n.properties.severity === 'Medium') med++;
-                                else low++;
-                            }
-                            // Domain Risk
-                            if (n.group === 'Domain' && n.properties.risk_score) {
-                                riskScore = Math.max(riskScore, n.properties.risk_score);
-                            }
-                            // Port Counts
-                            if (n.group === 'Service' && n.label) { // label is port num
-                                ports[n.label] = (ports[n.label] || 0) + 1;
-                            }
+                        const res = await fetch('/scans', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${token} `
+                            },
+                            body: JSON.stringify({
+                                target: this.target,
+                                scan_type: 'full',
+                                options: this.options
+                            })
                         });
 
-                        // Update Pie (Vulns)
-                        if (this.charts.pie) {
-                            this.charts.pie.data.datasets[0].data = [high, med, low];
-                            this.charts.pie.update();
-                        }
+                        if (!res.ok) throw new Error('Dispatch failed');
+                        const scan = await res.json();
+                        this.addLog(`Scan ID ${scan.id} confirmed.`);
+                        this.scanStatus = 'IN PROGRESS';
 
-                        // Update Line (Risk Score - Simulation for now)
-                        if (this.charts.line) {
-                            // We only have 1 point (current), so let's flatline it or show transition
-                            this.charts.line.data.datasets[0].data = [riskScore, riskScore];
-                            this.charts.line.update();
-                        }
-
-                        // Update Bar (Top Ports)
-                        if (this.charts.bar) {
-                            const topPorts = Object.entries(ports).sort((a, b) => b[1] - a[1]).slice(0, 3);
-                            if (topPorts.length > 0) {
-                                this.charts.bar.data.labels = topPorts.map(p => p[0]);
-                                this.charts.bar.data.datasets[0].data = topPorts.map(p => p[1]);
-                                this.charts.bar.update();
+                        // Poll
+                        const interval = setInterval(async () => {
+                            const r = await fetch(`/ scans / ${scan.id} `, { headers: { 'Authorization': `Bearer ${token} ` } });
+                            if (r.ok) {
+                                const d = await r.json();
+                                if (d.status === 'completed') {
+                                    clearInterval(interval);
+                                    this.results = d.results;
+                                    this.scanning = false;
+                                    this.scanStatus = 'COMPLETED';
+                                    this.fetchStats();
+                                    this.loadScanHistory();
+                                } else if (d.status === 'failed') {
+                                    clearInterval(interval);
+                                    this.scanning = false;
+                                    this.scanStatus = 'FAILED';
+                                }
                             }
-                        }
-                    } catch (e) { console.error("Chart Sync Error", e); }
-                    // ----------------------------------------------
+                        }, 2000);
 
-                    // Render Links
-                    const link = svg.append("g")
-                        .attr("stroke", "#999")
-                        .attr("stroke-opacity", 0.6)
-                        .selectAll("line")
-                        .data(data.links)
-                        .join("line")
-                        .attr("stroke-width", d => Math.sqrt(d.value || 1));
+                    } catch (e) {
+                        this.addLog(`Error: ${e.message} `);
+                        this.scanning = false;
+                    }
+                },
 
-                    // Render Nodes
-                    const node = svg.append("g")
-                        .attr("stroke", "#fff")
-                        .attr("stroke-width", 1.5)
-                        .selectAll("circle")
-                        .data(data.nodes)
-                        .join("circle")
-                        .attr("r", d => {
-                            if (d.group === 'Domain') return 15;
-                            if (d.group === 'IPAddress') return 10;
-                            if (d.group === 'Service') return 8;
-                            return 5;
-                        })
-                        .attr("fill", d => {
-                            // Risk Score coloring
-                            if (d.group === 'Domain' && d.properties.risk_score > 50) return "#ef4444"; // Red
-                            if (d.group === 'Domain') return "#3b82f6"; // Blue
-                            if (d.group === 'Vulnerability') return "#f59e0b"; // Orange
-                            if (d.group === 'IPAddress') return "#10b981"; // Green
-                            if (d.group === 'Service') return "#a855f7"; // Purple
-                            return "#64748b";
-                        })
-                        .call(d3.drag()
-                            .on("start", dragstarted)
-                            .on("drag", dragged)
-                            .on("end", dragended));
+                addLog(msg) {
+                    this.logs.unshift(`[${new Date().toLocaleTimeString()}] ${msg} `);
+                },
 
-                    node.append("title")
-                        .text(d => {
-                            let t = d.label;
-                            if (d.properties.risk_score !== undefined) {
-                                t += `\nRisk Score: ${ d.properties.risk_score } `;
-                                if (d.properties.risk_source) t += `\nSource: ${ d.properties.risk_source } `;
+                toggleTheme() {
+                    this.darkMode = !this.darkMode;
+                    this.applyTheme();
+                    localStorage.setItem('netra-theme', JSON.stringify(this.darkMode));
+                },
+
+                applyTheme() {
+                    if (this.darkMode) document.documentElement.classList.add('dark');
+                    else document.documentElement.classList.remove('dark');
+                },
+
+                downloadResults() {
+                    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(this.results, null, 2));
+                    const a = document.createElement('a');
+                    a.setAttribute("href", dataStr);
+                    a.setAttribute("download", "report.json");
+                    document.body.appendChild(a);
+                    a.click();
+                    a.remove();
+                },
+
+                monitorGraph: false,
+                initGraph() {
+                    const container = document.getElementById('graph');
+                    const width = container.clientWidth;
+                    const height = container.clientHeight;
+
+
+
+                    const svg = d3.select("#graph").append("svg")
+                        .attr("width", width)
+                        .attr("height", height)
+                        .attr("viewBox", [0, 0, width, height])
+                        .attr("style", "max-width: 100%; height: auto;");
+
+                    window.netraGraph.svg = svg; // Capture for external access
+
+                    // Simulation setup
+                    const simulation = d3.forceSimulation()
+                        .force("link", d3.forceLink().id(d => d.id).distance(100))
+                        .force("charge", d3.forceManyBody().strength(-300))
+                        .force("center", d3.forceCenter(width / 2, height / 2))
+                        .force("collide", d3.forceCollide().radius(30));
+
+                    // Fetch Data
+                    const token = localStorage.getItem('netra_token');
+                    const statusEl = document.getElementById('graphStatus');
+                    if (statusEl) statusEl.innerText = "Connecting to Neural Grid...";
+
+                    fetch('/api/graph', { headers: { 'Authorization': `Bearer ${token} ` } })
+                        .then(res => res.json())
+                        .then(data => {
+                            if (!data.nodes || data.nodes.length === 0) {
+                                if (statusEl) statusEl.innerText = "No Active Assets Found";
+                                svg.append("text")
+                                    .attr("x", width / 2)
+                                    .attr("y", height / 2)
+                                    .attr("text-anchor", "middle")
+                                    .attr("fill", "#666")
+                                    .text("No Graph Data Available - Run a Scan");
+                                return;
                             }
-                            return t;
+                            if (statusEl) statusEl.innerText = `Live: ${data.nodes.length} Nodes tracked`;
+
+                            // --- Update Dashboard Charts with Real Data ---
+                            try {
+                                let high = 0, med = 0, low = 0;
+                                let ports = {};
+                                let riskScore = 0;
+
+                                data.nodes.forEach(n => {
+                                    // Vuln Counts
+                                    if (n.group === 'Vulnerability') {
+                                        if (n.properties.severity === 'Critical' || n.properties.severity === 'High') high++;
+                                        else if (n.properties.severity === 'Medium') med++;
+                                        else low++;
+                                    }
+                                    // Domain Risk
+                                    if (n.group === 'Domain' && n.properties.risk_score) {
+                                        riskScore = Math.max(riskScore, n.properties.risk_score);
+                                    }
+                                    // Port Counts
+                                    if (n.group === 'Service' && n.label) { // label is port num
+                                        ports[n.label] = (ports[n.label] || 0) + 1;
+                                    }
+                                });
+
+                                // Update Pie (Vulns)
+                                if (this.charts.pie) {
+                                    this.charts.pie.data.datasets[0].data = [high, med, low];
+                                    this.charts.pie.update();
+                                }
+
+                                // Update Line (Risk Score - Simulation for now)
+                                if (this.charts.line) {
+                                    // We only have 1 point (current), so let's flatline it or show transition
+                                    this.charts.line.data.datasets[0].data = [riskScore, riskScore];
+                                    this.charts.line.update();
+                                }
+
+                                // Update Bar (Top Ports)
+                                if (this.charts.bar) {
+                                    const topPorts = Object.entries(ports).sort((a, b) => b[1] - a[1]).slice(0, 3);
+                                    if (topPorts.length > 0) {
+                                        this.charts.bar.data.labels = topPorts.map(p => p[0]);
+                                        this.charts.bar.data.datasets[0].data = topPorts.map(p => p[1]);
+                                        this.charts.bar.update();
+                                    }
+                                }
+                            } catch (e) { console.error("Chart Sync Error", e); }
+                            // ----------------------------------------------
+
+                            // Render Links
+                            const link = svg.append("g")
+                                .attr("stroke", "#999")
+                                .attr("stroke-opacity", 0.6)
+                                .selectAll("line")
+                                .data(data.links)
+                                .join("line")
+                                .attr("stroke-width", d => Math.sqrt(d.value || 1));
+
+                            // Render Nodes
+                            const node = svg.append("g")
+                                .attr("stroke", "#fff")
+                                .attr("stroke-width", 1.5)
+                                .selectAll("circle")
+                                .data(data.nodes)
+                                .join("circle")
+                                .attr("r", d => {
+                                    if (d.group === 'Domain') return 15;
+                                    if (d.group === 'IPAddress') return 10;
+                                    if (d.group === 'Service') return 8;
+                                    return 5;
+                                })
+                                .attr("fill", d => {
+                                    // Risk Score coloring
+                                    if (d.group === 'Domain' && d.properties.risk_score > 50) return "#ef4444"; // Red
+                                    if (d.group === 'Domain') return "#3b82f6"; // Blue
+                                    if (d.group === 'Vulnerability') return "#f59e0b"; // Orange
+                                    if (d.group === 'IPAddress') return "#10b981"; // Green
+                                    if (d.group === 'Service') return "#a855f7"; // Purple
+                                    return "#64748b";
+                                })
+                                .call(d3.drag()
+                                    .on("start", dragstarted)
+                                    .on("drag", dragged)
+                                    .on("end", dragended));
+
+                            node.append("title")
+                                .text(d => {
+                                    let t = d.label;
+                                    if (d.properties.risk_score !== undefined) {
+                                        t += `\nRisk Score: ${d.properties.risk_score} `;
+                                        if (d.properties.risk_source) t += `\nSource: ${d.properties.risk_source} `;
+                                    }
+                                    return t;
+                                });
+
+                            // Labels
+                            const text = svg.append("g")
+                                .selectAll("text")
+                                .data(data.nodes)
+                                .join("text")
+                                .text(d => d.label)
+                                .attr("font-size", "10px")
+                                .attr("fill", "#ccc")
+                                .attr("x", 8)
+                                .attr("y", 3);
+
+                            simulation
+                                .nodes(data.nodes)
+                                .on("tick", ticked);
+
+                            simulation.force("link")
+                                .links(data.links);
+
+                            function ticked() {
+                                link
+                                    .attr("x1", d => d.source.x)
+                                    .attr("y1", d => d.source.y)
+                                    .attr("x2", d => d.target.x)
+                                    .attr("y2", d => d.target.y);
+
+                                node
+                                    .attr("cx", d => d.x)
+                                    .attr("cy", d => d.y);
+
+                                text
+                                    .attr("x", d => d.x + 10)
+                                    .attr("y", d => d.y + 4);
+                            }
+
+                            function dragstarted(event) {
+                                if (!event.active) simulation.alphaTarget(0.3).restart();
+                                event.subject.fx = event.subject.x;
+                                event.subject.fy = event.subject.y;
+                            }
+
+                            function dragged(event) {
+                                event.subject.fx = event.x;
+                                event.subject.fy = event.y;
+                            }
+
+                            function dragended(event) {
+                                if (!event.active) simulation.alphaTarget(0);
+                                event.subject.fx = null;
+                                event.subject.fy = null;
+                            }
                         });
-
-                    // Labels
-                    const text = svg.append("g")
-                        .selectAll("text")
-                        .data(data.nodes)
-                        .join("text")
-                        .text(d => d.label)
-                        .attr("font-size", "10px")
-                        .attr("fill", "#ccc")
-                        .attr("x", 8)
-                        .attr("y", 3);
-
-                    simulation
-                        .nodes(data.nodes)
-                        .on("tick", ticked);
-
-                    simulation.force("link")
-                        .links(data.links);
-
-                    function ticked() {
-                        link
-                            .attr("x1", d => d.source.x)
-                            .attr("y1", d => d.source.y)
-                            .attr("x2", d => d.target.x)
-                            .attr("y2", d => d.target.y);
-
-                        node
-                            .attr("cx", d => d.x)
-                            .attr("cy", d => d.y);
-
-                        text
-                            .attr("x", d => d.x + 10)
-                            .attr("y", d => d.y + 4);
-                    }
-
-                    function dragstarted(event) {
-                        if (!event.active) simulation.alphaTarget(0.3).restart();
-                        event.subject.fx = event.subject.x;
-                        event.subject.fy = event.subject.y;
-                    }
-
-                    function dragged(event) {
-                        event.subject.fx = event.x;
-                        event.subject.fy = event.y;
-                    }
-
-                    function dragended(event) {
-                        if (!event.active) simulation.alphaTarget(0);
-                        event.subject.fx = null;
-                        event.subject.fy = null;
-                    }
-                });
-        }
-        }
-        }
-        }
-    }));
-
-    // --- Shadow IT Prediction Logic ---
-    async function predictShadowIT() {
-        const statusEl = document.getElementById('graphStatus');
-        if(statusEl) statusEl.innerText = "Analyzing topology...";
-        
-        try {
-            const res = await fetch('/api/graph/predict');
-            const data = await res.json();
-            
-            if(data.predictions && data.predictions.length > 0) {
-                if(statusEl) statusEl.innerText = `AI FOUND ${ data.predictions.length } HIDDEN LINKS`;
-                
-                const svg = window.netraGraph.svg;
-                if(!svg) return;
-
-                // Draw Shadow Links
-                svg.append("g")
-                    .attr("class", "shadow-links")
-                    .attr("stroke", "#f59e0b") // Yellow-500
-                    .attr("stroke-opacity", 0.8)
-                    .attr("stroke-dasharray", "5,5") // Dashed
-                    .selectAll("line")
-                    .data(data.predictions)
-                    .join("line")
-                    .attr("stroke-width", 2)
-                    .attr("x1", d => getCoords(d.source).x)
-                    .attr("y1", d => getCoords(d.source).y)
-                    .attr("x2", d => getCoords(d.target).x)
-                    .attr("y2", d => getCoords(d.target).y)
-                    .append("title")
-                    .text(d => `⚠️ SHADOW LINK DETECTED\nConfidence: ${ d.confidence }%\nReason: ${ d.reason }`);
-                
-                // Helper to find node coordinates from IP (since D3 simulation uses object references)
-                // We need to re-select the node data from the D3 internal state or cache it.
-                // A simpler hack: The nodes in the DOM have __data__ attached by D3.
-                
-                function getCoords(ip) {
-                    // Find node with matching IP/ID
-                    const circle = Array.from(document.querySelectorAll("circle")).find(c => c.__data__.id === ip || c.__data__.label === ip);
-                    return circle ? { x: circle.__data__.x, y: circle.__data__.y } : { x: 0, y: 0 };
                 }
-
-            } else {
-                if(statusEl) statusEl.innerText = "No Shadow Links Found";
             }
-        } catch(e) {
-            console.error("Shadow Scan Error", e);
-            if(statusEl) statusEl.innerText = "Prediction Failed";
         }
-    }
+
+
+        // --- Shadow IT Prediction Logic ---
+        async function predictShadowIT() {
+                const statusEl = document.getElementById('graphStatus');
+                if (statusEl) statusEl.innerText = "Analyzing topology...";
+
+                try {
+                    const res = await fetch('/api/graph/predict');
+                    const data = await res.json();
+
+                    if (data.predictions && data.predictions.length > 0) {
+                        if (statusEl) statusEl.innerText = `AI FOUND ${data.predictions.length} HIDDEN LINKS`;
+
+                        const svg = window.netraGraph.svg;
+                        if (!svg) return;
+
+                        // Draw Shadow Links
+                        svg.append("g")
+                            .attr("class", "shadow-links")
+                            .attr("stroke", "#f59e0b") // Yellow-500
+                            .attr("stroke-opacity", 0.8)
+                            .attr("stroke-dasharray", "5,5") // Dashed
+                            .selectAll("line")
+                            .data(data.predictions)
+                            .join("line")
+                            .attr("stroke-width", 2)
+                            .attr("x1", d => getCoords(d.source).x)
+                            .attr("y1", d => getCoords(d.source).y)
+                            .attr("x2", d => getCoords(d.target).x)
+                            .attr("y2", d => getCoords(d.target).y)
+                            .append("title")
+                            .text(d => `⚠️ SHADOW LINK DETECTED\nConfidence: ${d.confidence}%\nReason: ${d.reason}`);
+
+                        // Helper to find node coordinates from IP (since D3 simulation uses object references)
+                        // We need to re-select the node data from the D3 internal state or cache it.
+                        // A simpler hack: The nodes in the DOM have __data__ attached by D3.
+
+                        function getCoords(ip) {
+                            // Find node with matching IP/ID
+                            const circle = Array.from(document.querySelectorAll("circle")).find(c => c.__data__.id === ip || c.__data__.label === ip);
+                            return circle ? { x: circle.__data__.x, y: circle.__data__.y } : { x: 0, y: 0 };
+                        }
+
+                    } else {
+                        if (statusEl) statusEl.innerText = "No Shadow Links Found";
+                    }
+                } catch (e) {
+                    console.error("Shadow Scan Error", e);
+                    if (statusEl) statusEl.innerText = "Prediction Failed";
+                }
+            }
     </script>
 </body>
 
