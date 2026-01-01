@@ -146,11 +146,6 @@
                             <span
                                 x-text="authMode === 'login' ? 'Request New Clearance (Register)' : 'Return to Login'"></span>
                         </button>
-                        <a href="/neural.html"
-                            class="flex items-center gap-3 px-3 py-2 text-slate-400 hover:text-green-400 hover:bg-green-500/5 rounded-lg transition-colors group">
-                            <i data-lucide="brain" class="w-4 h-4 group-hover:scale-110 transition-transform"></i>
-                            <span>Neural Grid</span>
-                        </a>
                     </div>
                     <div x-show="authError"
                         class="mt-4 p-3 bg-red-900/30 border border-red-500 rounded text-red-400 text-xs text-center font-mono"
@@ -276,14 +271,22 @@
                 <ul class="flex flex-wrap justify-center gap-4 md:gap-8 px-4">
                     <template x-for="item in menuItems" :key="item.id">
                         <li>
-                            <button @click="activeTab = item.id"
-                                :class="activeTab === item.id ? 'text-radium-600 dark:text-radium-500 scale-105' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'"
-                                class="relative px-2 py-1 font-serif text-sm md:text-base font-bold tracking-wider transition-all duration-300">
-                                <span x-text="item.label"></span>
-                                <div x-show="activeTab === item.id"
-                                    class="absolute -bottom-2 left-0 right-0 h-0.5 bg-radium-600 dark:bg-radium-500">
-                                </div>
-                            </button>
+                            <template x-if="!item.url">
+                                <button @click="activeTab = item.id"
+                                    :class="activeTab === item.id ? 'text-radium-600 dark:text-radium-500 scale-105' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'"
+                                    class="relative px-2 py-1 font-serif text-sm md:text-base font-bold tracking-wider transition-all duration-300">
+                                    <span x-text="item.label"></span>
+                                    <div x-show="activeTab === item.id"
+                                        class="absolute -bottom-2 left-0 right-0 h-0.5 bg-radium-600 dark:bg-radium-500">
+                                    </div>
+                                </button>
+                            </template>
+                            <template x-if="item.url">
+                                <a :href="item.url"
+                                    class="relative px-2 py-1 font-serif text-sm md:text-base font-bold tracking-wider transition-all duration-300 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200">
+                                    <span x-text="item.label"></span>
+                                </a>
+                            </template>
                         </li>
                     </template>
                 </ul>
@@ -679,8 +682,8 @@
     <script>
         window.netraGraph = { svg: null, simulation: null };
 
-        document.addEventListener('alpine:init', () => {
-            Alpine.data('app', () => ({
+        function app() {
+            return {
                 isAuthenticated: false,
                 authMode: 'login',
                 authForm: { username: '', password: '' },
@@ -707,17 +710,22 @@
                     { id: 'dashboard', label: 'FRONT PAGE' },
                     { id: 'classifieds', label: 'CLASSIFIEDS (HISTORY)' },
                     { id: 'investigations', label: 'INVESTIGATIONS' },
+                    { id: 'neural', label: 'NEURAL GRID', url: '/neural.html' },
                 ],
 
-                initApp() {
+                initApp: function () {
                     const savedTheme = localStorage.getItem('netra-theme');
                     this.darkMode = savedTheme ? JSON.parse(savedTheme) : true;
                     this.applyTheme();
                     this.checkAuth();
-                    this.$nextTick(() => lucide.createIcons());
+                    if (typeof lucide !== 'undefined') {
+                        this.$nextTick(() => lucide.createIcons());
+                    }
 
                     this.$watch('activeTab', (val) => {
-                        this.$nextTick(() => lucide.createIcons());
+                        if (typeof lucide !== 'undefined') {
+                            this.$nextTick(() => lucide.createIcons());
+                        }
                         if (val === 'classifieds') this.loadScanHistory();
                         if (val === 'investigations') {
                             setTimeout(() => {
@@ -729,7 +737,7 @@
                     });
                 },
 
-                checkAuth() {
+                checkAuth: function () {
                     const token = localStorage.getItem('netra_token');
                     if (token) {
                         this.isAuthenticated = true;
@@ -739,7 +747,7 @@
                     }
                 },
 
-                async handleAuth() {
+                handleAuth: async function () {
                     this.authError = null;
                     const endpoint = this.authMode === 'login' ? '/token' : '/auth/register';
                     const formData = new URLSearchParams();
@@ -771,13 +779,13 @@
                     }
                 },
 
-                logout() {
+                logout: function () {
                     localStorage.removeItem('netra_token');
                     this.isAuthenticated = false;
                     this.results = null;
                 },
 
-                async fetchUserProfile() {
+                fetchUserProfile: async function () {
                     const token = localStorage.getItem('netra_token');
                     if (!token) return;
                     try {
@@ -787,7 +795,7 @@
                     } catch (e) { }
                 },
 
-                async loadScanHistory() {
+                loadScanHistory: async function () {
                     const token = localStorage.getItem('netra_token');
                     if (!token) return;
                     try {
@@ -796,7 +804,7 @@
                     } catch (e) { }
                 },
 
-                async deleteScan(id) {
+                deleteScan: async function (id) {
                     if (!confirm("Delete this classified record?")) return;
                     const token = localStorage.getItem('netra_token');
                     try {
@@ -805,7 +813,7 @@
                     } catch (e) { }
                 },
 
-                async loadScanForInvestigation(scanStub) {
+                loadScanForInvestigation: async function (scanStub) {
                     this.selectedScan = scanStub;
                     this.activeTab = 'investigations';
 
@@ -818,7 +826,7 @@
                     } catch (e) { }
                 },
 
-                initCharts() {
+                initCharts: function () {
                     if (this.charts.pie) return; // already init
 
                     const commonOpt = { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { display: false } } };
@@ -845,7 +853,7 @@
                     });
                 },
 
-                updateCharts(scanData) {
+                updateCharts: function (scanData) {
                     if (!scanData.results) return;
 
                     // Update Pie (Vulns)
@@ -868,7 +876,7 @@
                 },
 
                 // --- AI Terminal Update ---
-                updateTerminal(scanData) {
+                updateTerminal: function (scanData) {
                     const terminal = document.getElementById('ai-terminal-text');
                     const allVulns = [
                         ...(scanData.results.ThreatScanner?.vulnerabilities || []),
@@ -901,11 +909,11 @@
                 },
 
 
-                loadDashboardData() {
+                loadDashboardData: function () {
                     this.fetchStats();
                 },
 
-                fetchStats() {
+                fetchStats: function () {
                     const token = localStorage.getItem('netra_token');
                     if (!token) return;
                     fetch('/api/stats', { headers: { 'Authorization': `Bearer ${token}` } })
@@ -921,7 +929,7 @@
                         .catch(e => console.error(e));
                 },
 
-                async startScan() {
+                startScan: async function () {
                     if (!this.target) return;
                     const token = localStorage.getItem('netra_token');
                     this.scanning = true;
@@ -975,22 +983,22 @@
                     }
                 },
 
-                addLog(msg) {
+                addLog: function (msg) {
                     this.logs.unshift(`[${new Date().toLocaleTimeString()}] ${msg} `);
                 },
 
-                toggleTheme() {
+                toggleTheme: function () {
                     this.darkMode = !this.darkMode;
                     this.applyTheme();
                     localStorage.setItem('netra-theme', JSON.stringify(this.darkMode));
                 },
 
-                applyTheme() {
+                applyTheme: function () {
                     if (this.darkMode) document.documentElement.classList.add('dark');
                     else document.documentElement.classList.remove('dark');
                 },
 
-                downloadResults() {
+                downloadResults: function () {
                     const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(this.results, null, 2));
                     const a = document.createElement('a');
                     a.setAttribute("href", dataStr);
@@ -1001,7 +1009,7 @@
                 },
 
                 monitorGraph: false,
-                initGraph() {
+                initGraph: function () {
                     const container = document.getElementById('graph');
                     const width = container.clientWidth;
                     const height = container.clientHeight;
@@ -1187,62 +1195,63 @@
                                 event.subject.fx = null;
                                 event.subject.fy = null;
                             }
-                        });
+                        })
+                        .catch(e => console.error("Graph Error:", e));
                 }
-            }
+            };
         }
 
 
         // --- Shadow IT Prediction Logic ---
         async function predictShadowIT() {
-                const statusEl = document.getElementById('graphStatus');
-                if (statusEl) statusEl.innerText = "Analyzing topology...";
+            const statusEl = document.getElementById('graphStatus');
+            if (statusEl) statusEl.innerText = "Analyzing topology...";
 
-                try {
-                    const res = await fetch('/api/graph/predict');
-                    const data = await res.json();
+            try {
+                const res = await fetch('/api/graph/predict');
+                const data = await res.json();
 
-                    if (data.predictions && data.predictions.length > 0) {
-                        if (statusEl) statusEl.innerText = `AI FOUND ${data.predictions.length} HIDDEN LINKS`;
+                if (data.predictions && data.predictions.length > 0) {
+                    if (statusEl) statusEl.innerText = `AI FOUND ${data.predictions.length} HIDDEN LINKS`;
 
-                        const svg = window.netraGraph.svg;
-                        if (!svg) return;
+                    const svg = window.netraGraph.svg;
+                    if (!svg) return;
 
-                        // Draw Shadow Links
-                        svg.append("g")
-                            .attr("class", "shadow-links")
-                            .attr("stroke", "#f59e0b") // Yellow-500
-                            .attr("stroke-opacity", 0.8)
-                            .attr("stroke-dasharray", "5,5") // Dashed
-                            .selectAll("line")
-                            .data(data.predictions)
-                            .join("line")
-                            .attr("stroke-width", 2)
-                            .attr("x1", d => getCoords(d.source).x)
-                            .attr("y1", d => getCoords(d.source).y)
-                            .attr("x2", d => getCoords(d.target).x)
-                            .attr("y2", d => getCoords(d.target).y)
-                            .append("title")
-                            .text(d => `⚠️ SHADOW LINK DETECTED\nConfidence: ${d.confidence}%\nReason: ${d.reason}`);
+                    // Draw Shadow Links
+                    svg.append("g")
+                        .attr("class", "shadow-links")
+                        .attr("stroke", "#f59e0b") // Yellow-500
+                        .attr("stroke-opacity", 0.8)
+                        .attr("stroke-dasharray", "5,5") // Dashed
+                        .selectAll("line")
+                        .data(data.predictions)
+                        .join("line")
+                        .attr("stroke-width", 2)
+                        .attr("x1", d => getCoords(d.source).x)
+                        .attr("y1", d => getCoords(d.source).y)
+                        .attr("x2", d => getCoords(d.target).x)
+                        .attr("y2", d => getCoords(d.target).y)
+                        .append("title")
+                        .text(d => `⚠️ SHADOW LINK DETECTED\nConfidence: ${d.confidence}%\nReason: ${d.reason}`);
 
-                        // Helper to find node coordinates from IP (since D3 simulation uses object references)
-                        // We need to re-select the node data from the D3 internal state or cache it.
-                        // A simpler hack: The nodes in the DOM have __data__ attached by D3.
+                    // Helper to find node coordinates from IP (since D3 simulation uses object references)
+                    // We need to re-select the node data from the D3 internal state or cache it.
+                    // A simpler hack: The nodes in the DOM have __data__ attached by D3.
 
-                        function getCoords(ip) {
-                            // Find node with matching IP/ID
-                            const circle = Array.from(document.querySelectorAll("circle")).find(c => c.__data__.id === ip || c.__data__.label === ip);
-                            return circle ? { x: circle.__data__.x, y: circle.__data__.y } : { x: 0, y: 0 };
-                        }
-
-                    } else {
-                        if (statusEl) statusEl.innerText = "No Shadow Links Found";
+                    function getCoords(ip) {
+                        // Find node with matching IP/ID
+                        const circle = Array.from(document.querySelectorAll("circle")).find(c => c.__data__.id === ip || c.__data__.label === ip);
+                        return circle ? { x: circle.__data__.x, y: circle.__data__.y } : { x: 0, y: 0 };
                     }
-                } catch (e) {
-                    console.error("Shadow Scan Error", e);
-                    if (statusEl) statusEl.innerText = "Prediction Failed";
+
+                } else {
+                    if (statusEl) statusEl.innerText = "No Shadow Links Found";
                 }
+            } catch (e) {
+                console.error("Shadow Scan Error", e);
+                if (statusEl) statusEl.innerText = "Prediction Failed";
             }
+        }
     </script>
 </body>
 
