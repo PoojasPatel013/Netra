@@ -864,50 +864,51 @@
                     this.charts.bar.update();
 
                     this.fetchStats(); // Refresh global stats immediately
+                    this.updateTerminal(scanData);
                 },
 
                 // --- AI Terminal Update ---
-                const terminal = document.getElementById('ai-terminal-text');
-                const allVulns = [
-                    ...(scanData.results.ThreatScanner?.vulnerabilities || []),
-                    ...(scanData.results.RubyScanner?.vulnerabilities || []),
-                    ...(scanData.results.RubyScanner_zombie_scan?.vulnerabilities || []) // Ruby scanner result key
-                ];
+                updateTerminal(scanData) {
+                    const terminal = document.getElementById('ai-terminal-text');
+                    const allVulns = [
+                        ...(scanData.results.ThreatScanner?.vulnerabilities || []),
+                        ...(scanData.results.RubyScanner?.vulnerabilities || []),
+                        ...(scanData.results.RubyScanner_zombie_scan?.vulnerabilities || [])
+                    ];
 
-                // Find any vulnerability with Neural Analysis
-                const aiVuln = allVulns.find(v => v.details && v.details.includes("Neural Engine Analysis"));
+                    const aiVuln = allVulns.find(v => v.details && v.details.includes("Neural Engine Analysis"));
 
-                if(aiVuln) {
-                    const match = aiVuln.details.match(/Analysis: "(.*?)"/);
-                    if (match) {
-                        // Typewriter effect simulation
-                        terminal.innerText = "";
-                        let i = 0;
-                        const txt = match[1];
-                        const typeWriter = () => {
-                            if (i < txt.length) {
-                                terminal.innerHTML += txt.charAt(i);
-                                i++;
-                                setTimeout(typeWriter, 50); // Speed
-                            }
-                        };
-                        typeWriter();
+                    if (aiVuln) {
+                        const match = aiVuln.details.match(/Analysis: "(.*?)"/);
+                        if (match) {
+                            terminal.innerText = "";
+                            let i = 0;
+                            const txt = match[1];
+                            const typeWriter = () => {
+                                if (i < txt.length) {
+                                    terminal.innerHTML += txt.charAt(i);
+                                    i++;
+                                    setTimeout(typeWriter, 50);
+                                }
+                            };
+                            typeWriter();
+                        }
+                    } else if (allVulns.length > 0) {
+                        terminal.innerText = `Scan Complete. ${allVulns.length} anomalies detected. Neural Engine Idle.`;
+                    } else {
+                        terminal.innerText = "Target appears clean. No Shadow APIs detected.";
                     }
-                } else if(allVulns.length > 0) {
-                terminal.innerText = `Scan Complete. ${allVulns.length} anomalies detected. Neural Engine Idle.`;
-            } else {
-                terminal.innerText = "Target appears clean. No Shadow APIs detected.";
-            }
-        },
+                },
+            },
 
-            loadDashboardData() {
-            this.fetchStats();
-        },
+                loadDashboardData() {
+                this.fetchStats();
+            },
 
-            fetchStats() {
-                const token = localStorage.getItem('netra_token');
-                if(!token) return;
-                fetch('/api/stats', { headers: { 'Authorization': `Bearer ${token}` } })
+                fetchStats() {
+                    const token = localStorage.getItem('netra_token');
+                    if(!token) return;
+                    fetch('/api/stats', { headers: { 'Authorization': `Bearer ${token}` } })
                 .then(res => res.json())
                 .then(data => {
                     this.stats = data;
