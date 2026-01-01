@@ -1,5 +1,4 @@
 import asyncio
-import os
 import sys
 from neomodel import config, db
 from redis.asyncio import Redis

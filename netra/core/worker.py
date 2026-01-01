@@ -1,9 +1,7 @@
 import asyncio
 import os
-import json
 import logging
 from redis import asyncio as aioredis
-from sqlmodel import select
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 

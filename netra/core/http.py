@@ -1,7 +1,7 @@
 import aiohttp
 import asyncio
 import logging
-from typing import Optional, Dict, Any
+from typing import Optional
 
 logger = logging.getLogger("netra.core.http")
 

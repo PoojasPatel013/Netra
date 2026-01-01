@@ -1,5 +1,4 @@
 import asyncio
-import socket
 from typing import Dict, Any, List
 from netra.core.scanner import BaseScanner
 

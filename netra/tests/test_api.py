@@ -1,7 +1,6 @@
 from fastapi.testclient import TestClient
 from netra.api.main import app
 from netra.ml.zombie_hunter import ZombieHunter
-import pytest
 
 client = TestClient(app)
 
@@ -46,7 +45,6 @@ def test_zombie_hunter_injection():
 
 # Pydantic Model Tests (Unit level, no server needed)
 from netra.api.main import ScanCreate
-from pydantic import ValidationError
 
 
 def test_scan_model_validation():

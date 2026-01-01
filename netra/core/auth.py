@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
-from typing import Optional, Union
-from jose import JWTError, jwt
+from typing import Union
+from jose import jwt
 from passlib.context import CryptContext
 from pydantic import BaseModel
 

@@ -4,8 +4,6 @@ import json
 from typing import List
 from fastapi import FastAPI, Depends, HTTPException, BackgroundTasks, Request
 from fastapi.staticfiles import StaticFiles
-from fastapi.templating import Jinja2Templates
-from fastapi.responses import HTMLResponse
 from sqlmodel import SQLModel, select
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
@@ -22,7 +20,6 @@ from netra.integrations.defectdojo import DefectDojoClient
 from netra.core.reporter import SARIFReporter
 from netra.core.modules.recon import CTScanner
 from netra.core.modules.secrets import SecretScanner
-from netra.core.modules.api_fuzzer import ZombieScanner
 from netra.ml.zombie_hunter import ZombieHunter
 from netra.core.orchestration.messaging import NetraStream
 from redis import asyncio as aioredis
@@ -33,7 +30,6 @@ from netra.core.auth import (
     get_password_hash,
     create_access_token,
     Token,
-    UserInDB,
 )
 from datetime import timedelta
 
@@ -44,7 +40,6 @@ REDIS_URL = os.getenv("REDIS_URL")
 
 
 class ScanRequest(BaseModel):
-    target: str
     target: str
     options: dict = {}
 

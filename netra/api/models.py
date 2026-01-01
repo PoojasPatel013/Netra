@@ -1,4 +1,4 @@
-from typing import Optional, Dict, List, Any
+from typing import Optional, Dict, Any
 from sqlmodel import Field, SQLModel, JSON, Column
 from datetime import datetime
 

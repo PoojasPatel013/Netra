@@ -1,7 +1,6 @@
-from typing import Optional, List
-from sqlmodel import Field, SQLModel, create_engine, Session, select
+from typing import Optional
+from sqlmodel import Field, SQLModel, create_engine, Session
 from datetime import datetime
-import os
 
 # Database Setup
 sqlite_file_name = "netra.db"

@@ -1,7 +1,7 @@
 import re
 import math
 import logging
-from typing import Dict, Any, List
+from typing import Dict, Any
 from netra.core.scanner import BaseScanner
 from netra.core.http import SafeHTTPClient
 

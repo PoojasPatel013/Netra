@@ -1,4 +1,4 @@
-from fastapi import APIRouter, BackgroundTasks, HTTPException, Depends
+from fastapi import APIRouter, BackgroundTasks, Depends
 from pydantic import BaseModel
 from typing import List, Optional
 from netra.core.engine import NetraEngine
@@ -7,7 +7,6 @@ from netra.core.modules.http import HTTPScanner
 from netra.core.modules.pentest import PentestEngine
 from netra.core.database import get_session, Scan, Vulnerability
 from sqlmodel import Session, select
-import asyncio
 
 router = APIRouter()
 

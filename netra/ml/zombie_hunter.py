@@ -1,9 +1,6 @@
 import pickle
 import io
 import re
-from sklearn.feature_extraction.text import CountVectorizer
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.pipeline import Pipeline
 
 
 class ZombieHunter:
@@ -47,7 +44,7 @@ class ZombieHunter:
             return False
         if " " in text:
             return False  # Paths usually don't have spaces
-        if not "/" in text:
+        if "/" not in text:
             return False  # Must have a slash
 
         # 2. Heuristic Check (Fast Path or Fallback)

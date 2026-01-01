@@ -1,5 +1,3 @@
-import pytest
-from unittest.mock import MagicMock, patch
 from netra.ml.zombie_hunter import ZombieHunter
 
 

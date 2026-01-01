@@ -1,4 +1,3 @@
-import aiohttp
 import logging
 from typing import Dict, Any
 from netra.core.scanner import BaseScanner

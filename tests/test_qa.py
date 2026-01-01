@@ -1,5 +1,4 @@
 import pytest
-import aiohttp
 from aioresponses import aioresponses
 from netra.core.http import SafeHTTPClient
 from netra.core.reporter import SARIFReporter

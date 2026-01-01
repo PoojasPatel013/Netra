@@ -1,5 +1,4 @@
 import asyncio
-import os
 import json
 from netra.core.orchestration.messaging import NetraStream
 from netra.core.discovery.dns_resolver import DNSResolver
@@ -37,7 +36,7 @@ async def process_ingest_event(event_data, stream):
         }
 
         await stream.publish_raw_data(raw_result)
-        print(f" [Ingest] Pushed raw data to ML pipeline")
+        print(" [Ingest] Pushed raw data to ML pipeline")
 
     except Exception as e:
         print(f"[Ingest] Error: {e}")

@@ -1,7 +1,6 @@
 import logging
-import json
 import asyncio
-from typing import Dict, Any, List
+from typing import Dict, Any
 from netra.core.scanner import BaseScanner
 from netra.core.http import SafeHTTPClient
 
@@ -70,7 +69,6 @@ class ZombieScanner(BaseScanner):
         """
         Checks for Zombie API versions (e.g., /v1/ if /v2/ is present).
         """
-        import re
 
         # Heuristic: guess current version from URL or just try common ones
         versions = ["v1", "v2", "v3", "api/v1", "api/v2"]
@@ -229,5 +227,5 @@ class ZombieScanner(BaseScanner):
                     }
                 )
 
-        except Exception as e:
+        except Exception:
             pass

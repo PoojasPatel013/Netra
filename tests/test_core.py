@@ -1,5 +1,4 @@
 import pytest
-import asyncio
 from unittest.mock import AsyncMock, patch
 from netra.core.modules.network import PortScanner
 from netra.core.modules.http import HTTPScanner

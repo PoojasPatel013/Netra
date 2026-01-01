@@ -2,7 +2,6 @@ import asyncio
 import typer
 import json
 import uvicorn
-from typing import Optional
 from netra.core.engine import NetraEngine
 from netra.core.modules.network import PortScanner
 from netra.core.modules.http import HTTPScanner

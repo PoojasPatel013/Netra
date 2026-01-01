@@ -1,6 +1,5 @@
 import logging
-import asyncio
-from typing import Dict, Any, List
+from typing import Dict, Any
 from netra.core.scanner import BaseScanner
 from netra.core.modules.recon import CTScanner
 

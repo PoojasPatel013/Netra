@@ -1,6 +1,6 @@
 import logging
 import tldextract
-from typing import Dict, Any, List, Set
+from typing import Dict, Any, Set
 from netra.core.scanner import BaseScanner
 from netra.core.http import SafeHTTPClient
 

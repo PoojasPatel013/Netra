@@ -1,5 +1,4 @@
 import pytest
-import ipaddress
 from unittest.mock import AsyncMock, patch
 from netra.core.modules.threat import ThreatScanner
 
