@@ -12,8 +12,8 @@ COPY pyproject.toml poetry.lock ./
 # Install Poetry
 RUN pip install poetry && poetry config virtualenvs.create false
 
-# Install dependencies (latest Poetry uses --without dev)
-RUN poetry install --without dev --no-root
+# Fix lockfile mismatch and install
+RUN poetry lock && poetry install --without dev --no-root
 
 # Copy source code
 COPY netra ./netra
