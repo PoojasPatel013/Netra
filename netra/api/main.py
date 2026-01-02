@@ -1082,7 +1082,12 @@ async def catch_all(full_path: str):
     ):
         raise HTTPException(status_code=404, detail="Not Found")
 
-    # Serve index.html for everything else
+    # 1. Try to serve exact file from static directory (e.g. neural.html, favicon.ico)
+    requested_path = os.path.join(STATIC_DIR, full_path)
+    if os.path.exists(requested_path) and os.path.isfile(requested_path):
+        return FileResponse(requested_path)
+
+    # 2. Serve index.html for everything else (SPA fallback)
     index_path = os.path.join(STATIC_DIR, "index.html")
     if os.path.exists(index_path):
         return FileResponse(index_path)
