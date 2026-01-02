@@ -1129,7 +1129,7 @@
                                 }
 
                                 // Update Line (Risk Score - Simulation for now)
-                                if (this.charts.line) {
+                                if (this.charts.line && this.charts.line.data && this.charts.line.data.datasets.length > 0) {
                                     // We only have 1 point (current), so let's flatline it or show transition
                                     this.charts.line.data.datasets[0].data = [riskScore, riskScore];
                                     this.charts.line.update();
@@ -1181,11 +1181,11 @@
                                 .call(d3.drag()
                                     .on("start", dragstarted)
                                     .on("drag", dragged)
-                                    .on("end", dragended)
-                                    .on("click", (event, d) => {
-                                        // Dispatch event to Alpine
-                                        window.dispatchEvent(new CustomEvent('node-selected', { detail: d }));
-                                    }));
+                                    .on("end", dragended))
+                                .on("click", (event, d) => {
+                                    // Dispatch event to Alpine
+                                    window.dispatchEvent(new CustomEvent('node-selected', { detail: d }));
+                                });
 
                             node.append("title")
                                 .text(d => {

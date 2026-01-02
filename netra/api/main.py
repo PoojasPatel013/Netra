@@ -414,9 +414,7 @@ async def sync_graph_results(scan_results: dict, target: str):
                         },
                     )
 
-                db.cypher_query(
-                    query_acq, {"domain": target, "sub_name": acq["domain"]}
-                )
+
 
         # 5. ML Insight: Calculate Risk Score
         # 5. ML Insight: Calculate Risk Score
@@ -762,7 +760,10 @@ async def delete_scan(
 
 
 # Graph & Asset Endpoints (Real Data Wiring)
-from neomodel import config, db
+# Graph & Asset Endpoints (Real Data Wiring)
+from neomodel import config 
+# Note: We use global 'db' (NeoGraph) for queries, avoiding neomodel.db shadowing
+
 
 # Initialize Neo4j (Lazy connection)
 # Ensure NEO4J_URL is suitable for neomodel (bolt://user:pass@host:port)
@@ -967,8 +968,8 @@ async def predict_shadow_it():
     Finds assets that share similar open ports/services but aren't explicitly linked.
     """
     try:
-        driver = neograph.driver  # Use the initialized NeoGraph driver
-        if not driver:
+        # Use simple cypher query via global db
+        if not db:
              return {"predicted_edges": [], "status": "Graph database not connected"}
 
         query = """
@@ -991,7 +992,9 @@ async def predict_shadow_it():
         LIMIT 10
         """
         
-        records, _, _ = driver.execute_query(query)
+        # Execute using global NeoGraph wrapper
+        records, _, _ = db.driver.execute_query(query)
+
         
         predictions = []
         for record in records:
@@ -1016,7 +1019,10 @@ async def predict_shadow_it():
         return {"predictions": [], "error": str(e)}
 
 @app.get("/api/stats")
-async def get_stats(session: AsyncSession = Depends(get_session)):
+async def get_stats(
+    session: AsyncSession = Depends(get_session),
+    current_user: User = Depends(get_current_user),
+):
     """
     Returns aggregated system stats for the dashboard.
     """

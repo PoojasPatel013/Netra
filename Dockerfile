@@ -10,14 +10,14 @@ RUN apt-get update && apt-get install -y \
     build-essential \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy poetry config
-COPY pyproject.toml poetry.lock ./
+# Copy poetry config (ignore local lockfile to force regeneration)
+COPY pyproject.toml ./
 
 # Install Poetry
 RUN pip install poetry && poetry config virtualenvs.create false
 
-# Install dependencies from lockfile
-RUN poetry install --without dev --no-root
+# Generate fresh lockfile and install dependencies
+RUN poetry lock && poetry install --without dev --no-root
 
 # Copy application code
 COPY netra ./netra
