@@ -34,7 +34,7 @@ minio = "^7.2.4"
 pandas = "^2.2.0"
 numpy = "^1.26.0"
 
-[tool.poetry.group.dev.dependencies]
+[tool.poetry.dev-dependencies]
 pytest = "^8.0.0"
 pytest-asyncio = "^0.23.5"
 black = "^24.1.1"
