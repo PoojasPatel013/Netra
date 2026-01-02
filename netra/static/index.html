@@ -1001,7 +1001,7 @@
 
                         // Poll
                         const interval = setInterval(async () => {
-                            const r = await fetch(`/ scans / ${scan.id} `, { headers: { 'Authorization': `Bearer ${token} ` } });
+                            const r = await fetch(`/scans/${scan.id}`, { headers: { 'Authorization': `Bearer ${token}` } });
                             if (r.ok) {
                                 const d = await r.json();
                                 if (d.status === 'completed') {
