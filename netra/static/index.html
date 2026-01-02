@@ -380,30 +380,33 @@
                     </div>
 
                     <!-- Tagging UI (Appears when Node Selected) -->
-                    <div class="lg:col-span-12" x-show="selectedNode">
-                        <div
-                            class="bg-radium-500/10 border border-radium-500/50 p-4 rounded flex items-center justify-between">
-                            <div class="text-radium-400 font-mono text-xs">
-                                SELECTED: <span class="font-bold" x-text="selectedNode.label || selectedNode.id"></span>
-                                (<span x-text="selectedNode.group"></span>)
-                            </div>
-                            <div class="flex gap-2">
-                                <input type="text" placeholder="Add Tag (e.g. Critical)" id="tagInput"
-                                    class="bg-black border border-slate-700 text-white px-2 py-1 text-xs rounded focus:outline-none focus:border-radium-500">
-                                <button
-                                    @click="fetch('/api/graph/tag', {
+                    <template x-if="selectedNode">
+                        <div class="lg:col-span-12">
+                            <div
+                                class="bg-radium-500/10 border border-radium-500/50 p-4 rounded flex items-center justify-between">
+                                <div class="text-radium-400 font-mono text-xs">
+                                    SELECTED: <span class="font-bold"
+                                        x-text="selectedNode.label || selectedNode.id"></span>
+                                    (<span x-text="selectedNode.group"></span>)
+                                </div>
+                                <div class="flex gap-2">
+                                    <input type="text" placeholder="Add Tag (e.g. Critical)" id="tagInput"
+                                        class="bg-black border border-slate-700 text-white px-2 py-1 text-xs rounded focus:outline-none focus:border-radium-500">
+                                    <button
+                                        @click="fetch('/api/graph/tag', {
                                         method: 'POST',
                                         headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + localStorage.getItem('netra_token')},
                                         body: JSON.stringify({ node_id: selectedNode.id, tag: document.getElementById('tagInput').value })
                                     }).then(r=>r.json()).then(d=>{ alert('Tagged!'); selectedNode.properties.tag = d.tag; selectedNode=null; })"
-                                    class="bg-radium-600 hover:bg-radium-500 text-black font-bold text-xs px-3 py-1 rounded">
-                                    APPLY
-                                </button>
-                                <button @click="selectedNode = null" class="text-slate-500 hover:text-white"><i
-                                        data-lucide="x" class="w-4 h-4"></i></button>
+                                        class="bg-radium-600 hover:bg-radium-500 text-black font-bold text-xs px-3 py-1 rounded">
+                                        APPLY
+                                    </button>
+                                    <button @click="selectedNode = null" class="text-slate-500 hover:text-white"><i
+                                            data-lucide="x" class="w-4 h-4"></i></button>
+                                </div>
                             </div>
                         </div>
-                    </div>
+                    </template>
 
                     <!-- Right: Results -->
                     <div class="lg:col-span-7">
