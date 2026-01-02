@@ -11,10 +11,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 WORKDIR /app
 
 # Install Python Deps
-# Copy poetry config (ignore local lockfile)
-COPY pyproject.toml ./
+COPY pyproject.toml poetry.lock ./
 RUN pip install poetry && poetry config virtualenvs.create false
-RUN poetry lock && poetry install --without dev --no-root
+RUN poetry install --without dev --no-root
 
 # Install Ruby Gems (if any are needed by your scripts, e.g., json is built-in but network libs might not be)
 # RUN gem install httparty ... (Add if needed later)
