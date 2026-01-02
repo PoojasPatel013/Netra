@@ -37,3 +37,4 @@ class User(SQLModel, table=True):
     hashed_password: str
     disabled: bool = False
     created_at: datetime = Field(default_factory=datetime.utcnow)
+    preferences: Dict[str, Any] = Field(default={}, sa_column=Column(JSON))

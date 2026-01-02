@@ -113,6 +113,11 @@
                             Intelligence Grid</p>
                     </div>
 
+                    <!-- Alpine Listener for Node Selection -->
+                    <div @node-selected.window="selectedNode = $event.detail; activeTab = 'dashboard'"
+                        style="display:none;"></div>
+
+
                     <form @submit.prevent="handleAuth" class="space-y-6">
                         <div>
                             <label class="block text-xs font-bold uppercase text-slate-500 mb-2">Agent Identity</label>
@@ -370,6 +375,32 @@
                                 <template x-for="log in logs">
                                     <div x-text="log"></div>
                                 </template>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tagging UI (Appears when Node Selected) -->
+                    <div class="lg:col-span-12" x-show="selectedNode">
+                        <div
+                            class="bg-radium-500/10 border border-radium-500/50 p-4 rounded flex items-center justify-between">
+                            <div class="text-radium-400 font-mono text-xs">
+                                SELECTED: <span class="font-bold" x-text="selectedNode.label || selectedNode.id"></span>
+                                (<span x-text="selectedNode.group"></span>)
+                            </div>
+                            <div class="flex gap-2">
+                                <input type="text" placeholder="Add Tag (e.g. Critical)" id="tagInput"
+                                    class="bg-black border border-slate-700 text-white px-2 py-1 text-xs rounded focus:outline-none focus:border-radium-500">
+                                <button
+                                    @click="fetch('/api/graph/tag', {
+                                        method: 'POST',
+                                        headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + localStorage.getItem('netra_token')},
+                                        body: JSON.stringify({ node_id: selectedNode.id, tag: document.getElementById('tagInput').value })
+                                    }).then(r=>r.json()).then(d=>{ alert('Tagged!'); selectedNode.properties.tag = d.tag; selectedNode=null; })"
+                                    class="bg-radium-600 hover:bg-radium-500 text-black font-bold text-xs px-3 py-1 rounded">
+                                    APPLY
+                                </button>
+                                <button @click="selectedNode = null" class="text-slate-500 hover:text-white"><i
+                                        data-lucide="x" class="w-4 h-4"></i></button>
                             </div>
                         </div>
                     </div>
@@ -702,6 +733,7 @@
 
                 scanHistory: [],
                 selectedScan: null,
+                selectedNode: null, // For Graph Tagging
 
                 // Chart Instances
                 charts: { pie: null, bar: null, line: null },
@@ -790,7 +822,14 @@
                     if (!token) return;
                     try {
                         const res = await fetch('/users/me', { headers: { 'Authorization': `Bearer ${token}` } });
-                        if (res.ok) this.currentUser = await res.json();
+                        if (res.ok) {
+                            this.currentUser = await res.json();
+                            // Load Preferences (Dark Mode)
+                            if (this.currentUser.preferences?.darkMode !== undefined) {
+                                this.darkMode = this.currentUser.preferences.darkMode;
+                                this.applyTheme();
+                            }
+                        }
                         else this.logout();
                     } catch (e) { }
                 },
@@ -991,6 +1030,15 @@
                     this.darkMode = !this.darkMode;
                     this.applyTheme();
                     localStorage.setItem('netra-theme', JSON.stringify(this.darkMode));
+                    // Sync to Backend
+                    if (this.isAuthenticated) {
+                        const token = localStorage.getItem('netra_token');
+                        fetch('/users/me/preferences', {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                            body: JSON.stringify({ darkMode: this.darkMode })
+                        });
+                    }
                 },
 
                 applyTheme: function () {
@@ -1133,7 +1181,11 @@
                                 .call(d3.drag()
                                     .on("start", dragstarted)
                                     .on("drag", dragged)
-                                    .on("end", dragended));
+                                    .on("end", dragended)
+                                    .on("click", (event, d) => {
+                                        // Dispatch event to Alpine
+                                        window.dispatchEvent(new CustomEvent('node-selected', { detail: d }));
+                                    }));
 
                             node.append("title")
                                 .text(d => {

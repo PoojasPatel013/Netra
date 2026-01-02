@@ -180,7 +180,23 @@ async def login_for_access_token(
 
 @app.get("/users/me")
 async def read_users_me(current_user: User = Depends(get_current_user)):
-    return {"username": current_user.username, "id": current_user.id}
+    return {
+        "username": current_user.username,
+        "id": current_user.id,
+        "preferences": current_user.preferences or {},
+    }
+
+
+@app.put("/users/me/preferences")
+async def update_user_preferences(
+    prefs: dict,
+    current_user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+):
+    current_user.preferences = {**(current_user.preferences or {}), **prefs}
+    session.add(current_user)
+    await session.commit()
+    return current_user.preferences
 
 
 # Catch-all for SPA (must be last)
@@ -797,6 +813,44 @@ async def get_graph_data():
             t_id = process_node(target_node)
 
             links.append({"source": s_id, "target": t_id, "type": rel.type})
+
+        return {"nodes": list(nodes.values()), "links": links}
+
+    except Exception as e:
+        print(f"Graph Error: {e}")
+        return {"nodes": [], "links": []}
+
+
+class TagRequest(BaseModel):
+    node_id: str
+    tag: str
+
+
+@app.post("/api/graph/tag")
+async def tag_graph_node(
+    req: TagRequest, current_user: User = Depends(get_current_user)
+):
+    """
+    Manually tags a node in the graph (e.g. Critical, Verified).
+    """
+    try:
+        # We need to find the node by ID or Label/Address.
+        # Ideally, our UI passes the specific Neo4j ID or a unique key.
+        # For this implementation, we assume node_id corresponds to the 'name' or 'address'.
+
+        # Cypher: Match node where id or name matches
+        query = """
+        MATCH (n)
+        WHERE elementId(n) = $id OR n.name = $id OR n.address = $id
+        SET n.tag = $tag
+        RETURN n
+        """
+        # Note: elementId() is for Neo4j 5+. ID() is deprecated but widely used.
+        # Let's try matching property first as our UI uses IPs/Domains as keys often.
+        db.cypher_query(query, {"id": req.node_id, "tag": req.tag})
+        return {"status": "tagged", "node": req.node_id, "tag": req.tag}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
         return {"nodes": list(nodes.values()), "links": links}
     except Exception as e:
