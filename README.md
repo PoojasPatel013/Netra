@@ -1,6 +1,6 @@
 # NETRA v2 - AI-Native Asset Discovery Engine
 
-> **Status**: v2.1 (Newspaper Edition 📰)
+> **Status**: v2.2 (Newspaper Edition 📰)
 > **Stack**: Python 3.10, FastAPI (Serving Static HTML + Alpine.js), Neo4j, Redis Streams, MinIO, Docker Compose
 
 NETRA is an **Applied ML Systems** research platform designed to demonstrate advanced concepts in distributed cybersecurity. It continuously discovers assets, maps them in a Knowledge Graph, and uses machine learning to predict risks.
@@ -160,5 +160,6 @@ The Core Engine is free to use and modify under the Apache 2.0 License. See [LIC
 *Proprietary Boundaries will be licensed separately.*
 
 Copyright © 2025 Netra.
+
 
 
