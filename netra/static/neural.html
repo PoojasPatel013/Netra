@@ -99,12 +99,7 @@
                 </h3>
 
                 <div id="ai-feed" class="space-y-4 overflow-y-auto flex-1 pr-2">
-                    <!-- Dynamic Items -->
-                    <div class="p-4 rounded-lg bg-green-500/5 border border-green-500/10">
-                        <p class="text-sm text-slate-300">"System is healthy. I've scanned 12 assets and found nothing
-                            distinctively dangerous in the last hour."</p>
-                        <span class="text-[10px] text-slate-500 mt-2 block">JUST NOW</span>
-                    </div>
+                    <!-- Dynamic Items will appear here -->
                 </div>
             </div>
 
@@ -132,18 +127,9 @@
     <script>
         lucide.createIcons();
 
-        // 1. Generate Grid
+        // 1. Fetch Real Stats & Populate Grid
+        // Grid is initially empty until data loads
         const grid = document.getElementById('neuralGrid');
-        for (let i = 0; i < 48; i++) {
-            const cell = document.createElement('div');
-            cell.className = 'grid-cell rounded bg-white/5 border border-white/5 relative overflow-hidden group';
-            // Random activity
-            if (Math.random() > 0.7) {
-                cell.classList.add('bg-green-500/20', 'border-green-500/30');
-                if (Math.random() > 0.5) cell.classList.add('pulse');
-            }
-            grid.appendChild(cell);
-        }
 
         // 2. Fetch Real Stats & Populate Grid
         async function fetchInsights() {
