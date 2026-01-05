@@ -159,7 +159,8 @@ The Core Engine is free to use and modify under the Apache 2.0 License. See [LIC
 
 *Proprietary Boundaries will be licensed separately.*
 
-Copyright © 2025 Netra.
+Copyright © 2026 Netra.
+
 
 
 
