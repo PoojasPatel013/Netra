@@ -51,8 +51,8 @@ class ScanRequest(BaseModel):
 # MinIO Setup (Data Lake)
 # MinIO Setup (Data Lake)
 MINIO_URL = os.getenv("MINIO_URL", "minio:9000")
-MINIO_ACCESS_KEY = os.getenv("MINIO_ACCESS_KEY", "minioadmin")
-MINIO_SECRET_KEY = os.getenv("MINIO_SECRET_KEY", "minioadmin")
+MINIO_ACCESS_KEY = os.getenv("MINIO_ACCESS_KEY", "minioadmin_change_me")
+MINIO_SECRET_KEY = os.getenv("MINIO_SECRET_KEY", "minioadmin_change_me")
 MAX_MODEL_SIZE_MB = 100
 
 minio_client = None
@@ -780,7 +780,7 @@ from neomodel import config
 
 # Initialize Neo4j (Lazy connection)
 # Ensure NEO4J_URL is suitable for neomodel (bolt://user:pass@host:port)
-config.DATABASE_URL = os.getenv("NEO4J_URL", "bolt://neo4j:netra-secret@neo4j:7687")
+config.DATABASE_URL = os.getenv("NEO4J_URL", "bolt://neo4j:password_change_me@neo4j:7687")
 
 
 @app.get("/api/graph")
