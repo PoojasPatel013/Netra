@@ -1,4 +1,19 @@
 services:
+  # 0. Database (PostgreSQL)
+  postgres:
+    image: postgres:15-alpine
+    container_name: netra-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=netra
+      - POSTGRES_PASSWORD=netra
+      - POSTGRES_DB=netra
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - netra-net
+
   # 1. Message Bus
   redis:
     image: redis:alpine
@@ -38,11 +53,13 @@ services:
     environment:
       - NETRA_REDIS_URL=redis://redis:6379
       - NEO4J_URL=bolt://neo4j:netra-secret@neo4j:7687
+      - DATABASE_URL=postgresql://netra:netra@postgres:5432/netra
     volumes:
       - ./netra:/app/netra
     depends_on:
       - redis
       - neo4j
+      - postgres
     networks:
       - netra-net
 
@@ -70,3 +87,4 @@ volumes:
   redis_data:
   neo4j_data:
   minio_data:
+  postgres_data:

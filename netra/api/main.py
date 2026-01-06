@@ -36,6 +36,10 @@ from datetime import timedelta
 # Database Setup
 # Use SQLite for local development default, Postgres for Docker
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite+aiosqlite:///netra.db")
+# Ensure we use async driver for Postgres
+if DATABASE_URL.startswith("postgresql://"):
+    DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://")
+
 REDIS_URL = os.getenv("REDIS_URL")
 
 
@@ -81,11 +85,20 @@ db = None  # Global Neo4j Connection
 
 
 async def init_db():
-    print(
-        f"DEBUG: init_db called. Tables in metadata: {list(SQLModel.metadata.tables.keys())}"
-    )
-    async with engine.begin() as conn:
-        await conn.run_sync(SQLModel.metadata.create_all)
+    retries = 5
+    while retries > 0:
+        try:
+            print(
+                f"DEBUG: init_db called. Tables in metadata: {list(SQLModel.metadata.tables.keys())}"
+            )
+            async with engine.begin() as conn:
+                await conn.run_sync(SQLModel.metadata.create_all)
+            print("DB Connected & Initialized")
+            break
+        except Exception as e:
+            retries -= 1
+            print(f"DB Connection Failed ({e}). Retrying in 2s... ({retries} left)")
+            await asyncio.sleep(2)
 
 
 async def get_session():
