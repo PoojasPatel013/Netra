@@ -21,28 +21,49 @@ The immediate critical path is clear. Current "pending" items are strategic rath
 
 ---
 
-## 3. Future Vision: Netra Vortex 2.0 (The "Neural Grid")
-To evolve from a *Scanner* to an *Autonomous Security Operator*, we propose the following strategic enhancements:
+## 3. Future Vision: The "Titan Stack" Architecture
+To maximize resume value and align with industry standards, we are locking the stack to the **Absolute Titans** of systems engineering: **Python, Go, Rust, and C++**.
 
-### Phase 4: Cognitive Autonomy (LLM Integration)
-Move beyond regex and heuristics to true understanding.
-*   **Zombie API Hunter v3**: Use a local LLM (e.g., LLaMA-3-8B) to analyze API traffic logs semantically, identifying BOLA/BFLA vulnerabilities that look purely functional to standard scanners.
-*   **Natural Language Querying**: "Netra, show me all assets in the Finance subnet with critical Java vulnerabilities." -> Converts to Neo4j Cypher query automatically.
+### Phase 4: The Scout (Speed & Concurrency) - **Go** 🐹
+**Skill Demonstrated:** Concurrency & Network Engineering.
+*   **Module**: `TurboScan`
+*   **Role**: A standalone Go binary spawned by Python.
+*   **Capabilities**:
+    *   Scan /16 subnets (65k hosts) in seconds using light-weight goroutines.
+    *   Subdomain enumeration (`subfinder` style) without blocking the API.
 
-### Phase 5: Cloud-Scale Sovereignty
-Revisiting the de-scoped scalability features for enterprise deployment.
-*   **Kubernetes Operator**: A custom CRD (`Kind: ScannerJob`) to spawn ephemeral scan pods on-demand in a K8s cluster, allowing massive parallel scanning of /16 subnets.
-*   **Multi-Cluster Mesh**: Federated scanning across AWS, Azure, and On-Premises clusters, aggregating data into a single "Global Brain" graph.
+### Phase 5: The Guard (Safety & Logic) - **Rust** 🦀
+**Skill Demonstrated:** Memory Safety & Modern Systems Programming.
+*   **Module**: `LogCruncher` (via PyO3)
+*   **Role**: A Rust library imported directly into Python (`import netra_rust`).
+*   **Capabilities**:
+    *   **Zero-Copy Parsing**: Regex-free logic to detect sensitive keys (AWS, Stripe) in HTTP bodies.
+    *   **Memory Safety**: Process 5GB log files with <50MB RAM usage.
 
-### Phase 6: Governance & Compliance
-Bridging the gap between hacker tools and C-Suite reporting.
-*   **Automated GRC Maps**: Map findings directly to NIST 800-53, ISO 27001, and GDPR controls.
-*   **Executive PDF Reports**: One-click generation of board-ready summaries vs. developer-centric JSON dumps.
-*   **DefectDojo Bi-Directional Sync**: Not just sending findings, but pulling "False Positive" marking back into Netra to retrain the ML model.
+### Phase 6: The Ghost (Low-Level Systems) - **C++** 🦖
+**Skill Demonstrated:** Low-Level Systems Programming & Malware Development.
+*   **Module**: `VortexAgent`
+*   **Role**: A small, native executable dropped on target servers.
+*   **Capabilities**:
+    *   **System Introspection**: Gather OS version, running processes, and active users.
+    *   **Stealth**: Native compilation allows for finer control over WinAPI calls to evade detection.
 
----
+### Phase 7: The Brain (Data Science) - **Python** 🐍
+**Skill Demonstrated:** Applied Machine Learning.
+*   **Module**: `ml_engine.py`
+*   **Role**: Pure Python data science layer within the backend.
+*   **Methods**:
+    *   **NetworkX**: Calculate "Betweenness Centrality" to find critical nodes in the graph.
+    *   **Scikit-Learn**: Cluster alerts to reduce noise (K-Means).
 
-## 4. Immediate Enhancement Opportunities ("Quick Wins")
+## 4. Governance & Compliance (The "Suit")
+Bridging the gap between hacker tools and C-Suite.
+*   **Automated GRC Maps**: Findings -> NIST 800-53 / ISO 27001.
+*   **Executive Reports**: One-click PDF summaries.
+
+> **"Python commands the legion. Go scouts the terrain. Rust guards the core. C++ infiltrates the shadow."**
+
+## 5. Immediate Enhancement Opportunities ("Quick Wins")
 If you have time for one more sprint, these features yield high value:
 
 1.  **Exploit Verification**: Add a "Verify" button that safely attempts to trigger a detected vuln (e.g., harmless `alert(1)` for XSS) to prove validility.
