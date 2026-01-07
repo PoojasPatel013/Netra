@@ -1,38 +1,43 @@
-# Implementation Plan - Sprint 2: The Scout (Go) 🐹
+# Implementation Plan - Sprint 3: The Guard (Rust) 🦀
 
 ## Goal
-Implement **TurboScan**, a high-performance **Go** binary for SPA scanning.
-**Architecture Update**: To prevent Docker bloat, we will use a **Decoupled Microservices** pattern. The Go binary will run in the API container but control a separate, lightweight `headless-shell` container over the network.
+Implement **LogCruncher**, a blazingly fast log analysis component using **Rust**.
+It will parse server logs (Apache/Nginx) to detect attack patterns (SQLi, XSS, Path Traversal) with memory safety and speed that Python cannot match for large files.
 
 ## User Review Required
-> [!TIP]
-> **Cloud Native Approach**: This "Remote Browser" pattern allows us to easily move the scanning to the cloud (AWS Lambda/Fargate) later without changing code, just an environment variable (`CHROME_URL`).
+> [!NOTE]
+> **Performance**: Rust is chosen here because regular expression matching on GB-sized log files is CPU-intensive. Rust's `regex` crate is O(n), guaranteeing linear time execution.
 
 ## Proposed Changes
 
-### 1. New Go Module (`scout/`)
-#### [NEW] [scout/go.mod](file:////wsl.localhost/Ubuntu-22.04/home/fierypooja/Vortex/scout/go.mod)
-- Dependency: `github.com/chromedp/chromedp` (Supports remote allocators).
+### 1. New Rust Crate (`guard/`)
+#### [NEW] [guard/Cargo.toml](file:////wsl.localhost/Ubuntu-22.04/home/fierypooja/Vortex/guard/Cargo.toml)
+- **Dependencies**:
+    - `regex`: For pattern matching.
+    - `serde`, `serde_json`: For JSON output.
+    - `clap`: For CLI argument parsing.
 
-#### [NEW] [scout/main.go](file:////wsl.localhost/Ubuntu-22.04/home/fierypooja/Vortex/scout/main.go)
-- **Logic**: Connect to `ws://chrome:9222` instead of launching a local browser.
-- **CLI Flags**: `-target`, `-chrome-url` (Default: `ws://chrome:9222`).
+#### [NEW] [guard/src/main.rs](file:////wsl.localhost/Ubuntu-22.04/home/fierypooja/Vortex/guard/src/main.rs)
+- **Logic**:
+    - Read log lines from stdin or file.
+    - Apply regex signatures (e.g., `(UNION SELECT|OR 1=1)`).
+    - Output detected threats as JSON.
 
-### 2. Infrastructure (The "Sidecar")
-#### [MODIFY] [docker-compose.yml](file:////wsl.localhost/Ubuntu-22.04/home/fierypooja/Vortex/docker-compose.yml)
-- **Add Service**: `chrome`
-    - Image: `chromedp/headless-shell:latest` (Much smaller than full Chrome)
-    - Ports: `9222:9222`
-- **Link**: `netra` depends on `chrome`.
+### 2. Python Integration (The Bridge)
+#### [NEW] [netra/core/modules/rust_bridge.py](file:////wsl.localhost/Ubuntu-22.04/home/fierypooja/Vortex/netra/core/modules/rust_bridge.py)
+- **Class**: `LogScanner`
+- **Method**: `analyze_log(filepath)`
+    - Spawns `./guard_bin` subprocess.
+    - Pipes log content to it.
+    - Returns findings.
 
+### 3. Infrastructure
 #### [MODIFY] [netra/api.Dockerfile](file:////wsl.localhost/Ubuntu-22.04/home/fierypooja/Vortex/netra/api.Dockerfile)
-- **Build Stage**: Compile Go binary.
-- **Runtime Stage**: **NO** Chromium installation required (Saves ~500MB). Only the 10MB binary is copied.
-
-### 3. Python Integration
-#### [NEW] [netra/core/modules/go_bridge.py](file:////wsl.localhost/Ubuntu-22.04/home/fierypooja/Vortex/netra/core/modules/go_bridge.py)
-- Call `./scout_bin -target X -chrome-url ws://chrome:9222`
+- **Build Stage**: Add `FROM rust:1.75 AS rust-builder`. Compile `guard/`.
+- **Runtime Stage**:
+    - `COPY --from=rust-builder /app/target/release/guard /app/bin/guard_bin`
 
 ## Verification Plan
-1.  **Microservice Check**: `curl localhost:9222/json/version` to see if Headless Shell is responding.
-2.  **Scan Test**: Run the Go binary and verify it captures the page title of a React app.
+1.  **Unit Test**: Create a sample `access.log` with a known SQL injection attack.
+2.  **Manual Run**: `cat sample.log | ./guard_bin` and verify JSON alert.
+3.  **UI**: Upload a log file (if UI supports it) or trigger a dummy log scan.
