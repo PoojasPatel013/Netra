@@ -90,6 +90,27 @@ services:
     networks:
       - netra-net
 
+  # 5. Background Worker (Scanners)
+  worker:
+    build:
+      context: .
+      dockerfile: netra/worker.Dockerfile
+    container_name: netra-worker
+    environment:
+      - NETRA_REDIS_URL=redis://redis:6379
+      - NEO4J_URL=bolt://neo4j:${NEO4J_AUTH}@neo4j:7687
+      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      - CHROME_URL=ws://chrome:9222
+    volumes:
+      - ./netra:/app/netra
+    depends_on:
+      - redis
+      - neo4j
+      - chrome
+      - postgres
+    networks:
+      - netra-net
+
 networks:
   netra-net:
     driver: bridge

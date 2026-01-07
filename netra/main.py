@@ -3,15 +3,26 @@ import typer
 import json
 import uvicorn
 from netra.core.engine import NetraEngine
-from netra.core.modules.network import PortScanner
-from netra.core.modules.http import HTTPScanner
-from netra.core.modules.pentest import PentestEngine
-from netra.core.modules.cloud import CloudScanner
-from netra.core.modules.iot import IoTScanner
-from netra.core.modules.graphql import GraphQLScanner
+from netra.core.modules.recon import PortScanner, TechnologyScanner
+from netra.core.modules.vuln import ThreatScanner
+from netra.core.modules.cloud import CloudHunter, AcquisitionScanner
+from netra.core.modules.compliance import ComplianceEngine
+from netra.core.modules.go_bridge import GoScanner
+from netra.core.modules.rust_bridge import RustScanner
 from netra.core.reporter import SARIFReporter
 
 app = typer.Typer()
+
+# Global Scanners
+scanners = [
+    PortScanner(),
+    TechnologyScanner(),
+    ThreatScanner(),
+    CloudHunter(),
+    AcquisitionScanner(),
+    GoScanner(), # TurboScan (Go)
+    RustScanner(), # LogCruncher (Rust)
+]
 
 
 @app.command()

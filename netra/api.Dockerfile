@@ -5,7 +5,13 @@ COPY scout/go.mod scout/main.go ./
 # If go.sum exists, copy it too. For now ignore.
 RUN go mod tidy && go build -o scout_bin main.go
 
-# Stage 2: Final Image (Python)
+# Stage 2: Rust Builder (LogCruncher)
+FROM rust:1.75-slim AS rust-builder
+WORKDIR /app
+COPY guard/ .
+RUN cargo build --release
+
+# Stage 3: Final Image (Python)
 FROM python:3.10-slim
 
 WORKDIR /app
@@ -28,6 +34,7 @@ COPY run.py .
 # Move binary to /app/bin to survive volume mount overlay
 RUN mkdir -p /app/bin
 COPY --from=go-builder /app/scout_bin /app/bin/scout_bin
+COPY --from=rust-builder /app/target/release/guard /app/bin/guard_bin
 
 # Expose API port
 EXPOSE 8000

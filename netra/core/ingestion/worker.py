@@ -18,6 +18,13 @@ async def process_event(event_data):
     Router for different event types.
     """
     try:
+        from netra.core.engine import NetraEngine
+        from netra.core.modules.recon import PortScanner, TechnologyScanner
+        from netra.core.modules.vuln import ThreatScanner
+        from netra.core.modules.cloud import CloudHunter
+        from netra.core.modules.go_bridge import GoScanner
+        from netra.core.modules.rust_bridge import RustScanner
+
         payload = json.loads(event_data["payload"])
         event_type = event_data["type"]
 
@@ -25,12 +32,26 @@ async def process_event(event_data):
             target = payload["target"]
             print(f"📥 Received Target: {target}")
 
-            # 1. Run DNS Discovery
-            resolver = DNSResolver()
-            await resolver.resolve(target)
+            # Initialize Engine
+            engine = NetraEngine()
+            
+            # Register Scanners
+            # Standard Python Scanners
+            engine.register_scanner(PortScanner())
+            engine.register_scanner(TechnologyScanner())
+            engine.register_scanner(ThreatScanner())
+            engine.register_scanner(CloudHunter())
+            
+            # Polyglot Scanners
+            engine.register_scanner(GoScanner())   # Sprint 2
+            engine.register_scanner(RustScanner()) # Sprint 3
 
-            # 2. Todo: Trigger Ruby Scans
-
+            # Run Scan
+            results = await engine.scan_target(target)
+            print(f"✅ Scan Complete for {target}. Results keys: {list(results.keys())}")
+            
+            # TODO: Save results to Neo4j/Postgres here
+            
     except Exception as e:
         print(f"❌ Error processing event: {e}")
 
