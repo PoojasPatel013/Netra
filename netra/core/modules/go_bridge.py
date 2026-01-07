@@ -1,4 +1,4 @@
-from netra.core.modules.base import BaseScanner
+from netra.core.scanner import BaseScanner
 import subprocess
 import json
 import os

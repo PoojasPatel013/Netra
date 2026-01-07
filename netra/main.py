@@ -8,7 +8,7 @@ from netra.core.modules.http import HTTPScanner
 from netra.core.modules.threat import ThreatScanner
 from netra.core.modules.cloud import CloudScanner
 from netra.core.modules.acquisition import AcquisitionScanner
-from netra.core.modules.compliance import ComplianceEngine
+from netra.core.compliance import ComplianceEngine
 from netra.core.modules.go_bridge import GoScanner
 from netra.core.modules.rust_bridge import RustScanner
 from netra.core.reporter import SARIFReporter

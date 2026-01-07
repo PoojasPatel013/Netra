@@ -2,7 +2,7 @@ import subprocess
 import json
 import os
 import logging
-from .base import BaseScanner
+from netra.core.scanner import BaseScanner
 
 logger = logging.getLogger(__name__)
 
