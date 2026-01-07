@@ -1,4 +1,11 @@
-# api/Dockerfile
+# Stage 1: Go Builder (TurboScan)
+FROM golang:1.21 AS go-builder
+WORKDIR /app
+COPY scout/go.mod scout/main.go ./
+# If go.sum exists, copy it too. For now ignore.
+RUN go mod tidy && go build -o scout_bin main.go
+
+# Stage 2: Final Image (Python)
 FROM python:3.10-slim
 
 WORKDIR /app
@@ -17,9 +24,13 @@ RUN poetry lock && poetry install --without dev --no-root
 
 # Copy source code
 COPY netra ./netra
+COPY run.py .
+# Move binary to /app/bin to survive volume mount overlay
+RUN mkdir -p /app/bin
+COPY --from=go-builder /app/scout_bin /app/bin/scout_bin
 
 # Expose API port
 EXPOSE 8000
 
 # Start the API
-CMD ["python", "-m", "netra.main"]
+CMD ["python", "run.py", "serve"]

@@ -619,6 +619,13 @@ async def run_scan_task(scan_id: int):
 
             if opts.get("cloud", False):
                 v_engine.register_scanner(CloudScanner())
+            
+            # Sprint 2: TurboScan (Go)
+            # Default to enabled if not explicitly disabled, or put behind a toggle?
+            # Let's add it if "spa" or "turbo" is in options, OR just default to using it for web targets.
+            if opts.get("turbo", True): # Default to True for now to test
+                from netra.core.modules.go_bridge import GoScanner
+                v_engine.register_scanner(GoScanner())
 
             if opts.get("iot", False):
                 v_engine.register_scanner(IoTScanner())

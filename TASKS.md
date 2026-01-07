@@ -1,0 +1,117 @@
+# Tasks
+
+- [x] Explore project structure <!-- id: 0 -->
+- [x] Dispose of tasks
+- [x] Diagnose Backend (Port 8000) issues <!-- id: 1 -->
+    - [x] Check if process is running <!-- id: 2 -->
+    - [x] Attempt to start backend and capture logs <!-- id: 3 -->
+    - [x] Fix backend errors <!-- id: 4 -->
+- [x] Diagnose Frontend (Port 3000) issues <!-- id: 5 -->
+    - [x] Check if process is running <!-- id: 6 -->
+    - [x] Attempt to start frontend and capture logs <!-- id: 7 -->
+    - [x] Fix frontend errors <!-- id: 8 -->
+- [x] Verify System <!-- id: 9 -->
+    - [x] Verify `8000/debug/fs` responds <!-- id: 10 -->
+    - [x] Verify UI loads on 3000 <!-- id: 11 -->
+    - [x] Verify scans work <!-- id: 12 -->
+- [x] **Phase 3: Visualizations & graph**
+    - [x] Create Scan History ("Classifieds") view
+    - [x] Add dynamic Charts (Pie/Bar/Line) to Investigations
+    - [x] Implement Per-Scan data updating
+    - [x] Replace Particle Canvas with Neo4j Graph Code
+    - [x] Implement ML Risk Scoring in Backend (Heuristic)
+    - [x] Debug Graph "Mock/Static" persistence issue
+- [/] **Phase 5: Cleanup & Polish**
+    - [x] **Linting & Code Quality**: Run `ruff` to fix unused imports/vars
+- [x] Fix Graph Visualization <!-- id: 13 -->
+    - [x] Verify `netra-ingest` worker status <!-- id: 14 -->
+    - [x] Ensure Scan Data flows to Neo4j <!-- id: 15 -->
+- [x] Implement Settings & Integrations Page <!-- id: 16 -->
+    - [x] Add DefectDojo Config Form <!-- id: 17 -->
+    - [x] Add Data Management (Archives/Reset) <!-- id: 18 -->
+- [x] Implement Dashboard Charts <!-- id: 19 -->
+    - [x] Add Chart.js logic for vuln stats <!-- id: 20 -->
+- [x] Feature C: Zombie API Detection <!-- id: 36 -->
+    - [x] **Enhance Logic**: Update `api_fuzzer.py` with Version & BOLA checks <!-- id: 37 -->
+    - [x] **Ruby Scanner**: Bridge `rce_scan.rb` for Hijack/RCE checks <!-- id: 40 -->
+    - [x] **Integration**: Enable `ZombieScanner` & `RCEScanner` in `main.py` <!-- id: 38 -->
+    - [x] **UI Update**: Add Zombie/Shadow API section to `index.html` <!-- id: 39 -->
+- [x] Feature A: Automated Reconnaissance <!-- id: 22 -->
+    - [x] **CT Scanner**: Enhance/Verify `netra/core/modules/recon.py` <!-- id: 23 -->
+    - [x] **Cloud Hunter**: Implementing IP Range/S3 checks in `netra/core/modules/cloud.py` <!-- id: 24 -->
+    - [x] **Acquisition Mapping**: Create `AcquisitionScanner` (SANs/Whois heuristic) <!-- id: 25 -->
+    - [x] **UI Update**: Add toggle for "Deep Recon" in index.html <!-- id: 26 -->
+    - [x] **Integration**: Register new scanners in `main.py` <!-- id: 27 -->
+- [x] Refactor: Ruby Bridge & UI Layout <!-- id: 32 -->
+    - [x] **Ruby Migration**: Shift scan logic to Ruby (Bridge pattern) <!-- id: 33 -->
+    - [x] **UI Layout**: Move Charts to "Investigations" (Graph) tab <!-- id: 34 -->
+    - [x] **Assets UI**: Add View Report and Delete options <!-- id: 35 -->
+- [x] Feature B: GRC & Compliance Engine <!-- id: 28 -->
+    - [x] **Core Logic**: Create `netra/core/compliance.py` <!-- id: 29 -->
+    - [x] **Integration**: Update `netra/api/main.py` to enrich results <!-- id: 30 -->
+    - [x] **UI Update**: Display Compliance Summary in `index.html` <!-- id: 31 -->
+- [x] Feature D: IAM Security <!-- id: 41 -->
+    - [x] **Ruby Logic**: Enhance `iam_scan.rb` with OAuth/SAML checks <!-- id: 42 -->
+    - [x] **UI Update**: Add IAM Report section to `index.html` <!-- id: 43 -->
+- [x] Feature E: Resilience Engine <!-- id: 45 -->
+    - [x] **Ruby Logic**: Verify `dos_check.rb` and `resilience_scan.rb` <!-- id: 46 -->
+    - [x] **Integration**: Register `DoSScanner` in `main.py` <!-- id: 47 -->
+    - [x] **UI Update**: Add Resilience Report section to `index.html` <!-- id: 48 -->
+- [x] UI Polishing & Fixes <!-- id: 50 -->
+    - [x] **Classifieds (Assets)**: Fix empty state / data population <!-- id: 51 -->
+    - [x] **Graph**: Fix empty space / rendering issues <!-- id: 52 -->
+    - [x] Phase 5.2: System Stabilization (CI/CD, Graph Fixes, Real Data Wiring)
+    - [x] **Charts**: Handle empty states (hide when no data) <!-- id: 53 -->
+    - [x] **Activity (Cables)**: Fix empty feed <!-- id: 54 -->
+    - [x] **Vulns View**: Implement "Story Developing" page <!-- id: 55 -->
+    - [x] **UI Layout**: Moved misplaced "Neural Grid" link to main navbar
+- [x] User Authentication System <!-- id: 60 -->
+    - [x] **Backend**: User Model, JWT Auth, Login/Register Endpoints <!-- id: 61 -->
+    - [x] **Frontend**: Login Modal/Page, Session Management <!-- id: 62 -->
+    - [x] **Data Isolation**: Ensure scans/assets are user-scoped <!-- id: 63 -->
+- [x] **Phase 3.1: ML Data Lake**
+    - [x] Add MinIO dependency to Dockerfile
+    - [x] Implement `upload_to_datalake` in main.py
+    - [x] Configure MinIO Client with Env Vars
+- [x] **Phase 3.2: ML Inference Loop**
+    - [x] Implement global `ML_MODEL` loader in `on_startup`
+    - [x] Add Inference Hook in `sync_graph_results`
+    - [x] Create `netra/ml/train.py` script
+    - [x] Run Training & Verify Model Loading
+
+- [ ] **Phase 4: Advanced Intelligence (Software 2.0)**
+    - [x] **Zombie API v2 (NLP)**: Detect endpoints using Tokenizer/LLM instead of Regex
+    - [x] **Graph Fix**: Implemented `NeoGraph` driver & fixed ID mismatch <!-- id: neo4j-fix -->
+    - [x] **AI Personality**: Added "Neural Terminal" with sarcastic commentary <!-- id: ai-persona -->
+    - [x] **Real-time Risks**: Migrated DB & connected Chart to live history <!-- id: realtime-risk -->
+    - [x] **Shadow IT Prediction**: Implement "Smart Link Prediction" (Jaccard/Similarity)
+    - [x] **CI/CD Fixes**: Resolved Docker build, lockfile, and test dependency issues <!-- id: ci-fix -->
+    - [x] **Frontend Debug**: Refactored to global `app()` & fixed closures & ES5 syntax quirks
+    - [~] ~~**Kubernetes Operator**: Create CRD Controller for scaling~~ (De-scoped for resource/complexity)
+
+- [x] **Phase 5.1: Quick Enhancements (Safe Wins)**
+    - [x] **Dark Mode Persistence**: Sync theme preference to backend User profile
+    - [x] **Asset Tagging**: Implement manual tagging (e.g., "Critical") for Graph Nodes
+
+- [/] **Sprint 1: Infrastructure Hardening**
+    - [x] Migrate SQLite to PostgreSQL <!-- id: postgres -->
+
+- [x] **Sprint 2: The Scout (Go) - TurboScan** 🐹
+    - [x] **Setup**: Initialize Go Module (`scout`) <!-- id: go-init -->
+    - [x] **Core Logic**: Implement `chromedp` for SPA Crawling <!-- id: go-chrome -->
+    - [x] **CLI**: Build `TurboScan` binary (Flags: `-target`, `-screenshot`) <!-- id: go-cli -->
+    - [x] **Bridge**: Create Python Wrapper (`netra/core/modules/go_bridge.py`) <!-- id: go-bridge -->
+    - [x] **Docker**: Update Dockerfile for Multi-stage Go Build <!-- id: go-docker -->
+    - [x] **Integration**: Register `GoScanner` in `main.py` <!-- id: go-register -->
+
+- [ ] **Sprint 3: The Guard (Rust) - LogCruncher** 🦀
+    - [ ] **Setup**: Initialize Rust Crate (`guard`) <!-- id: rust-init -->
+    - [ ] **Core**: Implement `LogParser` with Regex (SQLi/XSS signatures) <!-- id: rust-core -->
+    - [ ] **Binary**: Build `LogCruncher` binary (Input: File/Stream, Output: JSON) <!-- id: rust-bin -->
+    - [ ] **Bridge**: Create Python Wrapper (`netra/core/modules/rust_bridge.py`) <!-- id: rust-bridge -->
+    - [ ] **Docker**: Update Dockerfile for Multi-stage Rust Build <!-- id: rust-docker -->
+    - [ ] **Integration**: Hook into `netra` as `LogScanner` <!-- id: rust-register -->
+
+- [ ] Phase 6: The Ghost (C++) - VortexAgent (Systems Programming)
+- [ ] Phase 7: The Brain (Python) - ML Engine (Data Science)
+- [ ] Phase 8: Production Hardening

@@ -1,0 +1,107 @@
+
+content = r"""services:
+  # 0. Database (PostgreSQL)
+  postgres:
+    image: postgres:15-alpine
+    container_name: netra-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - netra-net
+
+  # 1. Message Bus
+  redis:
+    image: redis:alpine
+    container_name: netra-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - netra-net
+
+  # 2. Graph Database
+  neo4j:
+    image: neo4j:community
+    container_name: netra-neo4j
+    ports:
+      - "7474:7474"
+      - "7687:7687"
+    environment:
+      - NEO4J_AUTH=${NEO4J_AUTH}
+      - NEO4J_dbms_memory_heap_initial__size=512m
+      - NEO4J_dbms_memory_heap_max__size=512m
+    volumes:
+      - neo4j_data:/data
+    networks:
+      - netra-net
+
+  # 3. Headless Chrome (The Sidecar)
+  chrome:
+    image: chromedp/headless-shell:latest
+    container_name: netra-chrome
+    ports:
+      - "9222:9222"
+    networks:
+      - netra-net
+
+  # 4. Backend API
+  netra:
+    build:
+      context: .
+      dockerfile: netra/api.Dockerfile
+    container_name: netra-backend
+    command: python run.py serve
+    ports:
+      - "8000:8000"
+    environment:
+      - NETRA_REDIS_URL=redis://redis:6379
+      - NEO4J_URL=bolt://neo4j:${NEO4J_AUTH}@neo4j:7687
+      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      - CHROME_URL=ws://chrome:9222
+    volumes:
+      - ./netra:/app/netra
+    depends_on:
+      - redis
+      - neo4j
+      - postgres
+      - chrome
+    networks:
+      - netra-net
+
+  # 4. Data Lake (MinIO)
+  minio:
+    image: minio/minio
+    container_name: netra-datalake
+    command: server /data --console-address ":9001"
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      - MINIO_ROOT_USER=${MINIO_ROOT_USER}
+      - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
+    volumes:
+      - minio_data:/data
+    networks:
+      - netra-net
+
+networks:
+  netra-net:
+    driver: bridge
+
+volumes:
+  redis_data:
+  neo4j_data:
+  minio_data:
+  postgres_data:
+"""
+
+with open("docker-compose.v2.yml", "w", encoding="utf-8") as f:
+    f.write(content.strip())
+print("Created docker-compose.v2.yml successfully in UTF-8")
