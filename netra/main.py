@@ -3,9 +3,11 @@ import typer
 import json
 import uvicorn
 from netra.core.engine import NetraEngine
-from netra.core.modules.recon import PortScanner, TechnologyScanner
-from netra.core.modules.vuln import ThreatScanner
-from netra.core.modules.cloud import CloudHunter, AcquisitionScanner
+from netra.core.modules.network import PortScanner
+from netra.core.modules.http import HTTPScanner
+from netra.core.modules.threat import ThreatScanner
+from netra.core.modules.cloud import CloudScanner
+from netra.core.modules.acquisition import AcquisitionScanner
 from netra.core.modules.compliance import ComplianceEngine
 from netra.core.modules.go_bridge import GoScanner
 from netra.core.modules.rust_bridge import RustScanner
@@ -16,9 +18,9 @@ app = typer.Typer()
 # Global Scanners
 scanners = [
     PortScanner(),
-    TechnologyScanner(),
+    HTTPScanner(),
     ThreatScanner(),
-    CloudHunter(),
+    CloudScanner(),
     AcquisitionScanner(),
     GoScanner(), # TurboScan (Go)
     RustScanner(), # LogCruncher (Rust)

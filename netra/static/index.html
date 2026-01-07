@@ -452,6 +452,51 @@
                                     </div>
                                 </template>
 
+                                <!-- GoScanner: TurboScan (Site Structure) -->
+                                <div x-show="results?.GoScanner?.title" class="mt-6">
+                                    <h3
+                                        class="font-display font-bold text-lg text-white mb-2 pb-1 border-b border-slate-800 flex items-center gap-2">
+                                        <i data-lucide="layers" class="w-4 h-4 text-blue-400"></i> SITE STRUCTURE
+                                        (TurboScan/Go)
+                                    </h3>
+                                    <div class="bg-slate-900 rounded p-4 font-mono text-xs">
+                                        <div class="mb-2 text-blue-300">TITLE: <span class="text-white"
+                                                x-text="results.GoScanner.title"></span></div>
+                                        <div class="text-slate-500 mb-1">LINKS:</div>
+                                        <div class="max-h-32 overflow-y-auto space-y-1 pl-2 border-l border-slate-700">
+                                            <template x-for="link in results.GoScanner.links || []">
+                                                <div class="truncate hover:text-blue-400 cursor-pointer" x-text="link">
+                                                </div>
+                                            </template>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- RustScanner: LogCruncher (Threat Log) -->
+                                <div x-show="results?.RustScanner?.findings?.length > 0" class="mt-6">
+                                    <h3
+                                        class="font-display font-bold text-lg text-white mb-2 pb-1 border-b border-slate-800 flex items-center gap-2">
+                                        <i data-lucide="file-warning" class="w-4 h-4 text-orange-400"></i> THREAT LOG
+                                        (LogCruncher/Rust)
+                                    </h3>
+                                    <div
+                                        class="bg-black border border-slate-800 rounded p-4 font-mono text-[10px] overflow-hidden relative">
+                                        <div class="absolute top-0 right-0 p-1 text-xs text-slate-700">LOG_ANALYSIS_V1
+                                        </div>
+                                        <template x-for="log in results.RustScanner.findings">
+                                            <div class="mb-2 border-b border-slate-900 pb-1 last:border-0">
+                                                <div class="flex justify-between">
+                                                    <span class="text-red-500 font-bold"
+                                                        x-text="'[CRITICAL] ' + log.threat_type"></span>
+                                                    <span class="text-slate-600" x-text="'L' + log.line_number"></span>
+                                                </div>
+                                                <div class="text-slate-400 mt-1" x-text="log.content"></div>
+                                                <div class="text-orange-900/50 mt-1 italic" x-text="log.details"></div>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </div>
+
                                 <div x-show="results" class="mt-4 pt-4 border-t border-slate-700 flex justify-end">
                                     <button @click="downloadResults()"
                                         class="text-xs font-bold uppercase hover:text-radium-500 flex items-center gap-2">

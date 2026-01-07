@@ -18,10 +18,10 @@ async def process_event(event_data):
     Router for different event types.
     """
     try:
-        from netra.core.engine import NetraEngine
-        from netra.core.modules.recon import PortScanner, TechnologyScanner
-        from netra.core.modules.vuln import ThreatScanner
-        from netra.core.modules.cloud import CloudHunter
+        from netra.core.modules.network import PortScanner
+        from netra.core.modules.http import HTTPScanner
+        from netra.core.modules.threat import ThreatScanner
+        from netra.core.modules.cloud import CloudScanner
         from netra.core.modules.go_bridge import GoScanner
         from netra.core.modules.rust_bridge import RustScanner
 
@@ -38,9 +38,9 @@ async def process_event(event_data):
             # Register Scanners
             # Standard Python Scanners
             engine.register_scanner(PortScanner())
-            engine.register_scanner(TechnologyScanner())
+            engine.register_scanner(HTTPScanner())
             engine.register_scanner(ThreatScanner())
-            engine.register_scanner(CloudHunter())
+            engine.register_scanner(CloudScanner())
             
             # Polyglot Scanners
             engine.register_scanner(GoScanner())   # Sprint 2

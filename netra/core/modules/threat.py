@@ -1,4 +1,5 @@
 import ipaddress
+import logging
 from typing import Dict, Any, List
 from netra.core.scanner import BaseScanner
 from netra.core.http import SafeHTTPClient
