@@ -32,19 +32,27 @@ async def process_event(event_data):
             target = payload["target"]
             print(f"📥 Received Target: {target}")
 
+            options = payload.get("options", {})
+            print(f"⚙️ Scan Options: {options}")
+
             # Initialize Engine
             engine = NetraEngine()
             
             # Register Scanners
-            # Standard Python Scanners
+            # Standard Python Scanners (Always On for now, or could be toggled too)
             engine.register_scanner(PortScanner())
             engine.register_scanner(HTTPScanner())
             engine.register_scanner(ThreatScanner())
             engine.register_scanner(CloudScanner())
             
-            # Polyglot Scanners
-            engine.register_scanner(GoScanner())   # Sprint 2
-            engine.register_scanner(RustScanner()) # Sprint 3
+            # Polyglot Scanners - Conditional
+            if options.get("TurboScan", True):
+                print("🔹 Enabling TurboScan (Go)")
+                engine.register_scanner(GoScanner())
+
+            if options.get("LogCruncher", True):
+                print("🔸 Enabling LogCruncher (Rust)")
+                engine.register_scanner(RustScanner())
 
             # Run Scan
             results = await engine.scan_target(target)

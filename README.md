@@ -16,8 +16,15 @@ NETRA is an **Applied ML Systems** research platform designed to demonstrate adv
 
 ---
 
-## What's New in v2.1?
-*   **Newspaper UI**: A fully redesigned "Netra Times" dashboard featuring a centered masthead, columnar layout, and 3D page-flip animations.
+## What is Cooking Now? 🍳 (v2.2 Update)
+
+The kitchen is busy! We are currently baking **Phase 3 & 4 (Intelligence Layers)** into the core platform:
+
+*   **Sprint 3: The Guard (Rust) 🦀**: `LogCruncher` is now live! A high-performance Rust binary that detects SQLi/XSS in server logs with zero-copy parsing.
+*   **Sprint 2: The Scout (Go) 🐹**: Integrated `TurboScan`, a headless Chrome crawler written in Go for lightning-fast SPA analysis.
+*   **Neural Grid V2**: The Knowledge Graph is now fully interactive (D3.js + Neo4j) with "Shadow Link" prediction and manual asset tagging.
+*   **ML Risk Scoring**: A Random Forest model now automatically assigns risk scores to assets based on open ports and vulnerability density.
+*   **Coming Next**: **Phase 4 (Software 2.0)** — Replacing regex-based API detection with LLM-powered "Zombie API" hunters.
 
 ---
 

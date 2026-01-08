@@ -748,7 +748,32 @@
                                 </div>
                             </div>
 
-                        </div>
+                            <!-- Log Intelligence (Sprint 3: The Guard) -->
+                            <div class="md:col-span-3 bg-black/80 p-6 rounded-xl border border-slate-800 backdrop-blur-sm"
+                                x-show="results?.RustScanner">
+                                <h4
+                                    class="text-xs font-bold uppercase text-radium-400 mb-4 tracking-widest border-b border-slate-800 pb-2 flex items-center gap-2">
+                                    <i data-lucide="shield-alert" class="w-4 h-4"></i> Log Intelligence (Rust Guard)
+                                </h4>
+                                <div
+                                    class="font-mono text-xs text-slate-300 max-h-60 overflow-y-auto bg-slate-900/50 p-4 rounded border border-slate-800">
+                                    <pre x-text="JSON.stringify(results.RustScanner, null, 2)"></pre>
+                                </div>
+                            </div>
+
+                            <!-- Site Structure (Sprint 2: The Scout) -->
+                            <div class="md:col-span-3 bg-black/80 p-6 rounded-xl border border-slate-800 backdrop-blur-sm"
+                                x-show="results?.GoScanner">
+                                <h4
+                                    class="text-xs font-bold uppercase text-blue-400 mb-4 tracking-widest border-b border-slate-800 pb-2 flex items-center gap-2">
+                                    <i data-lucide="globe" class="w-4 h-4"></i> Site Structure (Go Scout)
+                                </h4>
+                                <div
+                                    class="font-mono text-xs text-slate-300 max-h-60 overflow-y-auto bg-slate-900/50 p-4 rounded border border-slate-800">
+                                    <pre x-text="JSON.stringify(results.GoScanner, null, 2)"></pre>
+                                </div>
+                            </div>
+                        </div> <!-- End Grid -->
                     </div>
                 </div>
             </div>
@@ -777,7 +802,7 @@
                 logs: [],
                 results: null,
                 stats: { scans: 0, vulns: 0, assets: 0 },
-                options: { Cloud: false, IoT: false, GraphQL: false, Acquisitions: false, AutoExploit: false, TurboScan: true },
+                options: { Cloud: false, IoT: false, GraphQL: false, Acquisitions: false, AutoExploit: false, TurboScan: true, LogCruncher: true },
 
                 scanHistory: [],
                 selectedScan: null,
@@ -909,6 +934,7 @@
                     try {
                         const res = await fetch(`/scans/${scanStub.id}`, { headers: { 'Authorization': `Bearer ${token}` } });
                         const fullData = await res.json();
+                        this.results = fullData.results; // Update global results for Dashboard view
                         this.updateCharts(fullData);
                     } catch (e) { }
                 },
@@ -1107,6 +1133,7 @@
                 monitorGraph: false,
                 initGraph: function () {
                     const container = document.getElementById('graph');
+                    container.innerHTML = ""; // Clear previous graph to prevent duplicates
                     const width = container.clientWidth;
                     const height = container.clientHeight;
 
