@@ -621,11 +621,15 @@ async def run_scan_task(scan_id: int):
                 v_engine.register_scanner(CloudScanner())
             
             # Sprint 2: TurboScan (Go)
-            # Default to enabled if not explicitly disabled, or put behind a toggle?
-            # Let's add it if "spa" or "turbo" is in options, OR just default to using it for web targets.
-            if opts.get("turbo", True): # Default to True for now to test
+            # Default to enabled if not explicitly disabled
+            if opts.get("TurboScan", False): 
                 from netra.core.modules.go_bridge import GoScanner
                 v_engine.register_scanner(GoScanner())
+
+            # Sprint 3: LogCruncher (Rust)
+            if opts.get("LogCruncher", False):
+                from netra.core.modules.rust_bridge import RustScanner
+                v_engine.register_scanner(RustScanner())
 
             if opts.get("iot", False):
                 v_engine.register_scanner(IoTScanner())
@@ -797,7 +801,8 @@ async def get_graph_data():
     """
     try:
         # Fetch generic graph data (Limit to avoid exploding the UI)
-        query = "MATCH (n)-[r]->(m) RETURN n, r, m LIMIT 200"
+        # Use OPTIONAL MATCH to get at least nodes if no relationships exist
+        query = "MATCH (n) OPTIONAL MATCH (n)-[r]->(m) RETURN n, r, m LIMIT 200"
         results, meta = db.cypher_query(query)
 
         nodes = {}
