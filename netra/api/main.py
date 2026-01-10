@@ -998,12 +998,12 @@ async def predict_shadow_it():
              return {"predicted_edges": [], "status": "Graph database not connected"}
 
         query = """
-        MATCH (h1:Host)-[:OPEN_ON]->(p:Port)<-[:OPEN_ON]-(h2:Host)
-        WHERE id(h1) < id(h2)
+        MATCH (h1:IPAddress)-[:EXPOSES]->(p:Service)<-[:EXPOSES]-(h2:IPAddress)
+        WHERE h1.ip < h2.ip
         WITH h1, h2, count(p) as shared_ports, collect(p.port) as common_ports
-        MATCH (h1)-[:OPEN_ON]->(p1:Port)
+        MATCH (h1)-[:EXPOSES]->(p1:Service)
         WITH h1, h2, shared_ports, common_ports, count(p1) as total_ports_h1
-        MATCH (h2)-[:OPEN_ON]->(p2:Port)
+        MATCH (h2)-[:EXPOSES]->(p2:Service)
         WITH h1, h2, shared_ports, common_ports, total_ports_h1, count(p2) as total_ports_h2
         
         // Calculate Jaccard Similarity for Ports: (Intersection / Union)
