@@ -1,5 +1,5 @@
 # Stage 1: Go Builder (TurboScan)
-FROM golang:1.21 AS go-builder
+FROM golang:1.25 AS go-builder
 WORKDIR /app
 COPY scout/go.mod scout/main.go ./
 # If go.sum exists, copy it too. For now ignore.
