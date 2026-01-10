@@ -5,7 +5,7 @@ COPY scout/go.mod scout/main.go ./
 RUN go mod tidy && go build -o scout_bin main.go
 
 # Stage 2: Rust Builder (LogCruncher)
-FROM rust:1.75-slim AS rust-builder
+FROM rust:1.92-slim AS rust-builder
 WORKDIR /app
 COPY guard/ .
 RUN cargo build --release
