@@ -625,6 +625,11 @@ async def run_scan_task(scan_id: int):
             if opts.get("TurboScan", False): 
                 from netra.core.modules.go_bridge import GoScanner
                 v_engine.register_scanner(GoScanner())
+            
+            # Phase 6: The Ghost (C++)
+            if opts.get("ghost", False):
+                from netra.core.modules.cpp_bridge import GhostScanner
+                v_engine.register_scanner(GhostScanner())
 
             # Sprint 3: LogCruncher (Rust)
             if opts.get("LogCruncher", False):
