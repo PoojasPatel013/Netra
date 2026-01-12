@@ -267,8 +267,43 @@
              feed.prepend(p);
         }
 
-        // Start
+        // Initialize Graph
         initGraph();
+
+        // --- ML Insights Integration ---
+        async function fetchML() {
+            try {
+                const token = localStorage.getItem('netra_token');
+                if (!token) return;
+
+                const res = await fetch('/api/ml/insight', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                
+                // 1. Critical Topology
+                if (data.topology && data.topology.critical_nodes) {
+                    data.topology.critical_nodes.forEach(node => {
+                        logInsight(`CRITICAL NODE DETECTED: [${node.node}] Centrality: ${node.centrality_score}. Point of Failure.`);
+                    });
+                }
+
+                // 2. Risk Clustering
+                if (data.clustering && data.clustering.clusters) {
+                   const highRisk = data.clustering.clusters["High Risk (Critical)"] || [];
+                   if (highRisk.length > 0) {
+                        logInsight(`CLUSTER ANALYSIS: ${highRisk.length} scans identified as High Risk pattern.`);
+                   }
+                }
+
+            } catch (e) {
+                console.error("ML Fetch Error", e);
+            }
+        }
+
+        // Poll ML Engine every 10s
+        setInterval(fetchML, 10000);
+        fetchML(); // Initial Call
         
         // Handle Resize
         window.addEventListener('resize', initGraph);

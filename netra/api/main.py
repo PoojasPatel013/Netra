@@ -311,7 +311,34 @@ async def predict_zombie(request: Request):
                 {"path": c, "commentary": comment, "confidence": 0.95}
             )  # Mock confidence for now
 
+            results.append(
+                {"path": c, "commentary": comment, "confidence": 0.95}
+            )  # Mock confidence for now
+
     return {"positives": results}
+
+from netra.ml.brain import NetraBrain
+ml_brain = NetraBrain()
+
+@app.get("/api/ml/insight")
+async def get_ml_insight(session: AsyncSession = Depends(get_session)):
+    """
+    Triggers 'Software 2.0' analysis: Clustering + Graph Centrality.
+    """
+    # 1. Fetch Scans for Clustering
+    result = await session.execute(select(Scan).limit(200)) # Limit for performance
+    scans = result.scalars().all()
+    
+    clustering_results = ml_brain.cluster_risks(scans)
+    
+    # 2. Fetch Graph for Topology
+    graph_data = await get_graph_data()
+    topology_results = ml_brain.analyze_topology(graph_data.get("nodes", []), graph_data.get("links", []))
+    
+    return {
+        "clustering": clustering_results,
+        "topology": topology_results
+    }
 
     retries = 5
     wait = 2
