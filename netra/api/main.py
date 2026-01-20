@@ -144,7 +144,7 @@ async def get_current_user(
     return user
 
 
-@app.post("/auth/register", response_model=Token)
+@app.post("/auth/register", response_model=Token, tags=["Authentication"])
 async def register(
     form_data: OAuth2PasswordRequestForm = Depends(),
     session: AsyncSession = Depends(get_session),
@@ -166,7 +166,7 @@ async def register(
     return {"access_token": access_token, "token_type": "bearer"}
 
 
-@app.post("/token", response_model=Token)
+@app.post("/token", response_model=Token, tags=["Authentication"])
 async def login_for_access_token(
     form_data: OAuth2PasswordRequestForm = Depends(),
     session: AsyncSession = Depends(get_session),
@@ -191,7 +191,7 @@ async def login_for_access_token(
     return {"access_token": access_token, "token_type": "bearer"}
 
 
-@app.get("/users/me")
+@app.get("/users/me", tags=["Users"])
 async def read_users_me(current_user: User = Depends(get_current_user)):
     return {
         "username": current_user.username,
@@ -200,7 +200,7 @@ async def read_users_me(current_user: User = Depends(get_current_user)):
     }
 
 
-@app.put("/users/me/preferences")
+@app.put("/users/me/preferences", tags=["Users"])
 async def update_user_preferences(
     prefs: dict,
     current_user: User = Depends(get_current_user),
@@ -215,7 +215,7 @@ async def update_user_preferences(
 # Catch-all for SPA (must be last)
 
 
-@app.post("/api/scan")
+@app.post("/api/scan", tags=["Scans"])
 async def trigger_v2_scan(request: ScanRequest):
     """
     v2 Endpoint: Pushes target to Redis Stream for Distributed Scanning.
@@ -235,7 +235,7 @@ async def trigger_v2_scan(request: ScanRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@app.get("/debug/ml-status")
+@app.get("/debug/ml-status", tags=["Debug"])
 async def debug_ml_status():
     global ML_MODEL
     buckets = []
@@ -292,7 +292,7 @@ async def on_startup():
     ZombieHunter.load_model(minio_client)
 
 
-@app.post("/internal/ml/predict-zombie")
+@app.post("/internal/ml/predict-zombie", tags=["Intelligence"])
 async def predict_zombie(request: Request):
     """
     Internal Endpoint: Used by Ruby Scanners to access Python ML Models.
@@ -320,7 +320,7 @@ async def predict_zombie(request: Request):
 from netra.ml.brain import NetraBrain
 ml_brain = NetraBrain()
 
-@app.get("/api/ml/insight")
+@app.get("/api/ml/insight", tags=["Intelligence"])
 async def get_ml_insight(session: AsyncSession = Depends(get_session)):
     """
     Triggers 'Software 2.0' analysis: Clustering + Graph Centrality.
@@ -356,7 +356,7 @@ async def get_ml_insight(session: AsyncSession = Depends(get_session)):
                 raise e
 
 
-@app.get("/debug/fs")
+@app.get("/debug/fs", tags=["Debug"])
 async def debug_fs():
     """Temporary debug endpoint to inspect container filesystem"""
     try:
@@ -720,7 +720,7 @@ async def run_scan_task(scan_id: int):
             await session.commit()
 
 
-@app.post("/scans", response_model=ScanRead)
+@app.post("/scans", response_model=ScanRead, tags=["Scans"])
 async def create_scan(
     scan_in: ScanCreate,
     background_tasks: BackgroundTasks,
@@ -756,7 +756,7 @@ async def create_scan(
     return scan
 
 
-@app.get("/scans", response_model=List[ScanRead])
+@app.get("/scans", response_model=List[ScanRead], tags=["Scans"])
 async def list_scans(
     offset: int = 0,
     limit: int = 100,
@@ -772,7 +772,7 @@ async def list_scans(
     return scans
 
 
-@app.get("/scans/{scan_id}", response_model=ScanRead)
+@app.get("/scans/{scan_id}", response_model=ScanRead, tags=["Scans"])
 async def read_scan(
     scan_id: int,
     session: AsyncSession = Depends(get_session),
@@ -788,7 +788,7 @@ async def read_scan(
     return scan
 
 
-@app.delete("/scans/{scan_id}")
+@app.delete("/scans/{scan_id}", tags=["Scans"])
 async def delete_scan(
     scan_id: int,
     session: AsyncSession = Depends(get_session),
@@ -826,7 +826,7 @@ from neomodel import config
 config.DATABASE_URL = os.getenv("NEO4J_URL", "bolt://neo4j:password_change_me@neo4j:7687")
 
 
-@app.get("/api/graph")
+@app.get("/api/graph", tags=["Graph"])
 async def get_graph_data():
     """
     Returns the Knowledge Graph (Nodes & Edges) for visualization.
@@ -884,7 +884,7 @@ class TagRequest(BaseModel):
     tag: str
 
 
-@app.post("/api/graph/tag")
+@app.post("/api/graph/tag", tags=["Graph"])
 async def tag_graph_node(
     req: TagRequest, current_user: User = Depends(get_current_user)
 ):
@@ -917,7 +917,7 @@ async def tag_graph_node(
         return {"nodes": [], "links": []}
 
 
-@app.get("/api/assets")
+@app.get("/api/assets", tags=["Assets"])
 async def get_assets_inventory():
     """
     Returns a flattened inventory of all discovered assets.
@@ -962,7 +962,7 @@ async def get_assets_inventory():
         print(f"Asset Query Error: {e}")
 
 
-@app.get("/api/vulnerabilities")
+@app.get("/api/vulnerabilities", tags=["Vulnerabilities"])
 async def get_all_vulnerabilities(
     limit: int = 100, session: AsyncSession = Depends(get_session)
 ):
@@ -1018,7 +1018,7 @@ async def delete_asset(asset_id: int):
         raise HTTPException(status_code=500, detail="Failed to delete asset")
 
 
-@app.get("/api/graph/predict")
+@app.get("/api/graph/predict", tags=["Intelligence"])
 async def predict_shadow_it():
     """
     Predicts 'Shadow IT' links using Behavioral Similarity Analysis (Lightweight AI).
@@ -1075,7 +1075,7 @@ async def predict_shadow_it():
         print(f"Prediction Error: {e}")
         return {"predictions": [], "error": str(e)}
 
-@app.get("/api/stats")
+@app.get("/api/stats", tags=["Dashboard"])
 async def get_stats(
     session: AsyncSession = Depends(get_session),
     current_user: User = Depends(get_current_user),
