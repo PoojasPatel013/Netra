@@ -56,21 +56,24 @@ MINIO_SECRET_KEY = os.getenv("MINIO_SECRET_KEY", "minioadmin_change_me")
 MAX_MODEL_SIZE_MB = 100
 
 minio_client = None
-try:
-    from minio import Minio
+if os.getenv("MINIO_ENABLED", "true").lower() == "true":
+    try:
+        from minio import Minio
 
-    minio_client = Minio(
-        MINIO_URL,
-        access_key=MINIO_ACCESS_KEY,
-        secret_key=MINIO_SECRET_KEY,
-        secure=False,
-    )
-except ImportError:
-    print(
-        "WARNING: 'minio' library not found. Data Lake disabled. Run 'docker compose up --build'."
-    )
-except Exception as e:
-    print(f"MinIO Init Failed: {e}")
+        minio_client = Minio(
+            MINIO_URL,
+            access_key=MINIO_ACCESS_KEY,
+            secret_key=MINIO_SECRET_KEY,
+            secure=False,
+        )
+    except ImportError:
+        print(
+            "WARNING: 'minio' library not found. Data Lake disabled. Run 'docker compose up --build'."
+        )
+    except Exception as e:
+        print(f"MinIO Init Failed: {e}")
+else:
+    print("INFO: MinIO Data Lake disabled by configuration (Lite Mode).")
 
 # Global ML Model (Inference)
 from netra.core.neograph import NeoGraph
@@ -269,7 +272,14 @@ async def on_startup():
         print(f"DEBUG: STATIC_DIR DOES NOT EXIST at {STATIC_DIR}")
 
     # Phase 3.2: Load ML Model (if exists in MinIO)
+    # Phase 3.2: Load ML Model (if exists in MinIO)
     global ML_MODEL
+    
+    # Check for Heuristic Mode (Lite Mode)
+    if os.getenv("ML_MODE") == "heuristic":
+        print("INFO: ML Engine running in HEURISTIC ONLY mode (Lite Mode).")
+        return
+
     if minio_client:
         try:
             if minio_client.bucket_exists("ml-models"):
