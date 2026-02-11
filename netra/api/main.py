@@ -147,6 +147,15 @@ async def get_current_user(
     return user
 
 
+def require_admin(current_user: User = Depends(get_current_user)):
+    """
+    Dependency to ensure the user has 'admin' role.
+    """
+    if current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="Admin privileges required")
+    return current_user
+
+
 @app.post("/auth/register", response_model=Token, tags=["Authentication"])
 async def register(
     form_data: OAuth2PasswordRequestForm = Depends(),
@@ -735,7 +744,7 @@ async def create_scan(
     scan_in: ScanCreate,
     background_tasks: BackgroundTasks,
     session: AsyncSession = Depends(get_session),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_admin), # RBAC: Only Admins can scan
 ):
     scan = Scan(
         target=scan_in.target,
@@ -802,7 +811,7 @@ async def read_scan(
 async def delete_scan(
     scan_id: int,
     session: AsyncSession = Depends(get_session),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_admin),  # RBAC: Only Admins can delete
 ):
     scan = await session.get(Scan, scan_id)
     if not scan:
@@ -815,6 +824,93 @@ async def delete_scan(
     session.delete(scan)
     await session.commit()
     return {"ok": True}
+
+
+@app.get("/scans/{scan_id}/export", tags=["Scans"])
+async def export_scan_report(
+    scan_id: int,
+    session: AsyncSession = Depends(get_session),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Generates a PDF Audit Report for the given scan.
+    """
+    result = await session.execute(select(Scan).where(Scan.id == scan_id))
+    scan = result.scalars().first()
+
+    if not scan:
+        raise HTTPException(status_code=404, detail="Scan not found")
+        
+    # Check permissions
+    if scan.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Not authorized")
+
+    # Generate PDF
+    from netra.core.reporting.pdf import create_scan_pdf
+    from fastapi.responses import Response
+
+    # Convert SQLModel to dict for the generator
+    scan_data = scan.dict()
+    # Ensure nested JSON fields are pure dicts
+    if scan.results:
+        scan_data["results"] = scan.results
+        
+    pdf_bytes = create_scan_pdf(scan_data)
+    
+    filename = f"Netra_Audit_{scan.target}_{scan.id}.pdf"
+    
+    return Response(
+        content=pdf_bytes,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )
+
+
+class TriageUpdate(SQLModel):
+    finding_hash: str
+    status: str  # OPEN, FIXED, FALSE_POSITIVE
+    note: Optional[str] = None
+
+
+@app.post("/scans/{scan_id}/triage", tags=["Scans"])
+async def update_triage_status(
+    scan_id: int,
+    triage: TriageUpdate,
+    session: AsyncSession = Depends(get_session),
+    current_user: User = Depends(require_admin), # RBAC: Only Admins can triage
+):
+    """
+    Updates the triage status of a specific finding in a scan.
+    """
+    result = await session.execute(select(Scan).where(Scan.id == scan_id))
+    scan = result.scalars().first()
+
+    if not scan:
+        raise HTTPException(status_code=404, detail="Scan not found")
+
+    # Check permissions
+    if scan.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Not authorized")
+
+    # Initialize if None
+    if scan.triage_data is None:
+        scan.triage_data = {}
+    
+    # Update logic (Need to copy dict to trigger SQLModel/SQLAlchemy change tracking)
+    new_data = scan.triage_data.copy()
+    new_data[triage.finding_hash] = {
+        "status": triage.status,
+        "note": triage.note,
+        "updated_at": datetime.utcnow().isoformat(),
+        "user": current_user.username
+    }
+    scan.triage_data = new_data
+    
+    session.add(scan)
+    await session.commit()
+    await session.refresh(scan)
+    
+    return {"ok": True, "triage_data": scan.triage_data}
 
     if not scan.results:
         return {"error": "Scan has no results yet"}

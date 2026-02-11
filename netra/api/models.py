@@ -11,6 +11,7 @@ class Scan(SQLModel, table=True):
     created_at: datetime = Field(default_factory=datetime.utcnow)
     options: Dict[str, Any] = Field(default={}, sa_column=Column(JSON))
     results: Dict[str, Any] = Field(default={}, sa_column=Column(JSON))
+    triage_data: Dict[str, Any] = Field(default={}, sa_column=Column(JSON))
     risk_score: int = Field(default=0)
     risk_source: str = Field(default="Heuristic")
     user_id: Optional[int] = Field(default=None, foreign_key="user.id")
@@ -39,4 +40,5 @@ class User(SQLModel, table=True):
     hashed_password: str
     disabled: bool = False
     created_at: datetime = Field(default_factory=datetime.utcnow)
+    role: str = Field(default="admin")  # admin, viewer
     preferences: Dict[str, Any] = Field(default={}, sa_column=Column(JSON))

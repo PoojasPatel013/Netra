@@ -446,9 +446,24 @@
 
                                 <!-- Vuln List -->
                                 <template x-for="v in results?.ThreatScanner?.vulnerabilities || []">
-                                    <div class="border-l-4 border-red-500 pl-4 py-1">
-                                        <h4 class="font-bold text-red-500" x-text="v.type"></h4>
-                                        <p class="text-slate-400 text-xs" x-text="v.details"></p>
+                                    <div class="border-l-4 pl-4 py-1 flex justify-between items-start"
+                                        :class="getTriageStatus(v) === 'FIXED' ? 'border-green-500 opacity-50' : (getTriageStatus(v) === 'FALSE_POSITIVE' ? 'border-slate-500 opacity-50' : 'border-red-500')">
+
+                                        <div>
+                                            <h4 class="font-bold"
+                                                :class="getTriageStatus(v) === 'FIXED' ? 'text-green-500 line-through' : (getTriageStatus(v) === 'FALSE_POSITIVE' ? 'text-slate-500 line-through' : 'text-red-500')"
+                                                x-text="v.type"></h4>
+                                            <p class="text-slate-400 text-xs" x-text="v.details"></p>
+                                        </div>
+
+                                        <button @click="cycleTriageStatus(v)"
+                                            class="text-[10px] font-bold px-2 py-1 rounded border transition-colors uppercase"
+                                            :class="{
+                                                'border-red-500 text-red-500 hover:bg-red-500 hover:text-white': getTriageStatus(v) === 'OPEN',
+                                                'border-green-500 text-green-500 hover:bg-green-500 hover:text-white': getTriageStatus(v) === 'FIXED',
+                                                'border-slate-500 text-slate-500 hover:bg-slate-500 hover:text-white': getTriageStatus(v) === 'FALSE_POSITIVE'
+                                            }" x-text="getTriageStatus(v)">
+                                        </button>
                                     </div>
                                 </template>
 
@@ -497,10 +512,16 @@
                                     </div>
                                 </div>
 
-                                <div x-show="results" class="mt-4 pt-4 border-t border-slate-700 flex justify-end">
+                                <div x-show="results"
+                                    class="mt-4 pt-4 border-t border-slate-700 flex justify-end gap-2">
                                     <button @click="downloadResults()"
                                         class="text-xs font-bold uppercase hover:text-radium-500 flex items-center gap-2">
                                         <i data-lucide="download" class="w-4 h-4"></i> Export JSON
+                                    </button>
+                                    <button
+                                        @click="if(results.id) window.open('/api/scans/' + results.id + '/export', '_blank')"
+                                        class="text-xs font-bold uppercase text-radium-600 hover:text-radium-500 flex items-center gap-2 border border-radium-600 px-2 py-1 rounded hover:bg-radium-600 hover:text-black transition-all">
+                                        <i data-lucide="file-text" class="w-4 h-4"></i> DOWNLOAD PDF REPORT
                                     </button>
                                 </div>
                             </div>
@@ -544,6 +565,9 @@
                                         <button @click="loadScanForInvestigation(s)"
                                             class="text-blue-400 hover:text-blue-300 font-bold text-xs uppercase underline">View
                                             Intel</button>
+                                        <button @click="window.open('/api/scans/' + s.id + '/export', '_blank')"
+                                            class="text-green-400 hover:text-green-300" title="Download Report"><i
+                                                data-lucide="file-text" class="w-4 h-4"></i></button>
                                         <button @click="deleteScan(s.id)" class="text-red-400 hover:text-red-300"><i
                                                 data-lucide="trash-2" class="w-4 h-4"></i></button>
                                     </td>
@@ -934,7 +958,11 @@
                     try {
                         const res = await fetch(`/scans/${scanStub.id}`, { headers: { 'Authorization': `Bearer ${token}` } });
                         const fullData = await res.json();
-                        this.results = fullData.results; // Update global results for Dashboard view
+                        const fullData = await res.json();
+                        this.results = fullData.results;
+                        this.results.id = fullData.id; // Attach ID
+                        this.results._triage = fullData.triage_data || {}; // Attach Triage Data
+
                         this.updateCharts(fullData);
                     } catch (e) { }
                 },
@@ -1078,6 +1106,10 @@
                                 if (d.status === 'completed') {
                                     clearInterval(interval);
                                     this.results = d.results;
+                                    // Inject ID and Triage Data into results for UI access
+                                    this.results.id = d.id;
+                                    this.results._triage = d.triage_data || {};
+
                                     this.scanning = false;
                                     this.scanStatus = 'COMPLETED';
                                     this.fetchStats();
@@ -1325,7 +1357,62 @@
                         })
                         .catch(e => console.error("Graph Error:", e));
                 }
-            };
+            },
+
+                // --- Triage Logic ---
+                getFindingHash: function(v) {
+                    // Simple hash from type + details
+                    const str = (v.type || '') + (v.details || '');
+                    let hash = 0;
+                    for (let i = 0; i < str.length; i++) {
+                        const char = str.charCodeAt(i);
+                        hash = (hash << 5) - hash + char;
+                        hash = hash & hash; // Convert to 32bit integer
+                    }
+                    return "v" + Math.abs(hash);
+                },
+
+            getTriageStatus: function(v) {
+                if (!this.results || !this.results_triage) {
+                    // Fallback: Check if results has triage_data (it might be nested differently depending on API)
+                    // Actually, let's look at where we store data. 
+                    // loadScanForInvestigation sets `this.results = fullData.results`.
+                    // We need to capture `triage_data` separately or attach it.
+                    // Let's attach it to `results._triage` for easier access if not present.
+                    if (this.results && this.results._triage) return this.results._triage[this.getFindingHash(v)]?.status || 'OPEN';
+                    return 'OPEN';
+                }
+                return this.results_triage[this.getFindingHash(v)]?.status || 'OPEN';
+            },
+
+            cycleTriageStatus: async function(v) {
+                if (!this.results || !this.results.id) return; // Need scan ID
+
+                const hash = this.getFindingHash(v);
+                const current = this.getTriageStatus(v);
+                const nextMap = { 'OPEN': 'FIXED', 'FIXED': 'FALSE_POSITIVE', 'FALSE_POSITIVE': 'OPEN' };
+                const nextStatus = nextMap[current];
+
+                // Optimistic Update
+                if (!this.results._triage) this.results._triage = {};
+                this.results._triage[hash] = { status: nextStatus, note: 'Updated via UI' };
+                // Force refresh (Alpine might not detect deep change)
+                this.results = { ...this.results };
+
+                // API Call
+                const token = localStorage.getItem('netra_token');
+                try {
+                    await fetch(`/api/scans/${this.results.id}/triage`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                        body: JSON.stringify({ finding_hash: hash, status: nextStatus })
+                    });
+                } catch (e) {
+                    console.error("Triage Failed", e);
+                    // Revert?
+                }
+            }
+        };
         }
 
 
